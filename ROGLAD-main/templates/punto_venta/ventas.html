@@ -1,0 +1,191 @@
+{% extends 'punto_venta/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+                
+{% block content %}
+
+{% if ventas|length == 0 %}    
+<p class="flex justify-center font-bold text-xl mt-12 text-gray-800 dark:text-gray-100">
+    <svg class="w-6 h-6 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.143 17.082a24.248 24.248 0 003.844.148m-3.844-.148a23.856 23.856 0 01-5.455-1.31 8.964 8.964 0 002.3-5.542m3.155 6.852a3 3 0 005.667 1.97m1.965-2.277L21 21m-4.225-4.225a23.81 23.81 0 003.536-1.003A8.967 8.967 0 0118 9.75V9A6 6 0 006.53 6.53m10.245 10.245L6.53 6.53M3 3l3.53 3.53"></path>
+    </svg>
+    No hay ventas realizadas
+</p>
+{% else %}
+<div class="h-full w-full  flex flex-col items-center">
+    <div class="overflow-auto h-full bg-white w-full">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="">
+                <tr class="text-xs text-gray-700 bg-gray-200 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                    <th scope="col" class="px-6 py-3 truncate"> Producto </th>
+                    <th scope="col" class="px-6 py-3"> Medida</th>
+                    <th scope="col" class="px-6 py-3"> Cantidad</th> 
+                    <th scope="col" class="px-6 py-3"> Monto</th> 
+                    <th scope="col" class="px-6 py-3"> Cuenta</th> 
+                    <th scope="col" class="px-6 py-3"> Estado</th> 
+                    <th scope="col" class="px-6 py-3 truncate"> Trabajador </th>
+                    <th scope="col" class="px-6 py-3 truncate"> Hora </th>
+                    <th scope="col" class="px-6 py-3 truncate"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for venta in ventas %}
+                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    {% if venta.producto %}
+                    <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                        
+                        {% if venta.producto.img %}
+                        <img class="rounded-full w-10 h-10" src="{{venta.producto.img}}" alt="" />
+                        {% else %}
+                        <p class="rounded-full w-10 h-10 flex items-center justify-center font-bold text-md text-gray-600 bg-gray-100">{{ venta.producto.nombre.0 }}{{ venta.producto.nombre.1 }}<p>
+                        {% endif %}
+                        
+                        {% if venta.formula_id %}
+                        <div class="text-base font-semibold truncate ml-4">{{ venta.formula.producto.nombre }}</div>
+                        {% else %}
+                        <div class="text-base font-semibold truncate ml-4">{{ venta.producto.nombre }}</div>
+                        {% endif %}
+                    </th>
+                    <td class="px-6 py-4 truncate">{{ venta.producto.medida }}</td>
+                    {% else %}
+                    <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 p-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-full h-full" viewBox="0 0 2048 2048">
+                                <path fill="#000000" d="m1344 2l704 352v785l-128-64V497l-512 256v258l-128 64V753L768 497v227l-128-64V354L1344 2zm0 640l177-89l-463-265l-211 106l497 248zm315-157l182-91l-497-249l-149 75l464 265zm-507 654l-128 64v-1l-384 192v455l384-193v144l-448 224L0 1735v-676l576-288l576 288v80zm-640 710v-455l-384-192v454l384 193zm64-566l369-184l-369-185l-369 185l369 184zm576-1l448-224l448 224v527l-448 224l-448-224v-527zm384 576v-305l-256-128v305l256 128zm384-128v-305l-256 128v305l256-128zm-320-288l241-121l-241-120l-241 120l241 121z"/>
+                            </svg>
+                        </div> 
+                        <div class="text-base font-semibold truncate ml-4">{{ venta.formula.nombre }}</div> 
+                    </th>
+                    <td class="px-6 py-4 truncate">{{ venta.formula.medida }}</td>
+                    {% endif %}
+
+
+                    <td class="px-6 py-4 truncate">{{ venta.cantidad }}</td>
+                    <td class="px-6 py-4 truncate">${{ venta.monto|toMoney }}</td>
+                    <td class="px-6 py-4 truncate">{{ venta.cuenta.nombre|nullToBlank }}</td>
+                    {% if venta.cuenta.abierta %}<td class="px-6 py-4 truncate text-red-600 font-bold">Por pagar{% else %}<td class="px-6 py-4 truncate text-green-600 font-bold">Pagado{% endif %}</td>
+                    <td class="px-6 py-4 truncate">{{ venta.cuenta.user }}</td>
+                    <td class="px-6 py-4 truncate">{{ venta.instante }}</td>
+                    <td class="px-6 py-4 truncate">
+                        {% if venta.cancelable and ventas_delete %}
+                        
+                        {% if venta.producto %}
+                            <button type="button" class="text-red-500 px-1 material-icons text-md" 
+                            onclick="setDataVentaDelete('{{ venta.producto.img }}','{{ venta.producto.nombre }}','{{ venta.cuenta.nombre|nullToBlank }}','{{ venta.instante }}','{{ venta.cantidad }} {{ venta.producto.medida }}', '{{ venta.monto }}',
+                            {% if venta.cuenta.abierta %}'Por pagar'{% else %}'Pagado'{% endif %},{{ venta.id }},'{{venta.producto_solicitado_cosina.all.0.id}}')" 
+                            data-modal-target="cencel-venta" data-modal-toggle="cencel-venta">delete_outline</button>
+                        {% else %}
+                            <button type="button" class="text-red-500 px-1 material-icons text-md" 
+                            onclick="setDataVentaDelete(null,'{{ venta.formula.nombre }}','{{ venta.cuenta.nombre|nullToBlank }}','{{ venta.instante }}','{{ venta.cantidad }} {{ venta.formula.medida }}', '{{ venta.monto }}',
+                            {% if venta.cuenta.abierta %}'Por pagar'{% else %}'Pagado'{% endif %},{{ venta.id }},'{{venta.producto_solicitado_cosina.all.0.id}}')" 
+                            data-modal-target="cencel-venta" data-modal-toggle="cencel-venta">delete_outline</button>
+                        {% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Default Modal -->
+<div id="cencel-venta" tabindex="-1" data-modal-backdrop="static" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative  w-auto max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <!-- Modal header -->
+            <div class="flex flex-col items-center justify-start p-3 border-b rounded-t dark:border-gray-600">
+                <div class="flex items-top w-full justify-between">
+                    <h3 class="text-xl font-medium text-gray-900 dark:text-white">
+                        ¿Se encuentra seguro de deshacer la siguiente venta?
+                    </h3>
+                    <button type="button" class="ml-4 h-8 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="cencel-venta" id="close-modal-products">
+                        <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                        <span class="sr-only">Close modal</span> 
+                    </button>
+                </div>
+            </div>
+            <!-- Modal body -->
+            <div class="px-2 pt-6 lg:px-12">
+                <div class="flex items-center pb-4 px-4 justify-between border-b">
+                    <div class="flex flex-col items-center">
+                        <span class="w-full font-bold mb-2">Producto:</span>
+                        <div class="flex items-center">
+                            <img class="w-8 h-8 rounded-full" src="" alt="" id="img-delete">
+                            
+                            <div class="w-10 h-10 rounded-full bg-gray-100 p-2" id="img-compuesto-delete">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-full h-full" viewBox="0 0 2048 2048">
+                                    <path fill="#000000" d="m1344 2l704 352v785l-128-64V497l-512 256v258l-128 64V753L768 497v227l-128-64V354L1344 2zm0 640l177-89l-463-265l-211 106l497 248zm315-157l182-91l-497-249l-149 75l464 265zm-507 654l-128 64v-1l-384 192v455l384-193v144l-448 224L0 1735v-676l576-288l576 288v80zm-640 710v-455l-384-192v454l384 193zm64-566l369-184l-369-185l-369 185l369 184zm576-1l448-224l448 224v527l-448 224l-448-224v-527zm384 576v-305l-256-128v305l256 128zm384-128v-305l-256 128v305l256-128zm-320-288l241-121l-241-120l-241 120l241 121z"/>
+                                </svg>
+                            </div> 
+
+                            <span class="font-semibold ml-4" id="nombre-delete"></span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-bold mb-2">Cliente:</span>
+                        <span class="font-semibold mb-2" id="cliente-delete"></span>
+                    </div>
+                </div>
+                <div class="flex flex-col py-4 border-b px-4">
+                    <span class="font-bold mb-2">Fecha:</span>
+                    <span class="font-semibold mb-2" id="date-delete"></span>
+                </div>
+                <div class="flex items-center py-4 px-4 justify-between">
+                    <div class="flex flex-col pb-4">
+                        <span class="font-bold mb-2">Cantidad:</span>
+                        <span class="font-semibold mb-2" id="cant-delete"></span>
+                    </div>
+                    <div class="flex flex-col pb-4">
+                        <span class="font-bold mb-2">Monto:</span>
+                        <span class="font-semibold mb-2" id="monto-delete"></span>
+                    </div>
+                    <div class="flex flex-col pb-4">
+                        <span class="font-bold mb-2">Estado:</span>
+                        <span class=" font-semibold mb-2" id="estado-delete"></span>
+                    </div>
+                </div>
+            </div>
+            <form method="post" class="flex space-x-5 p-4">
+                {% csrf_token %}
+                <input type="number" step="0.01" step-my  class="hidden" name="id-venta-delete" id="id-venta-delete"/>
+                <input class="hidden" name="id-solicitud" id="id-solicitud"/>
+                <button data-modal-hide="cencel-venta" type="button" class="w-full text-gray-700 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">Cancelar</button>
+                <button type="submit" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center">Aceptar</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock content %}
+
+
+{% block scripts %}
+<script>
+
+    function setDataVentaDelete(img,nombre,cliente,date,cant,monto,estado,id,id_solicitud){
+        console.log(id)
+        if(img){
+            document.getElementById("img-delete").classList.remove("hidden")
+            document.getElementById("img-compuesto-delete").classList.add("hidden")
+            document.getElementById("img-delete").setAttribute("src",img);
+        }else{
+            document.getElementById("img-delete").classList.add("hidden")
+            document.getElementById("img-compuesto-delete").classList.remove("hidden")
+        }
+
+        document.getElementById("id-venta-delete").value = id;
+        document.getElementById("id-solicitud").value = id_solicitud;
+        document.getElementById("nombre-delete").innerText = nombre;
+        document.getElementById("cliente-delete").innerText = cliente;
+        document.getElementById("date-delete").innerText = date;
+        document.getElementById("cant-delete").innerText = cant;
+        document.getElementById("monto-delete").innerText = monto;
+        document.getElementById("estado-delete").innerText = estado;
+    }
+
+</script>
+{% endblock scripts %}

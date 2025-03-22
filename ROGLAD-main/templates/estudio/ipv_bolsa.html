@@ -1,0 +1,67 @@
+{% extends 'estudio/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+                
+{% block content %}
+
+
+<div class="relative overflow-x-auto">
+    <div class="flex h-full justify-center">
+        <div class="flex flex-col items-center flex-grow bg-white">
+            <div class="rounded-lg w-full flex items-center justify-center">
+                <div class="w-full h-full">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead>
+                            <tr class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                                <th scope="col" class="px-6 py-3"> Producto</th>
+                                <th scope="col" class="px-6 py-3"> Cantidad</th>
+
+                                {% if request.user.super_permission %}
+                                <th scope="col" class="px-6 py-3"> Costo</th>
+                                <th scope="col" class="px-6 py-3"> Costo por pagar</th>
+                                <th scope="col" class="px-6 py-3"> Fecha de entrada</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in stock %}
+                            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                <th class="px-6 py-3 font-bold"> {{s.producto.nombre}}</th>
+                                <th class="px-6 py-3 font-normal"> {{s.cantidad_actual|parseFloat}} {{s.producto.medida.abreviatura}}</th>
+
+                                {% if request.user.super_permission %}
+                                <th class="px-6 py-3 font-normal"> ${{s.costo|toMoney}}</th>
+                                <th class="px-6 py-3 font-normal"> ${{s.deuda|toMoney}}</th>
+                                <th class="px-6 py-3 font-normal">{{s.alta|date:"d/m/Y"}}</th>
+                                {% endif %}
+
+                            </tr>
+                            {% endfor %}
+
+                            {% if request.user.super_permission %}
+                            <tr class="bg-white border-t border-black">
+                                <th class="pl-6 py-3 font-bold text-black"> Monto total a reponer con contratos</th>
+                                <th class="px-6 py-3 font-normal"></th>
+
+                                <th class="px-6 py-3 font-normal"></th>
+                                <th class="px-6 py-3 font-bold text-black"> ${{reponer.total_reponer|toMoney}}</th>
+                                <th class="px-6 py-3 font-normal"></th>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+
+{% block scripts %}
+<script type = "text/JavaScript">
+</script>
+{% endblock scripts %}

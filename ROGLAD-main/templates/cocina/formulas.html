@@ -1,0 +1,232 @@
+{% extends 'cocina/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+
+{% block content %}
+
+<div class="w-full h-full flex justify-center">
+    <div class="w-full h-full bg-white border overflow-y-auto">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="bg-white">
+                <tr class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400 z-30 sticky top-0">
+                    <th scope="col" class="px-6 py-3 text-center"> Producto </th>
+                    <th scope="col" class="px-6 py-3 text-center"> Descripción </th>
+                    <th scope="col" class="px-6 py-3 text-center"> Categoría</th>
+                    <th scope="col" class="px-6 py-3 text-center"> Disponibilidad</th>
+                    <th scope="col" class="px-6 py-3 text-center"> Medida</th>
+                    <th scope="col" class="px-6 py-3"> </th>
+                </tr>
+            </thead>
+            <tbody id="body-productos-compuestos"  data-accordion="collapse">
+                {% if formulas|length == 0 %}
+                <tr>
+                    <td colspan="6" >
+                        <p class="flex justify-center font-bold text-xl my-6 text-gray-800 dark:text-gray-100">
+                            <svg class="w-6 h-6 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.143 17.082a24.248 24.248 0 003.844.148m-3.844-.148a23.856 23.856 0 01-5.455-1.31 8.964 8.964 0 002.3-5.542m3.155 6.852a3 3 0 005.667 1.97m1.965-2.277L21 21m-4.225-4.225a23.81 23.81 0 003.536-1.003A8.967 8.967 0 0118 9.75V9A6 6 0 006.53 6.53m10.245 10.245L6.53 6.53M3 3l3.53 3.53"></path>
+                            </svg>
+                            No existe stock transferido para elaborar kits
+                        </p>
+                    </td>
+                </tr>
+                {% endif %}
+                {% for formula in formulas %}
+                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"  aria-expanded="false" data-accordion-target="#accordion-collapse-body-{{formula.producto.id}}-{{forloop.counter}}" aria-expanded="true" aria-controls="accordion-collapse-body-{{formula.producto.id}}-{{forloop.counter}}">
+                    <th scope="row" class="flex items-center pl-3 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                        
+                        {% if formula.producto.img %}
+                        <img class="rounded-full w-10 h-10" src="{{formula.producto.img}}" alt="" />
+                        {% else %}
+                        <p class="rounded-full w-10 h-10 flex items-center justify-center font-bold text-md text-gray-600 bg-gray-100">{{ formula.producto.nombre.0 }}{{ formula.producto.nombre.1 }}<p>
+                        {% endif %}
+
+                        <span class="ml-3 text-base font-semibold truncate">{{ formula.producto.nombre }}</span> 
+                    </th>
+                    <td class="px-3 py-4 text-base font-semibold text-center">{{ formula.producto.descripcion }}</td>
+                    <td class="px-3 py-4 text-base font-semibold text-center">{{ formula.producto.categoria|nullToBlank }}</td>
+                    <td class="px-3 py-4 text-base font-semibold text-center">{{ formula.disponibilidad|parseFloat }}</td>
+                    <td class="px-3 py-4 text-base font-semibold text-center">{{ formula.producto.medida|nullToBlank }}</td>
+                    <td class="px-3 py-4 text-base font-semibold text-center">
+                        <button class="truncate flex items-center justify-between px-3 py-1.5 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-300 hover:bg-gray-300 border border-transparent rounded-full focus:outline-none focus:shadow-outline-gray"
+                            data-modal-target="elaboracion-modal" data-modal-toggle="elaboracion-modal" id="btn-elaborar-{{formula.producto.id}}" 
+                            onclick="document.getElementById('tbody-subproductos-elaborar').innerHTML = document.getElementById('tbody-subproductos-{{formula.id}}').innerHTML,
+                            document.getElementById('cantidad_elaborar').value={{formula.disponibilidad|parseFloat}},document.getElementById('cantidad_resultante').value={{formula.disponibilidad|parseFloat}},
+                            document.getElementById('formula-elaborar-id').value={{formula.id}},document.getElementById('transferencia-id').value={{formula.transferencia.id}}">
+                            Elaborar
+                        </button>
+                    </td>
+                </tr>
+                <tr id="accordion-collapse-body-{{formula.producto.id}}-{{forloop.counter}}" class="hidden" aria-labelledby="accordion-collapse-heading-{{formula.producto.id}}">
+                    <td colspan="6" class="p-5 border-b border-gray-200 dark:border-gray-700 dark:bg-gray-900">
+                        <p class="mb-1 text-gray-900 dark:text-gray-200 font-bold text-md">Subproductos:</p>
+                        
+                        <div class="relative overflow-x-auto">
+                            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 border">
+                                <thead>
+                                    <tr class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                                        <th scope="col" class="px-6 py-3">
+                                            Nombre
+                                        </th>
+                                        <th scope="col" class="px-6 py-3">
+                                            Cantidad
+                                        </th>
+                                        <th scope="col" class="px-6 py-3">
+                                            Medida
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-subproductos-{{formula.id}}">
+                                    {% for p in  formula.transferencia.cocinaTransferencia.all %}
+                                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-normal dark:text-white">
+                                            {{p.producto.nombre}}
+                                        </th>
+                                        <td class="px-6 py-4" cantidad-formula={{p.cantidad_actual|parseFloat}}>
+                                            {{p.cantidad_actual|parseFloat}}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            {{p.producto.medida}}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </td>
+                </tr>
+                {% endfor %}
+                
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<!-- Default Modal -->
+<div id="elaboracion-modal" tabindex="-1" data-modal-backdrop="static" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative w-full max-w-lg max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <!-- Modal header -->
+            <div class="flex flex-col items-center justify-start p-3 border-b rounded-t dark:border-gray-600">
+                <div class="flex items-center w-full justify-between">
+                    <h3 class="text-xl font-medium text-gray-900 dark:text-white">
+                        Elaborar producto compuesto
+                    </h3>
+                    <button type="button" onclick="closeElaborar()" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="elaboracion-modal" id="close-modal-products">
+                        <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                        <span class="sr-only">Close modal</span> 
+                    </button>
+                </div>
+            </div>
+            <!-- Modal body -->
+            <form method="POST" class="p-6 space-y-6 max-h-5/6 relative overflow-auto" id="body-productos">
+                <input type="hidden" id="formula-elaborar-id" name="formula-elaborar-id" value="">
+                <input type="hidden" id="transferencia-id" name="transferencia-id" value="">
+                {% csrf_token %}
+                <div class="overflow-auto max-h-72 border">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead>
+                            <tr class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                                <th scope="col" class="px-6 py-3">
+                                    Nombre
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Cantidad
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Medida
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-subproductos-elaborar"></tbody>
+                    </table>
+                </div>
+                <div class="flex space-x-2">
+                    <div class="w-1/2 flex flex-col items-center justify-center">
+                        <p class="text-gray-700 dark:text-gray-400 m-1.5">Cantidad a elaborar</p>
+                        <div class="flex items-center space-x-3">
+                            <input type="number" step="0.01" step-my  id="cantidad_elaborar" name="cantidad_elaborar" readonly class="bg-gray-50 w-32 h-10 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" value="0" step="0.01" required="" oninput="inputChange('cantidad_elaborar')">
+                        </div>
+                    </div>
+                    <div class="w-1/2 flex flex-col items-center justify-center">
+                        <p class="text-gray-700 dark:text-gray-400 m-1.5">Cantidad resultante</p>
+                        <div class="flex items-center space-x-3">
+                            <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="downInput('cantidad_resultante')">
+                                <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                            </button>
+                            <div>
+                                <input type="number" step="0.01" step-my  id="cantidad_resultante" name="cantidad_resultante" class="bg-gray-50 w-24 h-10 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" value="0" step="0.01" required="" onchange="">
+                            </div>
+                            <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="upInput('cantidad_resultante')">
+                                <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex mt-2 px-2" id="content-options">
+                    <button type="button" onclick="closeElaborar()" class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600" id="btn-cancel" data-modal-hide="elaboracion-modal">Cancelar</button>
+                    <button type="submit" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2 " id="btn-accept" onclick="">Elaborar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+
+{% block scripts %}
+<script>
+    
+function inputChange(id){
+    let element = document.getElementById(id);
+    let max = element.getAttribute("max");
+
+    if(parseInt(element.value) > parseInt(max)){
+        element.value = max;
+    } else if(parseInt(element.value) < 0){
+        element.value = 0;
+    }
+}
+
+function upInput(id){
+    let element = document.getElementById(id);
+    let max = element.getAttribute("max");
+    if(max == null || parseInt(element.value) < parseInt(max)){
+        element.value = parseInt(element.value) + 1;
+    } else{
+        element.value = max;
+    }
+}
+
+function downInput(id){
+    let element = document.getElementById(id);
+    if(parseInt(element.value) > 0){
+        element.value = parseInt(element.value) - 1;
+    }
+}
+function closeElaborar() {
+    var url = new URL(window.location.href);
+    var params = new URLSearchParams(url.search);
+    var prodValue = params.get("prod");
+    if (prodValue !== null) {
+        window.location = "/cocina/solicitudes";
+    }
+}
+
+/*window.addEventListener('load', function() {
+    var url = new URL(window.location.href);
+    var params = new URLSearchParams(url.search);
+    var prodValue = params.get("prod");
+    if (prodValue !== null) {
+        document.getElementById(`btn-elaborar-${prodValue}`).click();
+        inputChange('cantidad_elaborar');
+        document.getElementById('cantidad_resultante').value = document.getElementById('cantidad_elaborar').value;
+    }
+})*/
+</script>
+{% endblock scripts %}

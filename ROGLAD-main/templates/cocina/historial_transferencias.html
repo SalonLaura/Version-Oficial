@@ -1,0 +1,430 @@
+{% extends 'cocina/base.html' %}
+{% load static custom_filters%}
+
+{% block styles %}
+{% endblock styles %}
+                
+{% block content %}
+
+
+<div class="flex flex-col justify-center p-12 w-full items-center">
+    
+    <ul class="mb-3 text-sm font-medium text-center text-gray-500 rounded-lg shadow w-full max-w-6xl min-w-5xl flex space-x-1 dark:text-gray-400 p-0.5 bg-white sticky top-1">
+        <li class="w-full">
+            <a href="{% url 'TransferenciaCocina' action='get' %}" 
+            class="{% if 'get' in request.path %}inline-block w-full p-4 text-gray-900 bg-purple-200 rounded-lg focus:ring-0 active focus:outline-none dark:bg-gray-700 dark:text-white{% else %}
+            inline-block w-full p-4 hover:text-gray-700 rounded-lg hover:bg-gray-100 focus:ring-0 focus:outline-none dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700{% endif %}" aria-current="page">Transferencias Recibidas</a>
+        </li>
+        <li class="w-full">
+            <a href="{% url 'TransferenciaCocina' action='post' %}"
+            class="{% if 'post' in request.path %}inline-block w-full p-4 text-gray-900 bg-purple-200 rounded-lg focus:ring-0 active focus:outline-none dark:bg-gray-700 dark:text-white{% else %}
+            inline-block w-full p-4 hover:text-gray-700 rounded-lg hover:bg-gray-100 focus:ring-0 focus:outline-none dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700{% endif %}" aria-current="page">Transferencias Realizadas</a>
+        </li>
+        <li class="w-full">
+            <a href="{% url 'NuevaTransferenciaCocina' %}" class="inline-block w-full p-4 hover:text-gray-700 rounded-lg hover:bg-gray-100 focus:ring-0 focus:outline-none dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700">Nueva Transferencia</a>
+        </li>
+    </ul>
+
+    {% if transferencias|length == 0 %}    
+    <p class="flex justify-center font-bold text-xl mt-12 text-gray-800 dark:text-gray-100">
+        <svg class="w-6 h-6 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.143 17.082a24.248 24.248 0 003.844.148m-3.844-.148a23.856 23.856 0 01-5.455-1.31 8.964 8.964 0 002.3-5.542m3.155 6.852a3 3 0 005.667 1.97m1.965-2.277L21 21m-4.225-4.225a23.81 23.81 0 003.536-1.003A8.967 8.967 0 0118 9.75V9A6 6 0 006.53 6.53m10.245 10.245L6.53 6.53M3 3l3.53 3.53"></path>
+        </svg>
+        {% if 'get' in request.path %}No le han realizado ninguna transferencia{% else %}No ha realizado ninguna transferencia{% endif %}
+    </p>
+    {% endif %}
+    {% for transferencia in transferencias %}
+    <form method="POST" class="flex flex-col w-full max-w-6xl bg-white">
+        {% csrf_token %}
+
+        <div class="flex flex-col bg-white shadow-md">
+            <div class="flex">
+                <span class="w-2/6 border h-full text-md p-2">Entidad: </br>Casa Laura S.R.L.</span>
+                <span class="w-1/6 border h-full text-md p-2">Codigo: </br>50004347244</span>
+                <span class="w-2/6 border h-full text-center p-2 font-bold">SC-2-09 TRANSFERENCIA ENTRE </br> ALMACENES</span>
+                <div class="w-1/6 border flex">
+                    <div class="w-1/3 border flex flex-col">
+                        <span class="border-b h-full text-center font-bold">D</span>
+                        <span class="border-t h-full text-center">{{transferencia.alta|date:"d"}}</span>
+                    </div>
+                    <div class="w-1/3 border flex flex-col">
+                        <span class="border-b h-full text-center font-bold">M</span>
+                        <span class="border-t h-full text-center">{{transferencia.alta|date:"m"}}</span>
+                    </div>
+                    <div class="w-1/3 border flex flex-col">
+                        <span class="border-b h-full text-center font-bold">A</span>
+                        <span class="border-t h-full text-center">{{transferencia.alta|date:"y"}}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex">
+                {% if "C-" in transferencia.emisor %}
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Almacén que entrega </br>{{transferencia.emisor_cosina.nombre}} </span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Dirección </br>{{transferencia.emisor_cosina.direccion}}</span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Código </br>{{transferencia.emisor_cosina.codigo}}</span>
+                {% else %}
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Almacén que entrega </br>{{transferencia.emisor.nombre}} </span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Dirección </br>{{transferencia.emisor.direccion}}</span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Código </br>{{transferencia.emisor.codigo}}</span>
+                {% endif %}
+            </div>
+            <div class="flex">
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Almacén receptor </br>{{transferencia.receptor.nombre}} </span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Dirección </br>{{transferencia.receptor.direccion}}</span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Código </br>{{transferencia.receptor.codigo}}</span>
+            </div>            
+            <div class="flex">
+                <div class="flex w-1/3">
+                    <span class="w-2/6 border h-full text-sm font-semibold text-center">Código</span>
+                    <span class="w-3/6 border h-full text-sm font-semibold text-center">Descripción</span>
+                    <span class="w-1/6 border h-full text-sm font-semibold text-center">U/M</span>
+                </div>
+                <div class="flex w-1/3">
+                    <div class="flex flex-col w-1/2 h-full">
+                        <span class="w-full border h-full text-sm font-semibold text-center">Cantidad</span>
+                        <div class="flex w-full h-full">
+                            <span class="w-1/2 border h-full text-sm font-semibold text-center">Remitida</span>
+                            <span class="w-1/2 border h-full text-sm font-semibold text-center">Recibida</span>
+                        </div>
+                    </div>
+                    <span class="w-1/2 border h-full text-sm font-semibold text-center">Precio Unitario </br> Total o Costo </br> Predeterminado</span>
+                </div>
+                <div class="flex w-1/3">
+                    <div class="flex flex-col w-2/3 h-full">
+                        <span class="w-full border h-full text-sm font-semibold text-center">Importe</span>
+                        <div class="flex w-full h-full">
+                            <span class="w-1/2 border h-full text-sm font-semibold text-center">Productos</br>Remitidos</span>
+                            <span class="w-1/2 border h-full text-sm font-semibold text-center">Productos</br>Recibidos</span>
+                        </div>
+                    </div>
+                    <span class="w-1/3 border h-full text-sm font-semibold text-center">Saldo en </br> Existencia</span>
+                </div>
+            </div>
+            
+            
+            <div class="" id="content-products">
+                
+                {% for prod in transferencia.stock %}
+                <div class="flex">
+                    <div class="flex w-1/3">
+                        <span class="w-2/6 border h-full text-sm flex items-center justify-center">{{ prod.producto.codigo }}</span>
+                        <span class="w-3/6 border h-full text-sm flex items-center justify-center text-center">{{ prod.producto.nombre }}</span>
+                        <span class="w-1/6 border h-full text-sm flex items-center justify-center">{{ prod.producto.medida.abreviatura }}</span>
+                    </div>
+                    
+                    {% if prod.importe_recibido != None %}
+                    <div class="flex w-1/3">
+                        <div class="flex w-1/2 h-full">
+                            <span transferencia="{{transferencia.id}}" class="w-1/2 border h-full text-sm flex items-center justify-center">{{ prod.cantidad_remitida|parseFloat }}</span> 
+                            <span class="w-1/2 border h-full text-sm text-center">{{ prod.cantidad_recibida|parseFloat }}</span>
+                        </div>
+                        <div class="flex w-1/2 h-full">
+                            {% with prod.costo_cup|toMoneyList as costo_cup %}
+                            <span class="w-2/3 border h-full text-sm flex items-center justify-center">-</span>
+                            <span class="w-1/3 border h-full text-sm flex items-center justify-center">-</span>
+                            {% endwith %}
+                        </div>
+                    </div>
+                    <div class="flex w-1/3">
+                        <div class="flex w-2/3 h-full">
+                            <div class="flex w-1/2 h-full">
+                                {% with prod.importe_remitido|toMoneyList as importe_list %}
+                                <span class="w-2/3 border h-full text-sm flex items-center justify-center" id="">-</span>
+                                <span class="w-1/3 border h-full text-sm flex items-center justify-center" id="">-</span>
+                                {% endwith %}
+                            </div>
+                            <div class="flex w-1/2 h-full">
+                                {% if prod.importe_recibido != None %}
+                                {% with prod.importe_recibido|toMoneyList as importe_list %}
+                                <span class="w-2/3 border h-full text-sm flex items-center justify-center" id="">-</span>
+                                <span class="w-1/3 border h-full text-sm  flex items-center justify-center" id="">-</span>
+                                {% endwith %}
+                                {% else %} 
+                                <span class="w-2/3 border h-full text-sm flex items-center justify-center" id="">-</span>
+                                <span class="w-1/3 border h-full text-sm flex items-center justify-center" id="">-</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <span class="w-1/3 border h-full text-sm flex items-center justify-center">-</span>
+                    </div>
+                    {% elif action == "post" %}
+                    <div class="flex w-1/3">
+                        <div class="flex w-1/2 h-full">
+                            <span transferencia="{{transferencia.id}}" class="w-1/2 border h-full text-sm flex items-center justify-center">{{ prod.cantidad_remitida|parseFloat }}</span> 
+                            <span class="w-1/2 border h-full text-sm text-center">-</span>
+                        </div>
+                        <div class="flex w-1/2 h-full">
+                            {% with prod.costo_cup|toMoneyList as costo_cup %}
+                            <span class="w-2/3 border h-full text-sm flex items-center justify-center">-</span>
+                            <span class="w-1/3 border h-full text-sm flex items-center justify-center">-</span>
+                            {% endwith %}
+                        </div>
+                    </div>
+                    <div class="flex w-1/3">
+                        <div class="flex w-2/3 h-full">
+                            <div class="flex w-1/2 h-full">
+                                {% with prod.importe_remitido|toMoneyList as importe_list %}
+                                <span class="w-2/3 border h-full text-sm flex items-center justify-center" id="">-</span>
+                                <span class="w-1/3 border h-full text-sm flex items-center justify-center" id="">-</span>
+                                {% endwith %}
+                            </div>
+                            <div class="flex w-1/2 h-full">
+                                <span class="w-2/3 border h-full text-sm flex items-center justify-center" id="">-</span>
+                                <span class="w-1/3 border h-full text-sm flex items-center justify-center" id="">-</span>
+                            </div>
+                        </div>
+                        <span class="w-1/3 border h-full text-sm flex items-center justify-center">-</span>
+                    </div>
+                    {% else %}
+                    <div class="flex w-1/3">
+                        <div class="flex w-1/2 h-full">
+                            <input type="number" step="0.01" step-my  step="0.01" value={{prod.id}} class="hidden" name="producto-id" >
+                            <span name="cantidad-remitida" transferencia="{{transferencia.id}}" class="w-1/2 border h-full text-sm flex items-center justify-center">{{ prod.cantidad_remitida|parseFloat }}</span> 
+                            <div class="flex w-1/2 border">
+                                <span class="text-red-500">*</span>
+                                <input type="number" step="0.01" step-my  step="0.01" id="cantiad-{{prod.id}}" name="cantidad" class="h-full w-full border-0 text-sm flex items-center text-center justify-center border-gray-100 p-0.5 focus:border-gray-100 focus:ring-0 appearance-none focus:outline-none focus:ring-0" 
+                                oninput="comprobarRecepcion({{transferencia.id}})" transferencia={{transferencia.id}} required>
+                            </div>
+                        </div>
+                        <div class="flex w-1/2 h-full">
+                            {% with prod.costo_cup|toMoneyList as costo_cup %}
+                            <span class="w-2/3 border h-full text-sm flex items-center justify-center">-</span>
+                            <span class="w-1/3 border h-full text-sm flex items-center justify-center">-</span>
+                            {% endwith %}
+                        </div>
+                    </div>
+                    <div class="flex w-1/3">
+                        <div class="flex w-2/3 h-full">
+                            <div class="flex w-1/2 h-full">
+                                {% with prod.importe_remitido|toMoneyList as importe_list %}
+                                <span class="w-2/3 border h-full text-sm flex items-center justify-center" id="">-</span>
+                                <span class="w-1/3 border h-full text-sm flex items-center justify-center" id="">-</span>
+                                {% endwith %}
+                            </div>
+                            <div class="flex w-1/2 h-full">
+                                {% if prod.importe_recibido != None %}
+                                {% with prod.importe_recibido|toMoneyList as importe_list %}
+                                <span class="w-2/3 border h-full text-sm flex items-center justify-center" id="">-</span>
+                                <span class="w-1/3 border h-full text-sm  flex items-center justify-center" id="">-</span>
+                                {% endwith %}
+                                {% else %} 
+                                <span class="w-2/3 border h-full text-sm flex items-center justify-center" id="">-</span>
+                                <span class="w-1/3 border h-full text-sm flex items-center justify-center" id="">-</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <span class="w-1/3 border h-full text-sm flex items-center justify-center">-</span>
+                    </div>
+                    {% endif %}
+
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="flex">
+                <span class="w-2/3 px-2.5 border">Importe total</span>
+                <div class="flex w-1/3 border">
+                    <div class="flex w-2/3 h-full">
+                        <div class="flex w-1/2 h-full">
+                            {% with transferencia.stock|sum_importe_remitido as sum_importe %}
+                            <span class="w-2/3 border h-full text-sm text-center" id="">-</span>
+                            <span class="w-1/3 border h-full text-sm text-center" id="">-</span>
+                            {% endwith %}
+                        </div>
+
+                        {% if transferencia.stock.0.importe_recibido %}
+                        <div class="flex w-1/2 h-full">
+                            {% with transferencia.stock|sum_importe_recibido as sum_importe %}
+                            <span class="w-2/3 border h-full text-sm text-center" id="">-</span>
+                            <span class="w-1/3 border h-full text-sm text-center" id="">-</span>
+                            {% endwith %}
+                        </div>
+                        {% else %}
+                        <div class="flex w-1/2 h-full">
+                            <span class="w-2/3 border h-full text-sm text-center">-</span>
+                            <span class="w-1/3 border h-full text-sm text-center">-</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <span class="w-1/3 border h-full text-sm text-center">-</span>
+                </div>
+            </div>
+            
+            <div class="flex">
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Entrega</span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Recibe</span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Autoriza</span>
+            </div>
+            
+            <div class="flex">
+                <div class="flex w-1/3 border h-full">
+                    <span class="h-full w-2/3 border text-sm px-3 pb-3">Nombre:</br>Firma:</span>
+                    <div class="flex w-1/3">
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">D</div>
+                            <div class="border-t h-full text-center">-</div>
+                        </div>
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">M</div>
+                            <div class="border-t h-full text-center">-</div>
+                        </div>
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">A</div>
+                            <div class="border-t h-full text-center">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex w-1/3 border h-full">
+                    <span class="h-full w-2/3 border text-sm px-3 pb-3">Nombre:</br>Firma:</span>
+                    <div class="flex w-1/3">
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">D</div>
+                            <div class="border-t h-full text-center">-</div>
+                        </div>
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">M</div>
+                            <div class="border-t h-full text-center">-</div>
+                        </div>
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">A</div>
+                            <div class="border-t h-full text-center">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex w-1/3 border h-full">
+                    <span class="h-full w-full border text-sm px-3 pb-3">Nombre:</br>Firma:</span>
+                </div>
+            </div>
+        </div>
+
+        {% if action == "get" and not transferencia.date_confirm %}
+        <div class="flex mt-3 justify-end">
+            <span class="text-black text-start p-2 flex-1">
+                {% if transferencia.stock.0.objetivo %}Transferencia para elaborar {{transferencia.cant_elaborar|parseFloatOrNull}} {{transferencia.stock.0.objetivo}}{% endif %}
+            </span>
+            <button data-modal-target="cancel-modal" onclick="openModalCancel({{transferencia.id}})" data-modal-toggle="cancel-modal" class="focus:outline-none text-white bg-red-500 hover:bg-red-700 mr-3 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900" type="button">
+                Rechazar Transferencia
+            </button>
+            <button type="submit" id="btn-confirmar-transferencia-{{transferencia.id}}" class="hidden focus:outline-none text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-900">Confirmar Transferencia</button>
+        </div>
+        {% else %}
+        {% if not transferencia.stock.0.importe_recibido and not transferencia.mensaje_cancelacion%}
+        <div class="flex justify-between items-center">
+            <span class="text-red-500 text-center p-2 font-bold">Transferencia pendiente a confirmación</span>
+            <div class="flex mt-3 justify-end">
+                <a href="{% url 'CancelarTransferenciaPv' id=transferencia.id rool='cocina-post' %}" class="focus:outline-none text-white bg-red-500 hover:bg-red-700 mr-3 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">Cancelar Transferencia</a>
+            </div>
+        </div>
+        {% elif transferencia.mensaje_cancelacion %}
+        <div class="flex justify-between items-center">
+            <span class="text-red-500 text-center p-2 font-bold">Transferencia rechazada por el trabajador de {{transferencia.receptor.nombre}}</span>
+            <div class="flex mt-3 justify-end mr-3">
+                <a href="{% url 'CancelarTransferenciaPv' id=transferencia.id rool='cocina-post' %}" class="focus:outline-none text-white bg-red-500 hover:bg-red-700 mr-3 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">Eliminar Transferencia Cancelada</a>
+            </div>
+        </div>
+
+        <span class="text-md flex items-center p-2 m-3 border-2 border-red-300 rounded-lg">
+            <svg class="w-8 h-8 mr-2 text-red-600" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                <path d="M8 9h8"></path>
+                <path d="M8 13h6"></path>
+                <path d="M14.5 18.5l-2.5 2.5l-3 -3h-3a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v4.5"></path>
+                <path d="M19 22v.01"></path>
+                <path d="M19 19a2.003 2.003 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483"></path>
+             </svg>
+            {{ transferencia.mensaje_cancelacion }}
+        </span> 
+        {% else %}
+        <span class="text-black text-start p-2 flex-1">
+             {% if transferencia.stock.0.objetivo %}Transferencia para elaborar {{transferencia.cant_elaborar|parseFloatOrNull}}{{transferencia.stock.0.objetivo}}{% endif %}
+        </span>
+        {% endif %}
+        {% endif %}
+    </form>
+    {% endfor %}
+</div>
+
+<div id="cancel-modal" tabindex="-1" class="fixed top-0 left-0 right-0 z-50 hidden p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative w-full max-w-md max-h-full">
+        <div class="bg-white rounded-lg shadow dark:bg-gray-700">
+            <form class="p-6 space-y-3" method="POST" action="/cancel-transferencia/0/cocina" id="cancel-transferencia-modal">
+                {% csrf_token %}
+                <label for="message-cancel" class="mb-5 text-lg font-bold text-black">Motivo por el cual rechaza la transferencia:</label>
+                <textarea id="message-cancel" name="message" rows="4" required class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Indique aquí el motivo por el cual rechaza la transferencia..."></textarea>
+
+                <div class="flex space-x-3">
+                    <button data-modal-hide="cancel-modal" type="button" class="w-1/2 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700
+                    dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">Cancelar</button>
+                    <button type="submit" class="w-1/2 text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2">
+                        Rechazar transferencia
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block scripts %}
+<script src="{% static 'js/transferencia_almacenes.js' %}"></script>
+<script>
+    function openModalCancel(id){
+        document.getElementById("cancel-transferencia-modal").setAttribute("action",`/cancel-transferencia/${id}/cocina-{{action}}`);
+    }
+
+    function comprobarRecepcion(transferencia){
+        let spans = document.querySelectorAll('span[name="cantidad-remitida"]');
+        let inputs = document.querySelectorAll('input[name="cantidad"]');
+        for (let i = 0; i < spans.length; i++) {
+            if(transferencia == inputs[i].getAttribute("transferencia")){
+                let spanText = spans[i].textContent;
+                let inputText = inputs[i].value;
+                if (parseFloat(spanText) === parseFloat(inputText)) {
+                    document.getElementById(`btn-confirmar-transferencia-${transferencia}`).classList.remove("hidden");
+                } else {
+                    document.getElementById(`btn-confirmar-transferencia-${transferencia}`).classList.add("hidden");
+                    return;
+                }
+            }
+        }
+    }
+    
+    document.addEventListener("keydown", function(event) {
+        if (event.key === "Enter" || event.key === "ArrowUp" || event.key === "ArrowDown" || event.key === "ArrowRight" || event.key === "ArrowLeft") {
+            var element = event.target;
+            var next;
+
+            
+            if (event.key === "Enter" || event.key === "ArrowRight"){next = 1} 
+            else if (event.key === "ArrowLeft"){next = -1} 
+            else if (event.key === "ArrowUp"){next = -3} 
+            else if (event.key === "ArrowDown"){next = 3} 
+
+            if (element.tagName === "INPUT" || element.tagName === "BUTTON") {
+                event.preventDefault();
+        
+                var form = element.form;
+                var elements = form.getElementsByClassName("item-form");
+                var index = Array.prototype.indexOf.call(elements, element);
+                var nextElement;
+        
+                if (index === elements.length - 1) {
+                    nextElement = elements[0];
+                } else {
+                    nextElement = elements[index + next];
+                }
+        
+                if (nextElement) {
+                nextElement.focus();
+                if (nextElement.tagName === "INPUT") {
+                    nextElement.select();
+                }
+                }
+            }
+        }
+    });
+
+
+</script>
+{% endblock scripts %}

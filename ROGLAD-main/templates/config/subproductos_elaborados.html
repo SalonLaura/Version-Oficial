@@ -1,0 +1,547 @@
+{% extends 'base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+<script src="{% static 'js/JsBarcode.all.min.js' %}"></script>
+{% endblock styles %}
+                
+{% block content %}
+<div class="flex w-full h-full justify-center">
+    <div class="flex flex-col items-center w-screen h-full bg-white w-full">
+        <div class="border-b border-gray-200 w-full overflow-x-auto h-18 scrollbar scrollbar-xs" id="content-menu">
+            {% include "config/menu_select.html" %}
+        </div>
+        <div class="border-b border-gray-200 w-full overflow-x-auto h-18 scrollbar scrollbar-xs" id="">
+            {% include "config/menu_productos.html" %}
+        </div>
+
+        <div class="w-full h-[calc(100%-4rem)] overflow-auto" id="content-table">
+            <div class="w-full h-full">
+                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead class="bg-white">
+                        <tr class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400  sticky top-0">
+                            <th scope="col" class="px-6 py-3"> Producto </th>
+                            <th scope="col" class="px-6 py-3"> Descripción </th>
+                            <th scope="col" class="px-6 py-3"> Precio de venta</th>
+                            <th scope="col" class="px-6 py-3"> Medida</th>
+                            <th scope="col" class="px-6 py-3"> Formula</th>
+                            <th scope="col" class="px-6 py-1.5 flex justify-center">
+                                <button class="truncate flex items-center justify-between px-4 py-2 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-200 hover:bg-gray-300 border border-transparent rounded-lg focus:outline-none focus:shadow-outline-gray"
+                                    data-modal-target="popup-modal" data-modal-toggle="popup-modal" id="btn-add-producto"
+                                    onclick="limpiarForm()">
+                                    <svg class="w-5 h-5 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 002.25-2.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v2.25A2.25 2.25 0 006 10.5zm0 9.75h2.25A2.25 2.25 0 0010.5 18v-2.25a2.25 2.25 0 00-2.25-2.25H6a2.25 2.25 0 00-2.25 2.25V18A2.25 2.25 0 006 20.25zm9.75-9.75H18a2.25 2.25 0 002.25-2.25V6A2.25 2.25 0 0018 3.75h-2.25A2.25 2.25 0 0013.5 6v2.25a2.25 2.25 0 002.25 2.25z"></path>
+                                    </svg>
+                                    Agregar producto
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="body-productos">
+                        {% for producto in productos %}
+                        {% if producto.categoria.nombre != "MEDIOS BASICOS" %}
+                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600" id="tr-content-{{producto.id}}">
+                            <th scope="row" class="flex items-center pl-3 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                                
+                                {% if producto.img %}
+                                <img class="rounded-full w-10 h-10" src="{{producto.img}}" alt="" />
+                                {% else %}
+                                <p class="rounded-full w-10 h-10 flex items-center justify-center font-bold text-md text-gray-600 bg-gray-100">{{ producto.nombre.0 }}{{ producto.nombre.1 }}<p>
+                                {% endif %}
+                                
+                                <div class="px-3">
+                                    <div class="text-base font-semibold truncate">{{ producto.nombre }}</div>
+                                    <div class="font-normal text-gray-500 truncate">Cod: {{ producto.codigo }}</div>
+                                </div>  
+                            </th>
+                            <td class="px-3 py-4 text-base font-semibold">{{ producto.descripcion }}</td>
+                            <td class="px-6 py-4 text-base font-semibold">{% if producto.precio_venta %}{% with producto.precio_venta|toMoneyList as precio_venta %}${{precio_venta.0}}.{{precio_venta.1}}{% endwith %}{% else %}-{% endif %}</td>
+                            <td class="px-3 py-4 text-base font-semibold">{{ producto.medida|nullToBlank }}</td>
+                            <td class="px-3 py-4 text-base font-semibold">{% if not producto.productoCocinaFormula.all.exists %}<span class="text-orange-600">Sin formula</span>{% else %}<span class="text-green-600">Ok</span>{% endif %}</td>
+                            <td class="px-3 py-4 flex justify-center">
+                                <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray mr-6" aria-label="Edit"
+                                data-modal-target="popup-modal" data-modal-toggle="popup-modal" 
+                                onclick="setDataEdit({{producto.id}},'{{producto.nombre}}','{{producto.descripcion}}','{{producto.codigo}}','{{producto.precio_venta}}',{{producto.medida.id}},{{producto.categoria.id}},'{{producto.categoria}}','{{producto.img_name}}')">
+                                    <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                                    </svg>
+                                </button>
+                                {% if producto.is_delete %}
+                                <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray"
+                                data-modal-target="delete-modal" data-modal-toggle="delete-modal"  aria-label="Delete"  onclick="document.getElementById('id-delete').value='{{producto.id}}'">
+                                    <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                                {% else %}
+                                <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 cursor-not-allowed text-gray-400 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray">
+                                    <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                                {% endif %}
+                                
+
+                                <button data-modal-target="barcode-modal" data-modal-toggle="barcode-modal" onclick="document.getElementById('content-barcode').innerHTML = document.getElementById('barcode-{{producto.id}}').innerHTML"
+                                class="text-blue-700 font-bold bg-blue-100 hover:bg-blue-200 rounded-xl text-xs px-3 py-1 ml-6 text-center" 
+                                type="button">Código de barra</button>                                
+                                <div id="barcode-{{producto.id}}" class="hidden">
+                                    <svg class="barcode"
+                                        jsbarcode-value="{{producto.codigo}}"
+                                        jsbarcode-textmargin="0"
+                                        jsbarcode-fontoptions="bold">
+                                    </svg>
+                                </div>
+                                
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="barcode-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow">
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="barcode-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <div class="p-4 md:p-5 text-center">
+                <div id="content-barcode" class="flex items-center justify-center"></div>
+                
+                <button type="button" onclick="print('',document.getElementById('content-barcode').innerHTML)"
+                class="mt-3 w-full text-white bg-green-600 hover:green-red-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 justify-center">Imprimir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="popup-modal" tabindex="-1" data-modal-backdrop="static"  class="fixed top-0 left-0 right-0 z-50 hidden p-4 overflow-hidden md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="w-auto max-w-5xl max-h-full">
+        <form id="form-add-producto" enctype="multipart/form-data" class="p-2 bg-white rounded-lg shadow dark:bg-gray-700 max-h-full overflow-auto" method="POST" action="/config-producto/">
+            {% csrf_token %}
+            
+            <input class="hidden" placeholder="" type="number" step="0.01" step-my  name="precio_venta" id="precio_venta">
+            <input class="hidden" name="producto-compuesto" name="True"/>
+                            
+            <select name="categoria" class="hidden" id="categoria" required="">
+                {% for categoria in categorias%}
+                <option value="{{categoria.id}}"
+                >{{categoria.nombre}}</option>
+                {% endfor %}
+            </select>
+
+            <input name="redirect" value="subproductos_elaborados" class="hidden">
+            <input class="hidden" id="edit-id" name="edit-id"/>
+
+            <div class="p-6" id="content-modal">
+                <div class="space-y-4">
+                    <div class="">
+                        <p class="text-gray-700 dark:text-gray-400 m-1.5">Nombre</p>
+                        <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="" type="text" maxlength="100" name="nombre" id="nombre" required="">
+                    </div>
+                    <div class="">
+                        <p class="text-gray-700 dark:text-gray-400 m-1.5">Descripción</p>
+                        <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="" type="text" maxlength="300" name="descripcion" id="descripcion" required="">
+                    </div>
+                    
+                    <div class="flex space-x-2">
+                        <div class="w-1/2">
+                            <p class="text-gray-700 dark:text-gray-400 m-1.5">Código</p>
+                            <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="" type="text" maxlength="100" name="codigo" id="codigo" required="">
+                        </div>
+                        <div class="w-1/2">
+                            <p class="text-gray-700 dark:text-gray-400 m-1.5">Unidad de medida</p>
+                            <select class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" id="medida" name="medida" required="">
+                                {% for medida in medidas%}
+                                <option value="{{medida.id}}">{{medida.nombre}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="max-w-lg">
+                        <p class="text-gray-700 dark:text-gray-400 m-1.5">Seleccione una imagen</p>
+                        <div class="flex justify-center items-center w-full my-2">
+                            <button class="material-icons text-gray-400" type="button" onclick="scrollToLeft()">arrow_back_ios</button>
+                            <ul class="flex w-full p-0.5 space-x-2 overflow-auto scrollbar scrollbar-sm rounded-full" id="scrollContainerImagesProduct" style="">
+                                <li>
+                                    <input type="file" accept="image/*" id="image-product" name="image-product" value="image-product" class="hidden peer" onchange="previewImage(event,'product')">
+                                    <label for="image-product" id="content-image-product" class="inline-flex w-16 h-16 flex items-center justify-center rounded-full bg-white border-2 border-gray-200 cursor-pointer  dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">
+                                        <img class="w-14 h-14 bg-purple-600 rounded-full" src="/static/images/add-image2.jpg" alt="" id="preview-image-product">
+                                    </label>
+                                </li>
+                                
+                
+                                <li>
+                                    <input type="radio" id="no_image" name="image-product" value="no_image" class="hidden peer" onchange="selectImagenProduct()" checked>
+                                    <label for="no_image" class="inline-flex w-16 h-16 p-0.5 bg-white border-2 border-gray-200 rounded-full cursor-pointer dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                                        <img class="w-14 h-14 rounded-full" src="/static/images/productos/no_image.jpg" alt="donut">                         
+                                    </label>
+                                </li>
+                                
+                                <li>
+                                    <input type="radio" id="donut" name="image-product" value="donut" class="hidden peer" onchange="selectImagenProduct()">
+                                    <label for="donut" class="inline-flex w-16 h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full cursor-pointer dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                                        <img class="w-14 h-14 rounded-full" src="/static/images/productos/donut.jpg" alt="donut">                         
+                                    </label>
+                                </li>
+                                <li>
+                                    <input type="radio" id="french-fries" name="image-product" value="french-fries" class="hidden peer" onchange="selectImagenProduct()">
+                                    <label for="french-fries" class="inline-flex w-16 h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full cursor-pointer dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                                        <img class="w-14 h-14 rounded-full" src="/static/images/productos/french-fries.jpg" alt="french-fries">                         
+                                    </label>
+                                </li>
+                                <li>
+                                    <input type="radio" id="pizza" name="image-product" value="pizza" class="hidden peer" onchange="selectImagenProduct()">
+                                    <label for="pizza" class="inline-flex w-16 h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full cursor-pointer dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                                        <img class="w-14 h-14 rounded-full" src="/static/images/productos/pizza.jpg" alt="pizza">                         
+                                    </label>
+                                </li>
+                                <li>
+                                    <input type="radio" id="sandwich" name="image-product" value="sandwich" class="hidden peer" onchange="selectImagenProduct()">
+                                    <label for="sandwich" class="inline-flex w-16 h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full cursor-pointer dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                                        <img class="w-14 h-14 rounded-full" src="/static/images/productos/sandwich.jpg" alt="sandwich">                         
+                                    </label>
+                                </li>
+                                <li>
+                                    <input type="radio" id="chicken" name="image-product" value="chicken" class="hidden peer" onchange="selectImagenProduct()">
+                                    <label for="chicken" class="inline-flex w-16 h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full cursor-pointer dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                                        <img class="w-14 h-14 rounded-full" src="/static/images/productos/chicken.jpg" alt="chicken">                         
+                                    </label>
+                                </li>
+                                <li>
+                                    <input type="radio" id="pudding" name="image-product" value="pudding" class="hidden peer" onchange="selectImagenProduct()">
+                                    <label for="pudding" class="inline-flex w-16 h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full cursor-pointer dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                                        <img class="w-14 h-14 rounded-full" src="/static/images/productos/pudding.jpg" alt="pudding">                         
+                                    </label>
+                                </li>
+                                <li>
+                                    <input type="radio" id="ice-cream" name="image-product" value="ice-cream" class="hidden peer" onchange="selectImagenProduct()">
+                                    <label for="ice-cream" class="inline-flex w-16 h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full cursor-pointer dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                                        <img class="w-14 h-14 rounded-full" src="/static/images/productos/ice-cream.jpg" alt="ice-cream">                         
+                                    </label>
+                                </li>
+                                <li>
+                                    <input type="radio" id="chocolate" name="image-product" value="chocolate" class="hidden peer" onchange="selectImagenProduct()">
+                                    <label for="chocolate" class="inline-flex w-16 h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full cursor-pointer dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                                        <img class="w-14 h-14 rounded-full" src="/static/images/productos/chocolate.jpg" alt="chocolate">                         
+                                    </label>
+                                </li>
+                                <li>
+                                    <input type="radio" id="butter" name="image-product" value="butter" class="hidden peer" onchange="selectImagenProduct()">
+                                    <label for="butter" class="inline-flex w-16 h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full cursor-pointer dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                                        <img class="w-14 h-14 rounded-full" src="/static/images/productos/butter.jpg" alt="butter">                         
+                                    </label>
+                                </li>
+                                <li>
+                                    <input type="radio" id="candy" name="image-product" value="candy" class="hidden peer" onchange="selectImagenProduct()">
+                                    <label for="candy" class="inline-flex w-16 h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full cursor-pointer dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                                        <img class="w-14 h-14 rounded-full" src="/static/images/productos/candy.jpg" alt="candy">                         
+                                    </label>
+                                </li>
+                                <li>
+                                    <input type="radio" id="apple" name="image-product" value="apple" class="hidden peer" onchange="selectImagenProduct()">
+                                    <label for="apple" class="inline-flex w-16 h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full cursor-pointer dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                                        <img class="w-14 h-14 rounded-full" src="/static/images/productos/apple.jpg" alt="apple">                         
+                                    </label>
+                                </li>
+                                <li>
+                                    <input type="radio" id="coffee" name="image-product" value="coffee" class="hidden peer" onchange="selectImagenProduct()">
+                                    <label for="coffee" class="inline-flex w-16 h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full cursor-pointer dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                                        <img class="w-14 h-14 rounded-full" src="/static/images/productos/coffee.jpg" alt="coffee">                         
+                                    </label>
+                                </li>
+                                <li>
+                                    <input type="radio" id="juice" name="image-product" value="juice" class="hidden peer" onchange="selectImagenProduct()">
+                                    <label for="juice" class="inline-flex w-16 h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full cursor-pointer dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                                        <img class="w-14 h-14 rounded-full" src="/static/images/productos/juice.jpg" alt="juice">                         
+                                    </label>
+                                </li>
+                                <li>
+                                    <input type="radio" id="drink" name="image-product" value="drink" class="hidden peer" onchange="selectImagenProduct()">
+                                    <label for="drink" class="inline-flex w-16 h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full cursor-pointer dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                                        <img class="w-14 h-14 rounded-full" src="/static/images/productos/drink.jpg" alt="drink">                         
+                                    </label>
+                                </li>
+                                <li>
+                                    <input type="radio" id="clinking" name="image-product" value="clinking" class="hidden peer" onchange="selectImagenProduct()">
+                                    <label for="clinking" class="inline-flex w-16 h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full cursor-pointer dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                                        <img class="w-14 h-14 rounded-full" src="/static/images/productos/clinking.jpg" alt="clinking">                         
+                                    </label>
+                                </li>
+                                <li>
+                                    <input type="radio" id="cocktail" name="image-product" value="cocktail" class="hidden peer" onchange="selectImagenProduct()">
+                                    <label for="cocktail" class="inline-flex w-16 h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full cursor-pointer dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                                        <img class="w-14 h-14 rounded-full" src="/static/images/productos/cocktail.jpg" alt="cocktail">                         
+                                    </label>
+                                </li>
+                                <li>
+                                    <input type="radio" id="wine" name="image-product" value="wine" class="hidden peer" onchange="selectImagenProduct()">
+                                    <label for="wine" class="inline-flex w-16 h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full cursor-pointer dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                                        <img class="w-14 h-14 rounded-full" src="/static/images/productos/wine.jpg" alt="wine">                         
+                                    </label>
+                                </li>
+                                <li>
+                                    <input type="radio" id="cigar" name="image-product" value="cigar" class="hidden peer" onchange="selectImagenProduct()">
+                                    <label for="cigar" class="inline-flex w-16 h-16 flex items-center justify-center bg-white border-2 border-gray-200 rounded-full cursor-pointer dark:border-gray-700 dark:peer-checked:text-purple-500 peer-checked:border-purple-600 peer-checked:text-purple-600 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                                        <img class="w-14 h-14 rounded-full" src="/static/images/productos/cigar.jpg" alt="cigar">                         
+                                    </label>
+                                </li>
+                                
+                            </ul>                
+                            <button class="material-icons text-gray-400" type="button" onclick="scrollRight()">arrow_forward_ios</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="flex justify-center font-bold text-md mt-2 text-red-700 dark:text-red-100 hidden" id="error-add"></p>
+            
+            <div class="flex mt-2 px-2" id="content-options">
+                <button type="button" class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600" id="btn-cancel" data-modal-hide="popup-modal">Cancelar</button>
+                <button type="submit" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2 " id="btn-accept">Agregar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<div id="delete-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <form class="relative bg-white rounded-lg shadow dark:bg-gray-700" method="POST" action="/config-producto/">
+            {% csrf_token %}
+            <input name="redirect" value="subproductos_elaborados" class="hidden">
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="delete-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <input class="hidden" type="text" id="id-delete" name="delete-id">
+            <div class="p-4 md:p-5 text-center">
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">¿Estas seguro de eliminar el producto?</h3>
+                
+                <div class="flex mt-2 px-2 justify-center space-x-3" id="content-options-delete">
+                    <button data-modal-hide="delete-modal" id="btn-cancel-delete" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                    <button type="submit" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">Si, eliminar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block scripts %}
+<script type = "text/JavaScript">
+    const contentMenu = document.getElementById('content-menu');
+    contentMenu.scrollLeft = parseInt(localStorage.getItem("scroll-menu-config"));
+    contentMenu.onscroll = (e)=>{ 
+        localStorage.setItem("scroll-menu-config", JSON.stringify(contentMenu.scrollLeft))
+    }
+    const contentTable = document.getElementById('content-table');
+    contentTable.scrollTop = parseInt(localStorage.getItem("scroll-table-config-producto"));
+    contentTable.onscroll = (e)=>{ 
+        localStorage.setItem("scroll-table-config-producto", JSON.stringify(contentTable.scrollTop))
+    }
+
+    function changeProductoToSubproducto(v){
+        if(v == true){
+            document.getElementById("precio_venta").removeAttribute("required")
+            document.getElementById("content-options-subproducto").classList.add("hidden");
+            var select = document.getElementById("categoria");
+            for (var i = 0; i < select.options.length; i++) {
+              if (select.options[i].text == "SUBPRODUCTOS") {
+                select.options[i].selected = true;
+                break;
+              }
+            }
+        }
+        else{
+            document.getElementById("precio_venta").setAttribute("required","true")
+            document.getElementById("content-options-subproducto").classList.remove("hidden");
+            var select = document.getElementById("categoria");
+            for (var i = 0; i < select.options.length; i++) {
+                if (select.options[i].text != "SUBPRODUCTOS") {
+                    select.options[i].selected = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    function changeSelectCategoria() {
+        var select = document.getElementById("categoria");
+        for (var i = 0; i < select.options.length; i++) {
+            if (select.options[i].text == "SUBPRODUCTOS" && select.options[i].value == select.value) {
+                document.getElementById('add-as-subproducto').checked = true;
+                changeProductoToSubproducto(true);
+                break;
+            }
+        }
+    }
+
+    document.getElementById("form-add-producto").addEventListener("submit", function(event) {
+        event.preventDefault();
+        
+        let nombre = document.getElementById('nombre').value;
+        let precio_venta = document.getElementById('precio_venta').value;
+        let medida = document.getElementById('medida').value;
+        
+        
+        const selectedIndex = document.getElementById('categoria').selectedIndex;
+        const selectedOption = document.getElementById('categoria').options[selectedIndex];
+        const categoriaText = selectedOption.text;
+    
+        if(nombre == "" || nombre == null){
+            let alert = document.getElementById("error-add");
+            alert.innerHTML = `
+            <svg class="w-6 h-6 mr-1" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+            </svg>
+            Proporcione el nombre del producto`;
+            alert.classList.remove("hidden");
+            return false;
+        }
+        if(medida == "" || medida == null){
+            let alert = document.getElementById("error-add");
+            alert.innerHTML = `
+            <svg class="w-6 h-6 mr-1" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+            </svg>
+            La unidad de medida del producto`;
+            alert.classList.remove("hidden");
+            return false;
+        }
+        if(categoriaText != "SUBPRODUCTOS" & (precio_venta == 0 || precio_venta == null)){
+            let alert = document.getElementById("error-add");
+            alert.innerHTML = `
+            <svg class="w-6 h-6 mr-1" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+            </svg>
+            Proporcione el precio de venta del producto`;
+            alert.classList.remove("hidden");
+            return false;
+        }
+
+        this.submit();    
+    })
+  
+    function scrollToLeft() {
+        const scrollArea = document.querySelector('#scrollContainerImagesProduct');
+        scrollArea.scrollLeft -= 50;
+    }
+
+    function scrollRight() {
+        const scrollArea = document.querySelector('#scrollContainerImagesProduct');
+        scrollArea.scrollLeft += 50;
+    }
+
+    function upInput(id){
+        document.getElementById(id).value = parseInt(document.getElementById(id).value) + 1;
+    }
+
+    function downInput(id){
+        let element = document.getElementById(id);
+        if(parseInt(element.value) > 0){
+            element.value = parseInt(element.value) - 1;
+        }
+    }
+    
+    function selectImagenProduct() {
+        var preview = document.getElementById('preview-image-product');
+        preview.src = "/static/images/add-image2.jpg";
+
+        document.getElementById("content-image-product").className = "inline-flex w-16 h-16 flex items-center justify-center rounded-full bg-white border-2 border-gray-200 cursor-pointer";
+    }
+
+    function previewImage(event,content_id) {
+        var input = event.target;
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var preview = document.getElementById(`preview-image-${content_id}`);
+                preview.src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+
+            if(getImagenProducto()){getImagenProducto().checked = false;}
+            document.getElementById("content-image-product").className = "inline-flex w-16 h-16 flex items-center justify-center rounded-full bg-white border-2 border-purple-600 cursor-pointer";
+    
+        }
+    }
+
+    function getImagenProducto(){
+        var cuentas_ids = document.getElementsByName('image-product');
+        for (var i = 0; i < cuentas_ids.length; i++) {
+          if (cuentas_ids[i].checked) {
+            return cuentas_ids[i];
+          }
+        }
+    }
+    
+    function limpiarForm(){
+        document.getElementById('nombre').value = "";
+        document.getElementById('descripcion').value = "";
+        document.getElementById('codigo').value = "LINT-{{productos|length}}";
+        document.getElementById('precio_venta').value = "";
+        document.getElementById('medida').selectedIndex = 0;
+        document.getElementById('categoria').selectedIndex = 0;
+        document.getElementById("no_image").checked = true;
+        document.getElementById('btn-accept').innerText='Agregar';
+        document.getElementById('edit-id').value='';
+    }
+    
+    function setDataEdit(id,nombre,descripcion,codigo,precio_venta,medida,categoria,categoriaText,img){
+        document.getElementById('nombre').value = nombre;
+        document.getElementById('descripcion').value = descripcion;
+        document.getElementById('codigo').value = codigo;
+
+
+        if(!img.includes(".")){
+            selectImagenProduct()
+            document.getElementById(img).checked = true;
+        }
+        else{
+            const g = getImagenProducto()
+            if(g){g.checked = false;}
+            document.getElementById("preview-image-product").setAttribute("src",img);
+            document.getElementById("content-image-product").className = "inline-flex w-16 h-16 flex items-center justify-center rounded-full bg-white border-2 border-purple-600 cursor-pointer";
+        }
+        
+        var select = document.getElementById("categoria");
+        for (var i = 0; i < select.options.length; i++) {
+            if (select.options[i].value == categoria) {
+                select.selectedIndex = i;
+                break;
+            }
+        }
+        var select = document.getElementById("medida");
+        for (var i = 0; i < select.options.length; i++) {
+            if (select.options[i].value == medida) {
+                select.selectedIndex = i;
+                break;
+            }
+        }
+        
+        document.getElementById('precio_venta').value = precio_venta.replace(",",".");
+        document.getElementById('btn-accept').innerText='Actualizar';
+        document.getElementById('edit-id').value=id;
+    }
+
+    JsBarcode(".barcode").init();
+    
+
+</script>
+{% endblock scripts %}

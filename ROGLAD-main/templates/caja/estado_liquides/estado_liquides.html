@@ -1,0 +1,476 @@
+{% extends 'caja/base.html' %}
+{% load static custom_filters %}
+
+{% block contentFilter %}
+<form class="flex h-auto bg-white w-full border-t mb-0 pt-0.5 mt-0.5" method="GET" id="form-filter">
+    <div class="w-1/3 border-r flex items-center px-3">
+        <p class="text-gray-700 font-bold">Período: </p>
+        <select class="bg-white border-0 text-gray-900 text-sm focus:ring-0 focus:border-0 block flex-1 p-2.5" name="periodo"
+        onchange="document.getElementById('form-filter').submit()">
+            {% for periodo in periodos%}
+            <option value="{{periodo.v}}"
+            {% if "periodo="|concatenate:periodo.v|concatenate:"&" in request.build_absolute_uri %}selected{% endif %}>
+            {{periodo.t}}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="w-1/3 border-r flex items-center px-3">
+        <p class="text-gray-700 font-bold truncate">Centro Costo: </p>
+        <select class="bg-white border-0 text-gray-900 text-sm focus:ring-0 focus:border-0 block flex-1 p-2.5" name="cc"
+        onchange="document.getElementById('form-filter').submit()">
+        <option value="all" selected>Todos</option>
+        
+        <option disabled>- Puntos de venta -</option>
+        {% for cc in puntos_venta %}
+        <option value="{{cc.v}}"
+        {% if "cc="|concatenate:cc.v|concatenate:"&" in request.build_absolute_uri %}selected{% endif %}>
+        {{cc.n}}</option>
+        {% endfor %}
+
+        <option disabled>- Cocinas -</option>
+        {% for cc in cocinas %}
+        <option value="{{cc.v}}"
+        {% if "cc="|concatenate:cc.v|concatenate:"&" in request.build_absolute_uri %}selected{% endif %}>
+        {{cc.n}}</option>
+        {% endfor %}
+        
+        <option value="estudio"
+        {% if "cc=estudio" in request.build_absolute_uri %}selected{% endif %}>
+        Estudio</option>
+        <option value="salon"
+        {% if "cc=salon" in request.build_absolute_uri %}selected{% endif %}>
+        Salón</option>
+        </select>
+    </div>
+    <div class="flex items-center w-1/3 px-3">
+        <p class="text-gray-700 font-bold truncate">Análisis: </p>
+        <div class="flex items-center flex-1 px-12">
+            <div class="flex items-center px-3 w-1/3">
+                <input checked id="default-radio-1" type="radio" value="f" onchange="document.getElementById('form-filter').submit()" name="type" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600">
+                <label for="default-radio-1" class="flex-1 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Fijo</label>
+            </div>
+            {% if not request.user.admin_permission %}
+            <div class="flex items-center px-3 w-1/3">
+                <input {% if "type=r" in request.build_absolute_uri %}checked{% endif %} id="default-radio-2" type="radio" value="r" onchange="document.getElementById('form-filter').submit()" name="type" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 focus:ring-2">
+                <label for="default-radio-2" class="flex-1 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Real</label>
+            </div> 
+            <div class="flex items-center px-3 w-1/3">
+                <input {% if "type=p" in request.build_absolute_uri %}checked{% endif %} id="default-radio-3" type="radio" value="p" onchange="document.getElementById('form-filter').submit()" name="type" class="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 focus:ring-purple-500 dark:focus:ring-purple-600 focus:ring-2">
+                <label for="default-radio-3" class="flex-1 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Posible</label>
+            </div> 
+            {% endif %}
+        </div>
+    </div>
+</form>
+{% endblock contentFilter %}
+
+{% block contentCaja %}
+<div class="w-full h-[88%] border shadow-md rounded-lg bg-white overflow-auto">
+    <div id="accordion-contabilidad" data-accordion="collapse" data-active-classes="bg-white text-gray-900" data-inactive-classes="text-gray-500 border-b border-gray-200">
+        <div class="relative">
+            {% if all_cc %}
+            <div class="w-full p-1">
+                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                    <thead>
+                        <tr class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <th scope="col" class="px-6 py-3 text-center">Monto generado en el mes</th>
+                            <th scope="col" class="px-6 py-3 text-center">Costo + Gastos</th>
+                            <th scope="col" class="px-6 py-3 text-center">Impuesto sobre ventas<br>(10%, 1%)</th>
+                            <th scope="col" class="px-6 py-3 text-center">Márgen de beneficio<br>($)</th>
+                            <th scope="col" class="px-6 py-3 text-center">Márgen de beneficio<br>(%)</th>
+                            <th scope="col" class="px-6 py-3 text-center"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr class="bg-white border-t-2 border-black">
+                            <td class="px-6 py-4 font-bold text-black text-center">${{monto_semana|toMoney}}</td>
+                            <td class="px-6 py-4 font-bold text-orange-600 text-center">${{inversion_semana|toMoney}}</td>
+                            <td class="px-6 py-4 font-bold text-red-600 text-center">
+                                <span data-popover-target="popover-impuestos-total">${{impuestos_semana|toMoney}}</span>                            
+                                <div data-popover id="popover-impuestos-total" role="tooltip" class="absolute z-10 invisible inline-block w-auto text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                                    <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                                        <h3 class="font-semibold text-gray-900 dark:text-white">Impuestos</h3>
+                                    </div>
+                                    <div class="px-3 py-2 flex flex-col">
+                                        {% for i in semana.impuestos_detalles %}
+                                        <p>{{i.n}} -  $ {{i.v|toMoney}}</p>
+                                        {% endfor %}
+                                    </div>
+                                    <div data-popper-arrow></div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 font-bold text-green-600 text-center">${{margen_semana|toMoney}}</td>
+                            <td class="px-6 py-4 font-bold text-green-600 text-center">{{margen_semana_porcent}}%</td>
+                        </tr>
+                        
+                        <tr class="">
+                            <td class="px-6 py-6"></td>
+                        </tr>
+
+                        <tr class="border-b-2 border-black uppercase bg-gray-50">
+                            <td class="px-6 pb-4 font-bold text-black text-center pt-6">Gasto total por salario</td>
+                            <td class="px-6 pb-4 font-bold text-black text-center pt-6">Monto en salario neto</td>
+                            <td class="px-6 pb-4 font-bold text-black text-center pt-6">9.09</td>
+                            <td class="px-6 pb-4 font-bold text-black text-center pt-6">12.5%</td>
+                            <td class="px-6 pb-4 font-bold text-black text-center pt-6">5%</td>
+                            <td class="px-6 pb-4 font-bold text-black text-center pt-6"></td>
+                        </tr>
+                    
+                        {% for p in pagos %}
+                        <tr class="bg-white border-b">
+                            <td class="px-6 py-4 text-red-600 text-center">${{p.t|toMoney}}</td>
+                            <td class="px-6 py-4 text-black text-center">${{p.v|toMoney}}</td>
+                            <td class="px-6 py-4 text-black text-center">${{p.909|toMoney}}</td>
+                            <td class="px-6 py-4 text-black text-center">${{p.125|toMoney}}</td>
+                            <td class="px-6 py-4 text-black text-center">${{p.5|toMoney}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% elif semanas_pv %}
+            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <thead>
+                    <tr class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 z-10">
+                        <th scope="col" class="px-6 py-3 text-center">Semana</th>
+                        <th scope="col" class="px-6 py-3 text-center">Monto generado</th>
+                        <th scope="col" class="px-6 py-3 text-center">Costo + Gastos</th>
+                        <th scope="col" class="px-6 py-3 text-center">Impuesto sobre ventas<br>(10%, 1%)</th>
+                        <th scope="col" class="px-6 py-3 text-center">Márgen de beneficio<br>($)</th>
+                        <th scope="col" class="px-6 py-3 text-center">Márgen de beneficio<br>(%)</th>
+                        <th scope="col" class="px-6 py-3 text-center"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for semana in semanas_pv %}
+                    {% with forloop.counter as index %}
+                        <tr class="bg-white border-t dark:bg-gray-800 dark:border-gray-700">
+                            <td class="px-6 py-4 font-bold text-black text-center">Semana {{index}}</td>
+                            <td class="px-6 py-4 text-black text-center">${{semana.monto|toMoney}}</td>
+                            <td class="px-6 py-4 text-black text-center">${{semana.inversion|toMoney}}</td>
+                            <td class="px-6 py-4 text-black text-center">
+                                <span data-popover-target="popover-impuestos-semana{{index}}">${{semana.impuestos|toMoney}}</span>                            
+                                <div data-popover id="popover-impuestos-semana{{index}}" role="tooltip" class="absolute z-10 invisible inline-block w-auto text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                                    <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                                        <h3 class="font-semibold text-gray-900 dark:text-white">Impuestos</h3>
+                                    </div>
+                                    <div class="px-3 py-2 flex flex-col">
+                                        {% for i in semana.impuestos_detalles %}
+                                        <p>{{i.n}} -  ${{i.v|toMoney}}</p>
+                                        {% endfor %}
+                                    </div>
+                                    <div data-popper-arrow></div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-black text-center">${{semana.margen|toMoney}}</td>
+                            <td class="px-6 py-4 text-black text-center">{{semana.margen_porcent}}%</td>
+                            <td class="">
+                                <button class="rounded-full hover:bg-gray-100 p-3" id="btn-dias-semana{{index}}" onclick="showHiddenAccordion('dias-semana{{index}}')">
+                                    <svg class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
+                                    </svg>
+                                </button>
+                            </td>
+                        </tr>
+                        {% for dia in semana.dias %}
+                            <tr class="bg-white hidden text-gray-500" accordion="dias-semana{{index}}">
+                                <td class="px-6 py-4 text-center">{{dia.fecha}}</td>
+                                <td class="px-6 py-4 text-center">${{dia.monto|toMoney}}</td>
+                                <td class="px-6 py-4 text-center">${{dia.inversion|toMoney}}</td>
+                                <td class="px-6 py-4 text-center">
+                                    <span data-popover-target="popover-impuestos-semana{{index}}-dia{{forloop.counter}}">${{dia.impuestos|toMoney}}</span>
+                                    <div data-popover id="popover-impuestos-semana{{index}}-dia{{forloop.counter}}" role="tooltip" class="absolute z-10 invisible inline-block w-auto text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                                        <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                                            <h3 class="font-semibold text-gray-900 dark:text-white">Impuestos</h3>
+                                        </div>
+                                        <div class="px-3 py-2 flex flex-col">
+                                            {% for i in dia.impuestos_detalles %}
+                                            <p>{{i.n}} -  ${{i.v|toMoney}}</p>
+                                            {% endfor %}
+                                        </div>
+                                        <div data-popper-arrow></div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-center">${{dia.margen|toMoney}}</td>
+                                <td class="px-6 py-4 text-center">{{dia.margen_porcent}}%</td>
+                            </tr>
+                        {% endfor %}
+                    {% endwith %}
+                    {% endfor %}
+                    
+                    <tr class="bg-white border-t-2 border-black">
+                        <td class="px-6 py-4 font-bold text-black text-center">Total en el mes</td>
+                        <td class="px-6 py-4 font-bold text-black text-center">${{monto_semana|toMoney}}</td>
+                        <td class="px-6 py-4 font-bold text-orange-600 text-center">${{inversion_semana|toMoney}}</td>
+                        <td class="px-6 py-4 font-bold text-red-600 text-center">
+                            <span data-popover-target="popover-impuestos-total">${{impuestos_semana|toMoney}}</span>                            
+                            <div data-popover id="popover-impuestos-total" role="tooltip" class="absolute z-10 invisible inline-block w-auto text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                                <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                                    <h3 class="font-semibold text-gray-900 dark:text-white">Impuestos</h3>
+                                </div>
+                                <div class="px-3 py-2 flex flex-col">
+                                    {% for i in semana.impuestos_detalles %}
+                                    <p>{{i.n}} -  $ {{i.v|toMoney}}</p>
+                                    {% endfor %}
+                                </div>
+                                <div data-popper-arrow></div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 font-bold text-green-600 text-center">${{margen_semana|toMoney}}</td>
+                        <td class="px-6 py-4 font-bold text-green-600 text-center">{{margen_semana_porcent}}%</td>
+                    </tr>
+                    
+                    <tr class="bg-white border-b-2 border-black uppercase">
+                        <td class="px-6 pb-4 font-bold text-black text-center pt-12">Gasto total por salario</td>
+                        <td class="px-6 pb-4 font-bold text-black text-center pt-12">Monto en salario neto</td>
+                        <td class="px-6 pb-4 font-bold text-black text-center pt-12">9.09</td>
+                        <td class="px-6 pb-4 font-bold text-black text-center pt-12">12.5%</td>
+                        <td class="px-6 pb-4 font-bold text-black text-center pt-12">5%</td>
+                    </tr>
+                
+                    {% for p in pagos %}
+                    <tr class="bg-white border-b">
+                        <td class="px-6 py-4 text-red-600 text-center">${{p.t|toMoney}}</td>
+                        <td class="px-6 py-4 text-black text-center">${{p.v|toMoney}}</td>
+                        <td class="px-6 py-4 text-black text-center">${{p.909|toMoney}}</td>
+                        <td class="px-6 py-4 text-black text-center">${{p.125|toMoney}}</td>
+                        <td class="px-6 py-4 text-black text-center">${{p.5|toMoney}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% elif contratos %}
+            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <thead>
+                    <tr class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 z-10">
+                        <th scope="col" class="px-6 py-3 text-center">Contrato</th>
+                        <th scope="col" class="px-6 py-3 text-center">Cliente</th>
+                        <th scope="col" class="px-6 py-3 text-center">Fecha</th>
+                        <th scope="col" class="px-6 py-3 text-center">Monto generado</th>
+                        <th scope="col" class="px-6 py-3 text-center">Costo + Gastos</th>
+                        <th scope="col" class="px-6 py-3 text-center">Impuesto sobre ventas<br>(10%, 1%)</th>
+                        <th scope="col" class="px-6 py-3 text-center">Márgen de beneficio<br>($)</th>
+                        <th scope="col" class="px-6 py-3 text-center">Márgen de beneficio<br>(%)</th>
+                        <th scope="col" class="px-6 py-3 text-center"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in contratos %}
+                    {% with forloop.counter as index %}
+                        <tr class="bg-white border-t dark:bg-gray-800 dark:border-gray-700">
+                            <td class="px-6 py-4 font-bold text-black text-center">{{c.contrato}}</td>
+                            <td class="px-6 py-4 text-black text-center">{{c.cliente}}</td>
+                            <td class="px-6 py-4 text-black text-center">{{c.fecha}}</td>
+                            <td class="px-6 py-4 text-black text-center">${{c.monto}}</td>
+                            <td class="px-6 py-4 text-black text-center">${{c.inversion}}</td>
+                            <td class="px-6 py-4 text-black text-center">${{c.impuestos_total|toMoney}}</td>
+                            <td class="px-6 py-4 text-black text-center">${{c.margen|toMoney}}</td>
+                            <td class="px-6 py-4 text-black text-center">${{c.margen_porcent|toMoney}}</td>
+                        </tr>
+                    {% endwith %}
+                    {% endfor %}
+                    
+                    <tr class="bg-white border-t-2 border-black">
+                        <td class="px-6 py-4 font-bold text-black text-center">Total en el mes</td>
+                        <td class="px-6 py-4 font-bold text-black text-center"></td>
+                        <td class="px-6 py-4 font-bold text-black text-center"></td>
+                        <td class="px-6 py-4 font-bold text-black text-center">${{monto_semana|toMoney}}</td>
+                        <td class="px-6 py-4 font-bold text-orange-600 text-center">${{inversion_semana|toMoney}}</td>
+                        <td class="px-6 py-4 font-bold text-red-600 text-center">
+                            <span data-popover-target="popover-impuestos-total">${{impuestos_semana|toMoney}}</span>                            
+                            <div data-popover id="popover-impuestos-total" role="tooltip" class="absolute z-10 invisible inline-block w-auto text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                                <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                                    <h3 class="font-semibold text-gray-900 dark:text-white">Impuestos</h3>
+                                </div>
+                                <div class="px-3 py-2 flex flex-col">
+                                    {% for i in semana.impuestos_detalles %}
+                                    <p>{{i.n}} -  $ {{i.v|toMoney}}</p>
+                                    {% endfor %}
+                                </div>
+                                <div data-popper-arrow></div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 font-bold text-green-600 text-center">${{margen_semana|toMoney}}</td>
+                        <td class="px-6 py-4 font-bold text-green-600 text-center">{{margen_semana_porcent}}%</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            {% elif clientes_salon %}
+            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <thead>
+                    <tr class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 z-10">
+                        <th scope="col" class="px-6 py-3 text-center">Cliente</th>
+                        <th scope="col" class="px-6 py-3 text-center">Fecha</th>
+                        <th scope="col" class="px-6 py-3 text-center">Monto generado</th>
+                        <th scope="col" class="px-6 py-3 text-center">Costo + Gastos</th>
+                        <th scope="col" class="px-6 py-3 text-center">Impuesto sobre ventas<br>(10%, 1%)</th>
+                        <th scope="col" class="px-6 py-3 text-center">Márgen de beneficio<br>($)</th>
+                        <th scope="col" class="px-6 py-3 text-center">Márgen de beneficio<br>(%)</th>
+                        <th scope="col" class="px-6 py-3 text-center"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in clientes_salon %}
+                    {% with forloop.counter as index %}
+                        <tr class="bg-white border-t dark:bg-gray-800 dark:border-gray-700">
+                            <td class="px-6 py-4 text-black text-center">{{c.cliente}}</td>
+                            <td class="px-6 py-4 text-black text-center">{{c.fecha}}</td>
+                            <td class="px-6 py-4 text-black text-center">${{c.monto}}</td>
+                            <td class="px-6 py-4 text-black text-center">${{c.inversion}}</td>
+                            <td class="px-6 py-4 text-black text-center">${{c.impuestos_total|toMoney}}</td>
+                            <td class="px-6 py-4 text-black text-center">${{c.margen|toMoney}}</td>
+                            <td class="px-6 py-4 text-black text-center">${{c.margen_porcent|toMoney}}</td>
+                        </tr>
+                    {% endwith %}
+                    {% endfor %}
+                    
+                    <tr class="bg-white border-t-2 border-black">
+                        <td class="px-6 py-4 font-bold text-black text-center">Total en el mes</td>
+                        <td class="px-6 py-4 font-bold text-black text-center"></td>
+                        <td class="px-6 py-4 font-bold text-black text-center">${{monto_semana|toMoney}}</td>
+                        <td class="px-6 py-4 font-bold text-orange-600 text-center">${{inversion_semana|toMoney}}</td>
+                        <td class="px-6 py-4 font-bold text-red-600 text-center">
+                            <span data-popover-target="popover-impuestos-total">${{impuestos_semana|toMoney}}</span>                            
+                            <div data-popover id="popover-impuestos-total" role="tooltip" class="absolute z-10 invisible inline-block w-auto text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800">
+                                <div class="px-3 py-2 bg-gray-100 border-b border-gray-200 rounded-t-lg dark:border-gray-600 dark:bg-gray-700">
+                                    <h3 class="font-semibold text-gray-900 dark:text-white">Impuestos</h3>
+                                </div>
+                                <div class="px-3 py-2 flex flex-col">
+                                    {% for i in semana.impuestos_detalles %}
+                                    <p>{{i.n}} -  $ {{i.v|toMoney}}</p>
+                                    {% endfor %}
+                                </div>
+                                <div data-popper-arrow></div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 font-bold text-green-600 text-center">${{margen_semana|toMoney}}</td>
+                        <td class="px-6 py-4 font-bold text-green-600 text-center">{{margen_semana_porcent}}%</td>
+                    </tr>
+
+                    
+                    <tr class="bg-white border-b-2 border-black uppercase">
+                        <td class="px-6 pb-4 font-bold text-black text-center pt-12">Gasto total por salario</td>
+                        <td class="px-6 pb-4 font-bold text-black text-center pt-12">Monto en salario neto</td>
+                        <td class="px-6 pb-4 font-bold text-black text-center pt-12">9.09</td>
+                        <td class="px-6 pb-4 font-bold text-black text-center pt-12">12.5%</td>
+                        <td class="px-6 pb-4 font-bold text-black text-center pt-12">5%</td>
+                    </tr>
+                
+                    {% for p in pagos %}
+                    <tr class="bg-white">
+                        <td class="px-6 py-4 text-red-600 text-center">${{p.t|toMoney}}</td>
+                        <td class="px-6 py-4 text-black text-center">${{p.v|toMoney}}</td>
+                        <td class="px-6 py-4 text-black text-center">${{p.909|toMoney}}</td>
+                        <td class="px-6 py-4 text-black text-center">${{p.125|toMoney}}</td>
+                        <td class="px-6 py-4 text-black text-center">${{p.5|toMoney}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+            <h1 class="p-12 text-xl font-semibold">Monto final resultante: <span class="{% if margen_real < 0 %}text-red-600{% else %}text-green-600{% endif %}">${{margen_real|toMoney}}</span></h1>
+
+            <h1 class="px-12 text-xl font-bold underline mb-3">Gastos mensuales:</h1>
+            {% if "periodo="|concatenate:periodos.0.v|concatenate:"&" in request.build_absolute_uri or "periodo=" not in request.build_absolute_uri %}
+            <p class="ml-14 px-2 text-sm font-semibold -mb-2 bg-gray-200 w-min truncate">Agregar gasto</p>
+            <form class="flex mx-12 space-x-6 p-3 border rounded" method="POST">
+                {% csrf_token %}
+                <input type="text" name="addGasto" value="True" class="hidden" />
+                <div class="w-1/4">
+                    <label for="amount" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Monto del gasto</label>
+                    <input type="number" id="amount" name="amount" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="$0.00" required />
+                </div>
+                <div class="w-2/4">
+                    <label for="motivo" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Motivo del gasto</label>
+                    <input type="text" id="motivo" name="motivo" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Describa el motivo del gasto" required />
+                </div>
+                
+                <button class="w-1/4 flex items-center justify-center mt-6 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-200 hover:bg-gray-300 border border-transparent rounded-lg focus:outline-none focus:shadow-outline-gray" type="submit">
+                    Agregar gasto
+                </button>
+            </form>
+            {% endif %}
+            
+            <div class="w-full px-12 py-2">
+                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                    <thead>
+                        <tr class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 z-10">
+                            <th scope="col" class="px-6 py-3 text-center">Origen</th>
+                            <th scope="col" class="px-6 py-3 text-center">Monto </th>
+                            <th scope="col" class="px-6 py-3 text-center">Motivo del gasto</th>
+                            <th scope="col" class="px-6 py-3 text-center"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in gastos %}
+                        <tr class="bg-white border-b">
+                            <td class="px-6 py-4 font-semibold text-black text-center">{{g.origen}}</td>
+                            <td class="px-6 py-4 text-black text-center">${{g.monto|toMoney}}</td>
+                            <td class="px-6 py-4 text-black text-center">{{g.motivo}}</td>
+                            <td class="px-6 py-4 text-black text-center">
+                                {% if "periodo="|concatenate:periodos.0.v|concatenate:"&" in request.build_absolute_uri or "periodo=" not in request.build_absolute_uri %}
+                                <form class="p-0" method="POST">
+                                    {% csrf_token %}
+                                    <input type="text" name="deleteGasto" value="True" class="hidden" />
+                                    <input type="text" name="gastoId" value="{{g.id}}" class="hidden" />
+                                    <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-red-500 rounded-lg focus:outline-none" type="submit">
+                                        <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        
+                        {% if gasto_total %}
+                        <tr class="bg-white border-t-2">
+                            <td class="px-6 py-4 font-black text-black text-center">TOTAL</td>
+                            <td class="px-6 py-4 text-black text-center">${{gasto_total|toMoney}}</td>
+                        </tr>
+                        {% endif %}
+
+                        {% if gastos|length == 0 %}
+                        <tr class="bg-white border-b">
+                            <td class="px-6 py-4 text-center" colspan="3">No existen registros de gastos</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="w-full h-24"></p>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock contentCaja %}
+
+
+{% block scripts %}
+
+<script>
+    function showHiddenAccordion(tag){
+        const elements = document.querySelectorAll(`[accordion="${tag}"]`);
+
+        for (const element of elements) {      
+            if (element.classList.contains('hidden')) {
+                element.classList.remove('hidden');
+                document.getElementById(`btn-${tag}`).classList.add("rotate-180")
+            } else {
+                element.classList.add('hidden');
+                document.getElementById(`btn-${tag}`).classList.remove("rotate-180")
+            }
+        }
+
+    }
+</script>
+{% endblock scripts %}

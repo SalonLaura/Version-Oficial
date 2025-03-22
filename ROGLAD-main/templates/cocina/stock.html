@@ -1,0 +1,48 @@
+{% extends 'cocina/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+
+{% block content %}
+
+<div class="w-full h-full flex justify-center">
+    <div class="w-full h-full bg-white border overflow-y-auto">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="bg-white">
+                <tr class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400 z-30 sticky top-0">
+                    <th scope="col" class="px-6 py-3 text-center"> Producto </th>
+                    <th scope="col" class="px-6 py-3 text-center"> Descripción </th>
+                    <th scope="col" class="px-6 py-3 text-center"> Categoría</th>
+                    <th scope="col" class="px-6 py-3 text-center"> Disponibilidad</th>
+                    <th scope="col" class="px-6 py-3 text-center"> Medida</th>
+                </tr>
+            </thead>
+            <tbody id="body-productos-compuestos">   
+                {% for stock in stock_return %}
+                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <th scope="row" class="flex items-center pl-3 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                        
+                        {% if stock.producto.img %}
+                        <img class="rounded-full w-10 h-10" src="{{stock.producto.img}}" alt="" />
+                        {% else %}
+                        <p class="rounded-full w-10 h-10 flex items-center justify-center font-bold text-md text-gray-600 bg-gray-100">{{ stock.producto.nombre.0 }}{{ stock.producto.nombre.1 }}<p>
+                        {% endif %}
+
+                        <span class="ml-3 text-base font-semibold truncate">{{ stock.producto.nombre }}</span> 
+                    </th>
+                    <td class="px-3 py-4 text-base font-semibold text-center">{{ stock.producto.descripcion }}</td>
+                    <td class="px-3 py-4 text-base font-semibold text-center">{{ stock.producto.categoria|nullToBlank }}</td>
+                    <td class="px-3 py-4 text-base font-semibold text-center">{{ stock.disponibilidad|parseFloat }}</td>
+                    <td class="px-3 py-4 text-base font-semibold text-center">{{ stock.producto.medida|nullToBlank }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block scripts %}
+{% endblock scripts %}

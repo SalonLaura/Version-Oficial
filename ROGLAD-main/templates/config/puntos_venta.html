@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+                
+{% block content %}
+<div class="flex w-full h-full justify-center">
+    <div class="flex flex-col items-center w-screen h-full bg-white w-full">
+        <div class="border-b border-gray-200 w-full overflow-x-auto h-18 scrollbar scrollbar-xs" id="content-menu">
+            {% include "config/menu_select.html" %}
+        </div>
+
+        <div class="w-full h-[calc(100%-4rem)] overflow-auto" id="content-table">
+            <div class="rounded-lg w-full flex items-center justify-center" id="puntos_venta">
+                <div class="w-full h-full">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead class="bg-white">
+                            <tr class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400  sticky top-0">
+                                <th scope="col" class="px-6 py-3"> Nombre </th>
+                                <th scope="col" class="px-6 py-3"> Código </th>
+                                <th scope="col" class="px-6 py-3"> Dirección </th>
+                                <th scope="col" class="px-6 py-3"> Estado </th>
+                                <th scope="col" class="px-6 py-1.5 flex justify-center">
+                                    <button class="flex items-center justify-between px-4 py-2 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-200 hover:bg-gray-300 border border-transparent rounded-lg focus:outline-none focus:shadow-outline-gray mr-3"
+                                        data-modal-target="popup-modal" data-modal-toggle="popup-modal"
+                                        onclick="
+                                            document.getElementById('btn-accept').innerText='Agregar',
+                                            document.getElementById('nombre-punto-venta').value='',
+                                            document.getElementById('codigo-punto-venta').value='',
+                                            document.getElementById('direccion-punto-venta').value='',
+                                            document.getElementById('pago_ganancia').value='',
+                                            document.getElementById('pago_venta').value='',                                            
+                                            document.getElementById('pago_asociado').value='',
+                                            document.getElementById('pago_conciliado1').value='',
+                                            document.getElementById('pago_conciliado2').value='',
+                                            document.getElementById('pago_minutos').value='',
+                                            document.getElementById('pago_fijo').value='',
+                                            document.getElementById('edit-id').value=''
+                                        ">
+                                        <svg class="w-5 h-5 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z"></path>
+                                        </svg>
+                                        Agregar punto
+                                    </button>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="body-puntos-venta">
+                            {% for punto_venta in puntos_venta %}
+                            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600" id="tr-content-{{punto_venta.id}}">
+                                <td class="px-6 py-4 text-base font-semibold">{{ punto_venta.nombre }}</td>
+                                <td class="px-6 py-4 text-base font-semibold">{{ punto_venta.codigo }}</td>
+                                <td class="px-6 py-4 text-base font-semibold">{{ punto_venta.direccion }}</td>
+                                
+                                {% if punto_venta.abierto %}
+                                <td class="px-6 py-4 text-base font-semibold text-green-700 dark:text-green-100">Abierto</td>
+                                {% else %}
+                                <td class="px-6 py-4 text-base font-semibold text-red-700 dark:text-red-100">Cerrado</td>
+                                {% endif %}
+                                <td class="px-6 py-4 flex justify-center">
+                                    <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray mr-6" aria-label="Edit"
+                                    data-modal-target="popup-modal" data-modal-toggle="popup-modal" 
+                                    onclick="
+                                        document.getElementById('btn-accept').innerText='Actualizar',
+                                        document.getElementById('nombre-punto-venta').value='{{ punto_venta.nombre }}',
+                                        document.getElementById('codigo-punto-venta').value='{{ punto_venta.codigo }}',
+                                        document.getElementById('direccion-punto-venta').value='{{ punto_venta.direccion }}',
+                                        document.getElementById('pago_ganancia').value='{{ punto_venta.pago_ganancia|parseFloatOrNull }}',
+                                        document.getElementById('pago_venta').value='{{ punto_venta.pago_venta|parseFloatOrNull }}',
+                                        document.getElementById('pago_asociado').value='{{ punto_venta.pago_asociado|parseFloatOrNull }}',
+                                        document.getElementById('pago_conciliado1').value='{{ punto_venta.pago_conciliado1|parseFloatOrNull }}',
+                                        document.getElementById('pago_conciliado2').value='{{ punto_venta.pago_conciliado2|parseFloatOrNull }}',
+                                        document.getElementById('pago_minutos').value='{{ punto_venta.pago_minutos|parseFloatOrNull }}',
+                                        document.getElementById('pago_fijo').value='{{ punto_venta.pago_fijo|parseFloatOrNull }}',
+                                        document.getElementById('edit-id').value = '{{ punto_venta.id }}'
+                                    ">
+                                        <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                                        </svg>
+                                    </button>
+                                    {% if punto_venta.is_delete %}
+                                    <button data-modal-target="delete-modal" data-modal-toggle="delete-modal"  aria-label="Delete" onclick="document.getElementById('id-delete').value='{{punto_venta.id}}'"
+                                    class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray">
+                                        <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </button>
+                                    {% else %}
+                                    <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 cursor-not-allowed text-gray-400 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray">
+                                        <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<div id="popup-modal" tabindex="-1" data-modal-backdrop="static"  class="fixed top-0 left-0 right-0 z-50 hidden p-4 overflow-hidden md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="w-auto max-w-5xl max-h-full">
+        <form class="p-2 bg-white rounded-lg shadow dark:bg-gray-700 max-h-full overflow-auto min-w-[20rem]" method="POST" action="/config-punto-venta/">
+            {% csrf_token %}
+            <input class="hidden" id="edit-id" name="edit-id"/>
+
+            <div class="p-6" id="content-modal">
+                <h1 class="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-200">Agregar punto de venta</h1>
+                <div class="flex">
+                    <div class=" w-1/2 mr-1">
+                        <p class="text-gray-700 dark:text-gray-400 m-1.5">Nombre:</p>
+                        <input name="nombre" class="w-72 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="" type="text" maxlength="100" id="nombre-punto-venta" required="">
+                    </div>
+                    <div class=" w-1/2 ml-1">
+                        <p class="text-gray-700 dark:text-gray-400 m-1.5">Código:</p>
+                        <input name="codigo" class="w-72 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="" type="text" maxlength="100" id="codigo-punto-venta">
+                    </div>
+                </div>
+                <div class="">
+                    <p class="text-gray-700 dark:text-gray-400 m-1.5">Dirección:</p>
+                    <input name="direccion" class="w-72 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5" placeholder="" type="text" maxlength="100" id="direccion-punto-venta">
+                </div>
+            </div>
+            
+            <div class="p-6 pt-0">
+                <p class="text-gray-700 dark:text-gray-400  mx-1.5 font-semibold">Sistema de pago</p>
+                <div id="pago-pv-content" class="">
+                    <div class="flex space-x-2 max-w-sm">
+                        <div class="flex flex-col w-1/2">
+                            <p class="text-gray-700 dark:text-gray-400 mx-1.5 text-sm">Por utilidades</p>
+                            <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="0.0 %" type="number" step="0.01" step-my  id="pago_ganancia" name="pago_ganancia">
+                        </div>
+                        <div class="flex flex-col w-1/2">
+                            <p class="text-gray-700 dark:text-gray-400 mx-1.5 text-sm">Por venta</p>
+                            <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="0.0 %" type="number" step="0.01" step-my  id="pago_venta" name="pago_venta">
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 max-w-sm">
+                        <div class="flex flex-col w-1/2">
+                            <p class="text-gray-700 dark:text-gray-400 mx-1.5 text-sm">A partir de</p>
+                            <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="$0.00" type="number" step="0.01" step-my  id="pago_conciliado1" name="pago_conciliado1">
+                        </div>
+                        <div class="flex flex-col w-1/2">
+                            <p class="text-gray-700 dark:text-gray-400 mx-1.5 text-sm">% a pagar de venta </p>
+                            <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="0.0 %" type="number" step="0.01" step-my  id="pago_conciliado2" name="pago_conciliado2">
+                        </div>
+                    </div>
+                </div>
+                <div id="pago-content" class="">
+                    <div class="flex space-x-2 max-w-sm">
+                        <div class="flex flex-col w-1/2">
+                            <p class="text-gray-700 dark:text-gray-400 mx-1.5 text-sm">Por tiempo</p>
+                            <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="$0.00" type="number" step="0.01" step-my  id="pago_minutos" name="pago_minutos">
+                        </div>
+                        <div class="flex flex-col w-1/2">
+                            <p class="text-gray-700 dark:text-gray-400 mx-1.5 text-sm">Fijo</p>
+                            <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="$0.00" type="number" step="0.01" step-my  id="pago_fijo" name="pago_fijo">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex w-full border-t mt-2 pt-2">
+                    <p class="text-gray-700 dark:text-gray-400 mx-1.5 text-sm w-1/2">Pago a trabajadores asociados: </p>
+                    <input class="bg-gray-50 border border-gray-300 text-gray-900 w-1/2 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="$0.00" type="number" step="0.01" step-my  id="pago_asociado" name="pago_asociado">
+                </div>
+            </div>
+
+            <div class="flex mt-2 px-2">
+                <button type="button" class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600" id="btn-cancel" data-modal-hide="popup-modal">Cancelar</button>
+                <button id="btn-accept" type="submit" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2">Agregar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<div id="delete-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <form class="relative bg-white rounded-lg shadow dark:bg-gray-700"  method="POST" action="/config-punto-venta/">
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="delete-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            {% csrf_token %}
+            <input class="hidden" type="text" id="id-delete" name="delete-id">
+            <div class="p-4 md:p-5 text-center">
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">¿Estas seguro de eliminar el punto de venta?</h3>
+                
+                <div class="flex mt-2 px-2 justify-center space-x-3">
+                    <button data-modal-hide="delete-modal" id="btn-cancel-delete" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                    <button type="submit" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">Si, eliminar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block scripts %}
+<script type = "text/JavaScript">
+    const contentMenu = document.getElementById('content-menu');
+    contentMenu.scrollLeft = parseInt(localStorage.getItem("scroll-menu-config"));
+    contentMenu.onscroll = (e)=>{ 
+        localStorage.setItem("scroll-menu-config", JSON.stringify(contentMenu.scrollLeft))
+    }
+    const contentTable = document.getElementById('content-table');
+    contentTable.scrollTop = parseInt(localStorage.getItem("scroll-table-config-pv"));
+    contentTable.onscroll = (e)=>{ 
+        localStorage.setItem("scroll-table-config-pv", JSON.stringify(contentTable.scrollTop))
+    }
+
+</script>
+{% endblock scripts %}

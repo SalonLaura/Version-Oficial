@@ -1,0 +1,75 @@
+{% extends 'salon/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+<script src="{% static 'js/datepicker.min.js' %}"></script>
+{% endblock styles %}
+                
+{% block content %}
+<div class="relative overflow-x-auto">
+    <div class="flex h-full justify-center">
+        <div class="flex flex-col items-center flex-grow bg-white">
+            <div class="rounded-lg w-full flex items-center justify-center">
+                <div class="w-full h-full">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead>
+                            <tr class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                                <th scope="col" class="px-6 py-3"> Producto</th>
+                                <th scope="col" class="px-6 py-3"> Cantidad</th>
+                                <th scope="col" class="px-6 py-3"> Servicio</th>
+                                <th scope="col" class="px-6 py-3"> Cliente</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in productos %}
+                            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                <th class="px-6 py-3 font-normal"> {{p.producto.nombre}} </th>
+                                <th class="px-6 py-3 font-normal"> {{p.cantidad|parseFloat}} {{p.producto.medida.nombre}} </th>
+                                <th class="px-6 py-3 font-normal"> {{p.servicio}} </th>
+                                <th class="px-6 py-3 font-normal"> {{p.cliente_name}} </th>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block scripts %}
+
+<script>
+    
+    function inputChange(id){
+        let element = document.getElementById(id);
+        let max = element.getAttribute("max");
+    
+        if(parseInt(element.value) > parseInt(max)){
+            element.value = max;
+        } else if(parseInt(element.value) < 0){
+            element.value = 0;
+        }
+    }
+    
+    function upInput(id){
+        let element = document.getElementById(id);
+        let max = element.getAttribute("max");
+        if(max == null || parseInt(element.value) < parseInt(max)){
+            element.value = parseInt(element.value) + 1;
+        } else{
+            element.value = max;
+        }
+    }
+    
+    function downInput(id){
+        let element = document.getElementById(id);
+        if(parseInt(element.value) > 0){
+            element.value = parseInt(element.value) - 1;
+        }
+    }
+    
+    </script>
+{% endblock scripts %}

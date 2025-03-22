@@ -1,0 +1,113 @@
+{% extends 'cocina/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+
+{% block content %}
+
+<div class="w-full h-full flex flex-col bg-white">
+    <div class="border-b border-gray-200 bg-gray-200">
+        <ul class="flex text-md font-medium text-center w-full" id="default-tab" data-tabs-toggle="#default-tab-content" role="tablist">
+            <li class="w-1/2" role="presentation">
+                <button class="inline-block p-2 w-full border-b-2 rounded-t-lg" id="profile-tab" data-tabs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">Platos</button>
+            </li>
+            <li class="w-1/2" role="presentation">
+                <button class="inline-block p-2 w-full border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="dashboard-tab" data-tabs-target="#dashboard" type="button" role="tab" aria-controls="dashboard" aria-selected="false">Subproductos</button>
+            </li>
+        </ul>
+    </div>
+    <div class="hidden w-full bg-white border overflow-y-auto" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="bg-white">
+                <tr class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400 z-30 sticky top-0">
+                    <th scope="col" class="px-6 py-3 pl-12">Producto</th>
+                    <th scope="col" class="px-6 py-3 text-center">Cantidad elaborada</th>
+                    <th scope="col" class="px-6 py-3 text-center"> Hora</th>
+                </tr>
+            </thead>
+            
+            <tbody>
+                {% if platos|length == 0 %}
+                <tr>
+                    <td colspan="3" >
+                        <p class="flex justify-center font-bold text-xl mt-12 text-gray-800 dark:text-gray-100 pb-12">
+                            <svg class="w-6 h-6 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.143 17.082a24.248 24.248 0 003.844.148m-3.844-.148a23.856 23.856 0 01-5.455-1.31 8.964 8.964 0 002.3-5.542m3.155 6.852a3 3 0 005.667 1.97m1.965-2.277L21 21m-4.225-4.225a23.81 23.81 0 003.536-1.003A8.967 8.967 0 0118 9.75V9A6 6 0 006.53 6.53m10.245 10.245L6.53 6.53M3 3l3.53 3.53"></path>
+                            </svg>
+                            No ha elaborado ningun plato hasta el momento
+                        </p>
+                    </td>
+                </tr>
+                {% endif %}
+
+                {% for plato in platos %}
+                <tr>
+                    <td class="px-3 py-4 text-base pl-12">{{ plato.producto.nombre }}</td>
+                    <td class="px-3 py-4 text-base text-center">{{ plato.cantidad_resultante|parseFloat }} {{plato.producto.medida.abreviatura}}</td>
+                    <td class="px-3 py-4 text-base text-center">{{ plato.fecha_fabricacion }}</td>
+                </tr>
+                
+                <tr class="border-b">
+                    <td colspan="3" class="pb-3 pl-12">
+                        <span class="font-bold text-black">Subproductos usados:</span>
+                        {{plato.consumo}}
+                    </td>
+                </tr>
+                {% endfor %}
+                
+            </tbody>
+            
+        </table>
+    </div>
+    <div class="hidden w-full bg-white border overflow-y-auto" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="bg-white">
+                <tr class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400 z-30 sticky top-0">
+                    <th scope="col" class="px-6 py-3 pl-12">Producto</th>
+                    <th scope="col" class="px-6 py-3 text-center">Cantidad elaborada</th>
+                    <th scope="col" class="px-6 py-3 text-center"> Hora</th>
+                </tr>
+            </thead>
+            
+            <tbody>
+                {% if suproductos|length == 0 %}
+                <tr>
+                    <td colspan="3" >
+                        <p class="flex justify-center font-bold text-xl mt-12 text-gray-800 dark:text-gray-100 pb-12">
+                            <svg class="w-6 h-6 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.143 17.082a24.248 24.248 0 003.844.148m-3.844-.148a23.856 23.856 0 01-5.455-1.31 8.964 8.964 0 002.3-5.542m3.155 6.852a3 3 0 005.667 1.97m1.965-2.277L21 21m-4.225-4.225a23.81 23.81 0 003.536-1.003A8.967 8.967 0 0118 9.75V9A6 6 0 006.53 6.53m10.245 10.245L6.53 6.53M3 3l3.53 3.53"></path>
+                            </svg>
+                            No ha elaborado ningun subproducto hasta el momento
+                        </p>
+                    </td>
+                </tr>
+                {% endif %}
+
+                {% for plato in suproductos %}
+                <tr>
+                    <td class="px-3 py-4 text-base pl-12">{{ plato.producto.nombre }}</td>
+                    <td class="px-3 py-4 text-base text-center">{{ plato.cantidad_inicial|parseFloat }} {{plato.producto.medida.abreviatura}}</td>
+                    <td class="px-3 py-4 text-base text-center">{{ plato.fecha_fabricacion }}</td>
+                </tr>
+                
+                <tr class="border-b">
+                    <td colspan="3" class="pb-3 pl-12">
+                        <span class="font-bold text-black">Subproductos usados:</span>
+                        {{plato.consumo}}
+                    </td>
+                </tr>
+                {% endfor %}
+                
+            </tbody>
+            
+        </table>
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block scripts %}
+<script>
+</script>
+{% endblock scripts %}

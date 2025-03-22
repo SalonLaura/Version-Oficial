@@ -1,0 +1,761 @@
+{% extends 'punto_venta/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+                
+{% block content %}
+
+<div class="flex h-full w-full">
+    <div class="flex flex-col w-1/3 h-full bg-white border-r">
+        <div class="flex w-full justify-between items-center p-3">
+            <span class="font-bold font-serif text-xl">Cuentas</span>
+            
+            <form class="mb-0" method="POST">
+                {% csrf_token %}
+                <input type="text" name="nueva-cuenta" class="hidden" required value="Cliente #{{cant_clientes}}">                
+                <button type="submit" class="flex items-center justify-between px-4 py-2 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-200 hover:bg-gray-300 border border-transparent rounded-lg focus:outline-none focus:shadow-outline-gray">
+                    <svg class="w-5 h-5 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path>
+                    </svg>
+                    Cuenta Nueva
+                </button>
+            </form>
+        </div>
+        <ul class="my-3 overflow-y-auto flex-grow px-3">
+            {% for cuenta in cuentas %}
+            <li>
+                <div class="inline-flex flex items-center space-x-4 p-5 hover:bg-gray-100 hover:rounded-lg w-full cursor-pointer bg-withe 
+                {% if "/cuentas-punto-venta/?cuenta="|concatenate:cuenta.id == request.path|concatenate:"?cuenta="|concatenate:cuenta_select.cuenta.id %}bg-gray-100 rounded-lg{% endif %}">
+                    <button class="flex items-center justify-between px-2 py-2 bg-purple-200 text-sm font-medium leading-5 text-purple-600 rounded-full dark:text-gray-400 focus:outline-none focus:shadow-outline-gray mr-6" aria-label="Edit"
+                    data-modal-target="actualizar-cuenta-modal" data-modal-toggle="actualizar-cuenta-modal"
+                    onclick="document.getElementById('nombre-update-cuenta').value=document.getElementById('nombre-cuenta-{{cuenta.id}}').innerText,
+                    document.getElementById('id-update-cuenta').value='{{cuenta.id}}' ">
+                        <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                        </svg>
+                    </button>
+                    <a class="flex-1 min-w-0"  href="/cuentas-punto-venta/?cuenta={{cuenta.id}}">
+                        <div class="w-full flex justify-between">
+                            <p id="nombre-cuenta-{{cuenta.id}}" class="text-md text-start font-medium text-gray-900 truncate"> {{ cuenta.nombre }} </p>
+                            <p class="text-xs font-bold text-blue-700 bg-blue-100 rounded-md flex items-center px-3">{{cuenta.user}}</p>
+                        </div>                        
+                        
+                        <div class="w-full flex justify-between">
+                            {% if cuenta.abierta %}
+                            <p class="text-xs font-bold py-1 leading-tight text-green-700 dark:text-green-100 text-start">Abierta</p>
+                            {% else %}
+                            <p class="text-xs font-bold py-1 leading-tight text-red-700 dark:text-red-100 text-start">Cerrada</p>
+                            {% endif %}  
+                            <span class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white">${{ cuenta.ventas.2 }}</span>
+                        </div>
+                    </a>
+                </div>
+            </li>
+            {% endfor %}
+
+        </ul>
+    </div>
+    <div class="h-full bg-white flex flex-col w-2/3">
+        <div class="flex w-full justify-between items-center">
+            <span class="font-bold font-serif text-xl m-3">Productos Vendidos</span>
+            
+            
+            {% if cuenta_select.cuenta.abierta and cuenta_select.cuenta.user == request.user %}
+            <button class="{% if "?cuenta=" not in request.build_absolute_uri %}hidden{% endif %} flex items-center justify-between px-4 py-2 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-200 hover:bg-gray-300 border border-transparent rounded-lg focus:outline-none focus:shadow-outline-gray mr-3 mt-3 mb-2"
+            data-modal-target="productos-modal" data-modal-toggle="productos-modal" id="btn-add-producto" onclick="">
+                <svg class="w-5 h-5 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 002.25-2.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v2.25A2.25 2.25 0 006 10.5zm0 9.75h2.25A2.25 2.25 0 0010.5 18v-2.25a2.25 2.25 0 00-2.25-2.25H6a2.25 2.25 0 00-2.25 2.25V18A2.25 2.25 0 006 20.25zm9.75-9.75H18a2.25 2.25 0 002.25-2.25V6A2.25 2.25 0 0018 3.75h-2.25A2.25 2.25 0 0013.5 6v2.25a2.25 2.25 0 002.25 2.25z"></path>
+                </svg>
+                Agregar Productos
+            </button>
+            {% elif not cuenta_select.cuenta.abierta %}
+            <button class="undefined text-md leading-none flex items-center px-6"
+                onclick="printTicket([{% for venta in cuenta_select.ventas  %}['{{venta.nombre}}','{{venta.cantidad|parseFloat}}','${{venta.monto|toMoney}}'],{% endfor %}])">
+                <span class="material-icons mr-3">print </span>
+            </button>
+            {% endif %}
+        </div>
+        <div class="w-full overflow-hidden flex flex-col flex-grow">
+            <div class="w-full overflow-x-auto flex-grow"  id="div-ventas">
+              <table id="table-ventas" class="w-full whitespace-no-wrap bg-gray-50" add-class-print="">
+                <thead>
+                  <tr class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b border-gray-50 dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800 sticky top-0" add-class-print="hidden">
+                    <th class="p-0 px-4 py-3" add-class-print="hidden">Producto</th>
+                    <th class="p-0 px-4 py-3" add-class-print="hidden">Cantidad</th>
+                    <th class="p-0 px-4 py-3" add-class-print="hidden">Monto</th>
+                    <th class="p-0 px-4 py-3" add-class-print="hidden">Hora</th>
+                    <th class="p-0 px-4 py-3 text-end" add-class-print="hidden"> </th>
+                  </tr>
+                </thead>
+                <tbody id="content-ventas" class="bg-white divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-800">
+                    {% if cuenta_select %}
+                    {% for venta in cuenta_select.ventas  %}
+                    <tr class="text-gray-700 dark:text-gray-400" id="tr-sale-{{venta.producto_id}}">
+                        <td class="px-4 py-3" add-class-print="p-0 text-xs font-bold">
+                            <div class="flex items-center text-sm">
+                                <p class="font-semibold" add-class-print="text-xs">{{venta.nombre}}</p>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-md" id="cantidad-venta-{{venta.producto_id}}" add-class-print="p-0 text-xs font-bold">{{venta.cantidad|parseFloat}}</td>
+                        <td class="px-4 py-3 text-md monto-venta" id="monto-venta-{{venta.producto_id}}" add-class-print="p-0 text-xs font-bold">${{venta.monto}}</td>
+                        <td class="px-4 py-3 text-md" id="hora-venta-{{venta.producto_id}}" add-class-print="hidden">{{venta.hora|time:"g:i A"}}</td>
+                        <td class="px-4 py-3" add-class-print="hidden">
+                            <div class="flex items-center space-x-4 text-sm hidden">{{optionsText}}</div>
+                            {% if not venta.trab_primario and request.user.punto_venta.last_turno.user == request.user %}                            
+                            <button class="truncate flex items-center justify-between px-3 py-1.5 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-green-300 hover:bg-green-300 border border-transparent rounded-full focus:outline-none focus:shadow-outline-green"
+                                data-modal-target="entregado-modal" data-modal-toggle="entregado-modal" 
+                                onclick="document.getElementById('text-entregar').innerHTML = '¿Entregó <b>{{venta.cantidad|parseFloat}} {{venta.nombre}}</b> al trabajador auxiliar?',document.getElementById('id-entregar').value='{{venta.venta_id}}'">
+                                Entregar
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr class="text-gray-700 dark:text-gray-400">
+                        <td class="px-4 py-3">
+                        </td>
+                        <td class="pt-24 flex justify-center">
+                            <span class="font-bold">Seleccione una cuenta</span>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+              </table>
+            </div>
+            
+            <div class="flex px-4 py-3 text-xs font-semibold tracking-wide text-gray-500 uppercase border-t border-gray-50 dark:border-gray-700 bg-gray-50 sm:grid-cols-9 dark:text-gray-400 dark:bg-gray-800 justify-between">
+                {% if cuenta_select.message == None %}<span class="flex items-center text-lg font-bold text-black" id="monto-total-ventas">Monto Total: ${{cuenta_select.monto_total|toMoney}}</span>{% else %}
+                <span class="flex items-center text-red-600" id="message-ventas">{{cuenta_select.message}}</span>{% endif %}
+                
+                {% if cuenta_select.status_cuenta == True  and cuenta_select.cuenta.user == request.user %}
+                <button  class="flex items-center justify-between px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-lg active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple"
+                id="btn-close-cuenta" data-modal-target="close-cuenta-modal" data-modal-toggle="close-cuenta-modal" onclick="cerrarCuenta('{{cuenta_select.monto_total|toMoney}}','{{cuenta_select.cuenta.id}}')">
+                    Cerrar cuenta
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Producto Entregado Modal -->
+<div id="entregado-modal" tabindex="-1" data-modal-backdrop="static" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="entregado-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <form class="p-4 md:p-5 text-center" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="id-entregar" id="id-entregar" value="">
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-12 text-xl font-normal text-gray-900 dark:text-gray-100" id="text-entregar">¿Entrego el producto al trabajador asociado?</h3>
+                <button data-modal-hide="entregado-modal" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">Cancelar</button>
+                <button type="submit" class="text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">
+                    Entregado
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Productos Modal -->
+<div id="productos-modal" tabindex="-1" aria-hidden="true" data-modal-backdrop="static" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden md:inset-0 h-[calc(100%-1rem)] h-full">
+    <div class="relative w-full max-w-7xl h-full p-3 bg-white flex rounded-lg shadow-md">
+        <button type="button" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800 dark:hover:text-white" data-modal-hide="productos-modal">
+            <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+            <span class="sr-only">Close modal</span>
+        </button>
+        <div class="w-3/5 h-full bg-white max-w-3xl flex flex-col border-r">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between py-3 px-5 border-b rounded-t dark:border-gray-600">
+                <h3 class="text-xl font-medium text-gray-900 mr-2">
+                    Lista de Productos
+                </h3>
+                <!-- Search input -->
+                <div class="flex justify-center flex-1 w-full">
+                    <div class="w-full max-w-md mr-6 rounded-md flex bg-gray-100" >
+                        <div class="flex items-center pl-2">
+                            <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" ></path>
+                            </svg>
+                        </div>
+                        <input  oninput="search()" id="input-search"
+                            class="flex-1 pl-2 pr-2 text-sm text-gray-700 placeholder-gray-600 border-0 bg-gray-100 focus:placeholder-gray-500 focus:border-0 focus:ring-0 focus:outline-none form-input"
+                            type="text"
+                            placeholder="Buscar producto"
+                            aria-label="Search" />
+                        <button id="clear-input" onclick="clearInput()" tabindex="-1" type="button" class="text-gray-400 bg-gray-100 hover:bg-gray-200 hover:text-gray-900 rounded-r-md text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white">
+                            <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal footer -->
+            <div class="flex items-center p-4 space-x-2 dark:border-gray-600 justify-center w-full hidden">
+                <button class="material-icons text-gray-400" onclick="scrollToLeft()">arrow_back_ios</button>
+                <ul class="flex w-full p-0.5 space-x-2 overflow-auto scrollbar scrollbar-sm rounded-full" id="scrollContainerFilters" style="">
+                    <li>
+                        <input type="radio" id="all-products" name="product-filters" value="all" class="hidden peer" checked onchange="">
+                        <label for="all-products" class="inline-flex px-2 py-1 bg-gray-200 border-2 border-gray-200 rounded-full cursor-pointer dark:border-purple-600 
+                        peer-checked:text-white peer-checked:border-purple-600 peer-checked:bg-purple-600  truncate
+                        hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                            Todos los productos
+                        </label>
+                    </li>
+                    {% for categoria in categorias %}
+                    {% if categoria.nombre != "SUBPRODUCTOS" and categoria.nombre != "MEDIOS BASICOS" %}
+                    <li>
+                        <input type="radio" id="filter-{{categoria.id}}" name="product-filters" value="{{categoria.id}}" class="hidden peer" onchange="">
+                        <label for="filter-{{categoria.id}}" class="inline-flex px-2 py-1 bg-gray-200 border-2 border-gray-200 rounded-full cursor-pointer dark:border-purple-600 
+                        peer-checked:text-white peer-checked:border-purple-600 peer-checked:bg-purple-600  truncate
+                        hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">  
+                            {{ categoria.nombre }}
+                        </label>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                </ul>
+                <button class="material-icons text-gray-400" onclick="scrollRight()">arrow_forward_ios</button>
+            </div>
+            <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="default-styled-tab" data-tabs-toggle="#tab-content" data-tabs-active-classes="text-purple-600 hover:text-purple-600 dark:text-purple-500 dark:hover:text-purple-500 border-purple-600 dark:border-purple-500" data-tabs-inactive-classes="dark:border-transparent text-gray-500 hover:text-gray-600 dark:text-gray-400 border-gray-100 hover:border-gray-300 dark:border-gray-700 dark:hover:text-gray-300" role="tablist">
+                <li class="w-1/3" role="presentation">
+                    <button class="inline-block p-3 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 w-full" id="ipv-pv-styled-tab" data-tabs-target="#ipv-pv" type="button" role="tab" aria-controls="ipv-pv" aria-selected="false">Punto de venta</button>
+                </li>
+                <li class="w-1/3" role="presentation">
+                    <button class="inline-block p-3 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 w-full" id="formulas-styled-tab" data-tabs-target="#styled-formulas" type="button" role="tab" aria-controls="formulas" aria-selected="false">Formulas Venta</button>
+                </li>
+                <li class="w-1/3" role="presentation">
+                    <button class="inline-block p-3 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 w-full" id="solicitudes-styled-tab" data-tabs-target="#styled-solicitudes" type="button" role="tab" aria-controls="solicitudes" aria-selected="false">Solicitudes a cocina</button>
+                </li>
+            </ul>
+            <!-- Modal body -->
+            <div class="overflow-y-auto flex-grow rounded-b mb-1">
+                <div class="hidden"  id="ipv-pv" role="tabpanel" aria-labelledby="ipv-pv-tab">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 p-3">
+                        {% for producto in productos %}
+                        {% with producto.cant_stock  as cant_stock %}
+                        <div id="content-producto-id-{{ producto.id }}" class="{% if cant_stock == 0.0 %}hidden product-hidden {% endif %} item-product">
+                        {% if cant_stock > 0.0 %}
+                            {% with producto.precio_venta|toMoneyList as precio_list %}
+                            <button class="w-full bg-white border border-gray-200 rounded-lg shadow hover:shadow-lg dark:bg-gray-800 dark:border-gray-700" barcode="{{producto.codigo}}"
+                            id="producto-id-{{ producto.id }}"
+                            onclick="addProductoVendido('{{ producto.id }}','{{ producto.nombre }}', '{{ precio_list.0 }}.{{ precio_list.1 }}','{{ cant_stock|parseFloat }}')">                        
+                                
+                                
+                                {% if producto.img %}
+                                <img class="rounded-t-lg bg-cover bg-center aspect-[3/2] w-full" src="{{producto.img}}" alt="" />
+                                {% else %}
+                                <p class="rounded-t-lg aspect-[3/2] w-full flex items-center justify-center font-bold text-6xl text-gray-600 bg-gray-100">{{ producto.nombre.0 }}{{ producto.nombre.1 }}<p>
+                                {% endif %}
+
+                                <div class="p-5">
+                                    <h5 id="name-producto-id-{{ producto.id }}" class="mb-1 text-start text-md font-bold tracking-tight text-gray-900 dark:text-white">{{ producto.nombre }}</h5>
+                                    <h5 id="code-producto-id-{{ producto.id }}" class="hidden">{{ producto.codigo }}</h5>
+                                    <p class="mb-1 text-start text-sm font-normal text-gray-700 dark:text-gray-400 hidden">{{ producto.descripcion }}</p>
+                                    <div class="flex flex-col items-center justify-end">
+                                        <span class="text-xl font-bold text-gray-900 dark:text-white">${{ precio_list.0 }}.{{ precio_list.1 }}</span>                                    
+                                        <span class="px-3 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100 hidden">{{ cant_stock|parseFloat }} {{ producto.medida.abreviatura }}</span>
+                                    </div>
+                                </div>
+                            </button>
+                            {% endwith %}
+                        {% endif %}
+                        </div>
+                        {% endwith %}
+                        {% endfor %}
+                    </div>
+                </div>
+                    
+                <div class="hidden" id="styled-solicitudes" role="tabpanel" aria-labelledby="solicitudes-tab">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 p-3">
+                        {% for producto in formulas_return %}
+                        <div id="content-producto-id-{{producto.pre_id}}{{ producto.id }}" class="item-product">                    
+                            {% with producto.precio_venta|toMoneyList as precio_list %}
+                            <button class="w-full bg-white border border-gray-200 rounded-lg shadow hover:shadow-lg dark:bg-gray-800 dark:border-gray-700" barcode="{{producto.codigo}}"
+                            id="producto-id-{{producto.pre_id}}{{ producto.id }}"
+                            onclick="addProductoVendido('{{producto.pre_id}}{{ producto.id }}','{{ producto.nombre }}', '{{ precio_list.0 }}.{{ precio_list.1 }}','{{ producto.disponibilidad|parseFloat }}')">
+                                
+                                {% if producto.img %}
+                                <img class="rounded-t-lg bg-cover bg-center aspect-[3/2] w-full" src="{{producto.img}}" alt="" />
+                                {% else %}
+                                <p class="rounded-t-lg aspect-[3/2] w-full flex items-center justify-center font-bold text-6xl text-gray-600 bg-gray-100">{{ producto.nombre.0 }}{{ producto.nombre.1 }}<p>
+                                {% endif %}
+
+                                <div class="p-5">
+                                    <h5 id="name-producto-id-{{producto.pre_id}}{{ producto.id }}" class="mb-1 text-start text-md font-bold tracking-tight text-gray-900 dark:text-white">{{ producto.nombre }}</h5>
+                                    <p class="mb-1 text-start text-sm font-normal text-gray-700 dark:text-gray-400 hidden">{{ producto.descripcion }}</p>
+                                    <div class="flex flex-col items-center justify-end">
+                                        <span class="text-xl font-bold text-gray-900 dark:text-white">${{ precio_list.0 }}.{{ precio_list.1 }}</span>                                    
+                                        <span class="px-3 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100 hidden">{{ producto.disponibilidad|parseFloat }} {{ producto.medida.abreviatura }}</span>
+                                    </div>
+                                </div>
+                            </button>
+                            {% endwith %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                    
+                <div class="hidden" id="styled-formulas" role="tabpanel" aria-labelledby="formulas-tab">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 p-3">
+                        {% for producto in formulas_pv_return %}
+                        <div id="content-producto-id-{{producto.pre_id}}{{ producto.id }}" class="item-product">
+                        
+                            {% with producto.precio_venta|toMoneyList as precio_list %}
+                            <button class="flex flex-col items-center w-full bg-white border border-gray-200 rounded-lg shadow hover:shadow-lg dark:bg-gray-800 dark:border-gray-700" barcode="{{producto.codigo}}"
+                            id="producto-id-{{producto.pre_id}}{{ producto.id }}"
+                            onclick="addProductoVendido('{{producto.pre_id}}{{ producto.id }}','{{ producto.nombre }}', '{{ precio_list.0 }}.{{ precio_list.1 }}','{{ producto.disponibilidad|parseFloat }}')">
+                            
+                                <div id="images-id-{{producto.pre_id}}{{ producto.id }}" class="flex my-1 -space-x-3 rtl:space-x-reverse">
+                                    {% for p in producto.subproductos.all %}
+                                    {% if forloop.counter <= 2 %}
+                                    {% if p.producto.img %}
+                                    <img class="w-12 h-12 border-2 border-white rounded-full" src="{{p.producto.img}}" alt="" />
+                                    {% else %}
+                                    <p class="w-12 h-12 border-2 border-white rounded-full text-xl text-gray-600 bg-gray-100">{{ p.producto.nombre.0 }}{{ p.producto.nombre.1 }}<p>
+                                    {% endif %}
+                                    {% endif %}
+                                    {% endfor %}
+                                    {% if producto.subproductos.all|length > 2 %}
+                                        {% with producto.subproductos.all|length|add:-2 as plus %}
+                                        <span class="flex items-center justify-center w-12 h-12 text-lg font-medium text-white bg-gray-400 border-2 border-white rounded-full hover:bg-gray-500 dark:border-gray-800">+{{plus}}</span>
+                                        {% endwith %}
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="p-5">
+                                    <h5 id="name-producto-id-{{producto.pre_id}}{{ producto.id }}" class="mb-1 text-start text-md font-bold tracking-tight text-gray-900 dark:text-white">{{ producto.nombre }}</h5>
+                                    <p class="mb-1 text-start text-sm font-normal text-gray-700 dark:text-gray-400 hidden">{{ producto.descripcion }}</p>
+                                    <div class="flex flex-col items-center justify-end">
+                                        <span class="text-xl font-bold text-gray-900 dark:text-white">${{ precio_list.0 }}.{{ precio_list.1 }}</span>
+                                        <span class="px-3 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100 hidden">{{ producto.disponibilidad|parseFloat }} {{ producto.medida.abreviatura }}</span>
+                                    </div>
+                                </div>
+                            </button>
+                            {% endwith %}
+
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="w-2/5 h-full p-3 bg-white overflow-hidden pt-10">
+            <form class="w-full h-full" method="POST" id="form-venta-rapida" action="/venta-rapida/">
+                <input type="text" id="cuenta-id" name="cuenta-id" class="hidden" value="{{cuenta_select.cuenta.id}}" required>
+                {% csrf_token %}
+                
+                <div class="w-full overflow-x-auto h-[90%]">
+                    <table id="table-ventas" class="w-full whitespace-no-wrap">
+                        <tr class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b border-gray-50 dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800 sticky top-0">
+                            <th class="px-12 py-3">Producto</th>
+                            <th class="px-4 py-3">Cantidad</th>
+                            <th class="px-4 py-3">Monto</th>
+                            <th class="px-4 py-3"> </th>
+                        </tr>
+                        </thead>
+                        <tbody id="content-venta-rapida" class="bg-white divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-800">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex px-4 py-3 text-xs font-semibold tracking-wide text-gray-500 uppercase border-t border-gray-200 dark:border-gray-700 dark:text-gray-400 justify-between">
+                    <span class="flex items-center" id="monto-total-vender">Monto Total: $0.00</span>
+                    
+                    <div class="flex space-x-3 hidden" id="content-btns-venta">
+                        <button  class="flex items-center justify-between px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-green-600 border border-transparent rounded-lg active:bg-green-600 hover:bg-green-700 focus:outline-none focus:shadow-outline-green" type="submit">
+                        Realizar venta</button>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Agregar cuenta modal -->
+<div id="actualizar-cuenta-modal" tabindex="-1" data-modal-backdrop="static" class="fixed top-0 left-0 right-0 z-50 hidden p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <form class="px-6 py-3 text-center" method="POST" action="/update-cuenta/{% if cuenta_select %}?cuenta={{cuenta_select.cuenta.id}}{% endif %}">
+                <div class="space-y-5">
+                    {% csrf_token %}
+                    <input type="number" step="0.01" step-my  id="id-update-cuenta" name="cuenta_id" class="hidden">
+                    <h3 class="text-xl text-start font-medium text-gray-900 dark:text-white">Actualizar nombre de la cuenta</h3>
+                    <div>
+                        <label for="nombre-update-cuenta" class="block mb-2 text-start text-sm font-medium text-gray-900 dark:text-white">Identificador de la cuenta</label>
+                        <input type="text" name="nombre" id="nombre-update-cuenta" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Ej: número de mesa" required value="">
+                    </div>
+                    <div class="flex justify-center">
+                        <button id="btn-cancel-update-cuenta" data-modal-hide="actualizar-cuenta-modal" type="button" class="w-full mr-1 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">Cancelar</button>
+                        <button id="btn-update-cuenta" type="submit" class="w-full ml-1 text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center">Actualizar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Cerrar cuenta modal -->
+<div id="close-cuenta-modal" tabindex="-1" data-modal-backdrop="static" class="fixed top-0 left-0 right-0 z-50 hidden p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative w-max max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+                <button type="button" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800 dark:hover:text-white" data-modal-hide="close-cuenta-modal">
+                    <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+                <form class="p-6 text-center flex" method="POST" action="" id="close-cuenta">
+                    {% csrf_token %}
+                    
+                    <div class="flex flex-col mr-12">
+                        <div class="flex w-full">
+                            <button type="button" class="h-16 inline-flex items-center justify-center p-2 text-xl w-20 font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-sm dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500" onclick="agregarNumPago(7)">7</button>
+                            <button type="button" class="h-16 inline-flex items-center justify-center p-2 text-xl w-20 font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-sm dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500" onclick="agregarNumPago(8)">8</button>
+                            <button type="button" class="h-16 inline-flex items-center justify-center p-2 text-xl w-20 font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-sm dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500" onclick="agregarNumPago(9)">9</button>
+                        </div>
+                        <div class="flex">
+                            <button type="button" class="h-16 inline-flex items-center justify-center p-2 text-xl w-20 font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-sm dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500" onclick="agregarNumPago(4)">4</button>
+                            <button type="button" class="h-16 inline-flex items-center justify-center p-2 text-xl w-20 font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-sm dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500" onclick="agregarNumPago(5)">5</button>
+                            <button type="button" class="h-16 inline-flex items-center justify-center p-2 text-xl w-20 font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-sm dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500" onclick="agregarNumPago(6)">6</button>
+                        </div>
+                        <div class="flex">
+                            <button type="button" class="h-16 inline-flex items-center justify-center p-2 text-xl w-20 font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-sm dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500" onclick="agregarNumPago(1)">1</button>
+                            <button type="button" class="h-16 inline-flex items-center justify-center p-2 text-xl w-20 font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-sm dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500" onclick="agregarNumPago(2)">2</button>
+                            <button type="button" class="h-16 inline-flex items-center justify-center p-2 text-xl w-20 font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-sm dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500" onclick="agregarNumPago(3)">3</button>
+                        </div>
+                        <div class="flex">
+                            <button type="button" class="h-16 inline-flex items-center justify-center p-2 text-xl w-20 font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-sm dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500" onclick="agregarPunto()">.</button>
+                            <button type="button" class="h-16 inline-flex items-center justify-center p-2 text-xl w-20 font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-sm dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500" onclick="agregarNumPago(0)">0</button>
+                            <button type="button" class="h-16 inline-flex items-center justify-center p-2 text-xl w-20 font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-sm dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500" onclick="borrarNumPago()">
+                                <svg class="w-2.5 h-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 10 16">
+                                    <path d="M8.766.566A2 2 0 0 0 6.586 1L1 6.586a2 2 0 0 0 0 2.828L6.586 15A2 2 0 0 0 10 13.586V2.414A2 2 0 0 0 8.766.566Z"/>
+                                </svg>
+                                <span class="sr-only">Arrow key left</span>
+                            </button>
+                        </div>
+                        <div class="flex mt-6">
+                            <button type="button" class="h-16 inline-flex items-center justify-center p-2 text-xl w-20 font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-sm dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500" onclick="sumarNumPago(20)">+20</button>
+                            <button type="button" class="h-16 inline-flex items-center justify-center p-2 text-xl w-20 font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-sm dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500" onclick="sumarNumPago(50)">+50</button>
+                            <button type="button" class="h-16 inline-flex items-center justify-center p-2 text-xl w-20 font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-sm dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500" onclick="sumarNumPago(100)">+100</button>
+                        </div>
+                        <div class="flex">
+                            <button type="button" class="h-16 inline-flex items-center justify-center p-2 text-xl w-20 font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-sm dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500" onclick="sumarNumPago(200)">+200</button>
+                            <button type="button" class="h-16 inline-flex items-center justify-center p-2 text-xl w-20 font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-sm dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500" onclick="sumarNumPago(500)">+500</button>
+                            <button type="button" class="h-16 inline-flex items-center justify-center p-2 text-xl w-20 font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-sm dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500" onclick="sumarNumPago(1000)">+1000</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-between">
+                        <div class="flex flex-col mt-20">
+                            <span class="text-md" id="">Total a pagar:</span>
+                            <span class="font-medium text-2xl" id="monto-total-liquidar"></span>
+                        </div>
+                        <div class="relative mt-3 mx-3 ">
+                            <p class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none font-bold">CUP:</p>
+                            <input type="text" id="bill" name="bill" oninput="" class="pl-16 w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="0.0" required readonly>
+                        </div>
+                        <button type="submit" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2 " id="btn-liquidar">Liquidar</button>
+                        <p class="font-bold text-md pb-5 text-red-700 dark:text-red-100" id="resultado-liquidar"></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+
+{% block scripts %}
+<script>    
+    let barcode = ""
+    document.addEventListener("keydown", function(event) {
+        if(event.key === "Enter"){
+            document.activeElement.blur();
+            event.preventDefault()
+            const elementos = document.querySelectorAll('[barcode]');
+            elementos.forEach(elemento => {
+                if (elemento.getAttribute('barcode') === barcode) {
+                    elemento.click()
+                }
+            });
+            barcode = ""
+        }
+        else{
+            barcode += event.key
+        }      
+        setTimeout(() => { barcode = "" }, 400);
+        
+    });
+
+    function addProductoVendido(producto_id,nombre,precio,max){
+        const btnAdd = document.getElementById(`add-cantidad-${producto_id}`);
+        if(btnAdd){
+            btnAdd.click()
+        }else{
+            let content = document.getElementById("content-venta-rapida");
+            const tr = document.createElement('tr');
+            tr.id = `vender-${producto_id}`;            
+            tr.className = "text-gray-700 dark:text-gray-400";
+            tr.innerHTML =
+            `<input class="hidden" id="id-cantidad-vender-${producto_id}" name="ids" value="${producto_id}">
+            <td class="px-4 py-3">
+                <p class="flex items-center text-xs" id="nombre-producto-${producto_id}">${nombre}</p>
+            </td>
+            <td class="px-4 py-3 text-md">
+                <div class="flex items-center space-x-1">
+                    <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="downInputCantidadVendida('${producto_id}')">
+                        <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                    </button>
+                    <input type="number" step="0.01" step-my  id="cantidad-vender-${producto_id}" name="cantidad" class="bg-gray-50 w-14 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500dark:focus:border-blue-500" value="1" min="1" max="${max}" precio="${precio}" required="" oninput="cantidadCambiada('${producto_id}')">
+                    <button id="add-cantidad-${producto_id}" class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="upInputCantidadVendida('${producto_id}')">
+                        <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                    </button>
+                </div>
+            </td>
+            <td class="px-4 py-3 text-md monto-vender" id="monto-vender-${producto_id}">$${precio}</td>
+            <td class="px-4 py-3">
+                <button type="button" onclick="eliminarVenta('${producto_id}')" class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray" aria-label="Delete">
+                    <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+            </td>`;
+            content.insertBefore(tr, content.firstChild); 
+            calcularMontoTotal()
+        }
+    }
+
+    function eliminarVenta(id){
+        var trElement = document.getElementById(`vender-${id}`);
+        if (trElement) {
+            trElement.parentNode.removeChild(trElement);
+        }
+        calcularMontoTotal()
+    }
+
+    function cantidadCambiada(id){
+        let inp = document.getElementById(`cantidad-vender-${id}`);
+        if(parseInt(inp.value) > parseInt(inp.getAttribute("max"))){
+            inp.value = inp.getAttribute("max");
+        }
+        else if(parseInt(inp.value) < 1){
+            inp.value = 1;
+        }
+        calcularMontoVenta(id);
+    }
+
+    function calcularMontoVenta(id){
+        const input = document.getElementById(`cantidad-vender-${id}`);
+        let precio = parseFloat(input.getAttribute("precio"));
+        let max = parseInt(input.getAttribute("max"));
+        var cantidad = parseInt(input.value);
+
+        if(cantidad<1){cantidad=1}
+        if(cantidad>max){cantidad=max}
+        input.value = cantidad;
+        let monto = document.getElementById(`monto-vender-${id}`);
+        monto.innerText = toMoney(precio * cantidad);
+        calcularMontoTotal();
+    }
+
+
+    function calcularMontoTotal(){
+        var monto = 0.0;
+    
+        var montoElements = document.getElementsByClassName("monto-vender");
+        for (var i = 0; i < montoElements.length; i++) {
+            monto += parseFloat(montoElements[i].textContent.replace("$",""));
+        }
+        
+        let monto_total_obj  = document.getElementById("monto-total-vender");
+        monto_total_obj.innerText = `MONTO TOTAL: ${toMoney(monto)}`;
+    
+        if(monto == 0.0){
+            document.getElementById("content-btns-venta").classList.add("hidden");
+        }else{
+            document.getElementById("content-btns-venta").classList.remove("hidden");
+        }
+        
+        console.log(monto_total_obj.innerText)
+    }
+
+    function upInputCantidadVendida(id){
+        let inp = document.getElementById(`cantidad-vender-${id}`);        
+        if(parseInt(inp.value) < parseInt(inp.getAttribute("max"))){
+            inp.value = parseInt(inp.value) + 1;
+        }
+        calcularMontoVenta(id);
+    }
+
+    function downInputCantidadVendida(id){
+        let inp = document.getElementById(`cantidad-vender-${id}`);
+        if(parseInt(inp.value) > 1){
+            inp.value = parseInt(inp.value) - 1
+        }
+        calcularMontoVenta(id);
+    }
+
+    
+    function toMoney(m) {
+        var monto_list = m.toString().split(".");
+        if (monto_list.length == 2){
+            if(monto_list[1].length > 1){
+                return `$${monto_list[0]}.${monto_list[1]}`;
+            }
+            else{
+                return `$${monto_list[0]}.${monto_list[1]}0`;
+            }
+
+        }
+        else{
+            return `$${monto_list[0]}.00`;
+        }
+    }
+
+    function search(){
+        var elements = document.getElementsByClassName("item-product");
+        for (var i = 0; i < elements.length; i++) {
+            if (!elements[i].classList.contains("product-hidden")) {
+                var inputText = document.getElementById("input-search").value.toLowerCase();
+                try{
+                var nameText = document.getElementById(`${elements[i].id}`.replace("content","name")).textContent.toLowerCase();
+                try{
+                    var codeText = document.getElementById(`${elements[i].id}`.replace("content","code")).textContent.toLowerCase();
+                }
+                catch{
+                    var codeText = ""
+                }
+                
+                if (nameText.includes(inputText) || codeText.includes(inputText)) {
+                    elements[i].classList.remove("hidden");
+                } else {
+                    elements[i].classList.add("hidden");
+                }
+                }
+                catch{
+                    elements[i].classList.add("hidden");
+                }
+            }
+        }
+    }
+
+    function clearInput(){
+        document.getElementById("input-search").value = ""
+        search()
+    }
+    
+    function cerrarCuenta(monto,cuenta_id){
+        document.getElementById("monto-total-liquidar").innerText = `$${monto} CUP`;
+        document.getElementById("resultado-liquidar").innerHTML = `<span class="material-icons">report_problem</span> Falta por liquidar: $${monto}`;
+        document.getElementById("resultado-liquidar").className = "flex justify-center font-bold text-md pb-5 text-red-700 dark:text-red-100";
+        if(monto == 0.0){
+            document.getElementById("btn-liquidar").classList.remove("hidden");
+        }else{
+            document.getElementById("btn-liquidar").classList.add("hidden");
+        }        
+        document.getElementById("close-cuenta").setAttribute("action",`/punto-venta/${cuenta_id}`);
+    }
+        
+    function agregarNumPago(num){
+        let inp = document.getElementById("bill");
+        inp.value = inp.value + num;
+        calcularPago()
+    }
+
+    function sumarNumPago(num){
+        let inp = document.getElementById("bill");
+        var cant = inp.value;
+        if(cant === ""){cant = 0.0}
+        else{cant = parseFloat(cant)}
+        inp.value =  cant + parseFloat(num);
+        calcularPago()
+    }
+
+    function agregarPunto(){
+        let inp = document.getElementById("bill");
+        if(!inp.value.toString().includes(".")){
+            inp.value = inp.value.toString() + ".";
+            calcularPago()
+        }
+    }
+
+    function borrarNumPago(){
+        let inp = document.getElementById("bill");
+        inp.value = inp.value.slice(0, -1);
+        calcularPago()
+    }
+
+    function calcularPago(){
+        let montoPagar = parseFloat(document.getElementById("monto-total-liquidar").innerText.replace("$","").replace(" CUP",""));
+        var sumPago = document.getElementById("bill").value;
+        if(sumPago == ""){
+            sumPago = 0.0;
+        }
+        else{
+            sumPago = parseFloat(sumPago)
+        }
+        
+        if(montoPagar > sumPago){
+            document.getElementById("resultado-liquidar").innerHTML = `<span class="material-icons">report_problem</span> Falta por liquidar: $${montoPagar-sumPago}`;
+            document.getElementById("resultado-liquidar").className = "flex justify-center font-bold text-md pb-5 text-red-700 dark:text-red-100";
+            document.getElementById("btn-liquidar").classList.add("hidden");
+        }
+        else if(montoPagar == sumPago){
+            document.getElementById("resultado-liquidar").innerHTML = `<span class="material-icons">check_circle</span> Liquidación correcta y sin devolución`;
+            document.getElementById("resultado-liquidar").className = "flex justify-center font-bold text-md pb-5 text-green-700 dark:text-green-100";
+            document.getElementById("btn-liquidar").classList.remove("hidden");
+        }
+        else{
+            document.getElementById("resultado-liquidar").innerHTML = `<span class="material-icons">notification_important</span> Debe devolver: $${sumPago-montoPagar}`;
+            document.getElementById("resultado-liquidar").className = "flex justify-center font-bold text-md pb-5 text-orange-700 dark:text-orange-100";
+            document.getElementById("btn-liquidar").classList.remove("hidden");
+        }
+    }
+
+    function scrollToLeft() {
+        const scrollArea = document.querySelector('#scrollContainerFilters');
+        scrollArea.scrollLeft -= 50;
+    }
+    
+    function scrollRight() {
+        const scrollArea = document.querySelector('#scrollContainerFilters');
+        scrollArea.scrollLeft += 50;
+    }
+
+    function printTicket(ventas){
+        const styles = document.head.querySelectorAll('style');
+        let styleContent = "";
+        styles.forEach( style => {
+            styleContent += `<style type="text/css">${style.innerHTML}</style>`
+        });
+
+        let v = ""
+
+        ventas.forEach(function(vent) {
+            v+=`<div class='px-2 text-xs flex justify-between w-full'>
+                <p class='w-1/2'>${vent[0]}</p>
+                <p class='w-1/4 px-2 text-center'>${vent[1]}</p>
+                <p class='w-1/4 text-end'>${vent[2]}</p>
+            </div>`
+        });
+
+        let h = `
+        <p class='px-2 font-bold text-xl font-serif'>Casa Laura</p>
+        <p class='px-2 font-bold text-xs font-serif mb-2'>{{ request.user.punto_venta.nombre }}</p>
+        ${v}
+        <p class='px-2 text-xs font-bold mt-3'>${document.getElementById("monto-total-ventas").innerText}</p>
+        <p class='px-2 text-xs font-serif'>Ha sido atendido por {{request.user}}</p>
+        <p class='px-2 text-xs font-serif'>Gracias por su visita</p>
+        `
+        print(styleContent,h)
+    }
+</script>
+{% endblock scripts %}

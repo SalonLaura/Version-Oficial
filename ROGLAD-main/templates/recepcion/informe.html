@@ -1,0 +1,408 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block styles %}
+{% endblock styles %}
+                
+{% block content %}
+ 
+
+<div class="flex justify-center w-full overflow-x-auto">
+    <form method="POST" class="flex flex-col w-full m-12 max-w-5xl" id="form-nueva-recepcion">
+        {% csrf_token %}
+        <div class="flex flex-col bg-yellow-100 shadow-md">
+            <div class="flex">
+                <div class="flex w-1/2">
+                    <span class="w-1/5 border text-sm text-center font-bold">RE</br>CEP</br>TOR</span>
+                    <div class="w-4/5 flex flex-col">
+                        <span class="border border-b h-full text-xs px-2">Entidad: Casa Laura S.R.L. </br>Codigo: 50004347244</span>
+                        <div class="flex border h-full px-2">
+                            <span class="text-red-500">*</span>
+                            Almacén:
+                            <select id="" name="almacen" class="block px-2.5 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0">
+                                {% for almacen in almacenes %}
+                                <option value="{{ almacen.id }}">{{ almacen.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex w-1/2">
+                    <div class="w-2/3 border h-full font-bold flex items-center justify-center">Informe de Recepción</div>
+                    <div class="w-1/3 border flex">
+                        <div class="w-1/3 flex flex-col">
+                            <div class="border-b h-full text-center font-bold">D</div>
+                            <div class="h-full text-center" id="dia"></div>
+                        </div>
+                        <div class="w-1/3 border-l flex flex-col">
+                            <div class="border-b h-full text-center font-bold">M</div>
+                            <div class="h-full text-center" id="mes"></div>
+                        </div>
+                        <div class="w-1/3 border-l flex flex-col">
+                            <div class="border-b h-full text-center font-bold">A</div>
+                            <div class="h-full text-center" id="anno"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>            
+            <div class="flex">
+                <div class="flex w-3/6 border h-full relative">
+                    <input type="text" id="suministrador" name="suministrador" class="block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer" placeholder=" " />
+                    <label for="suministrador" class="absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 
+                    peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1 peer-focus:mt-1 w-full"><span class="text-red-500">*</span> Suministrador</label>
+                </div>
+                <div class="flex w-1/6 border h-full relative">
+                    <input type="text" id="codigo" name="codigo" class="block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer" placeholder=" " />
+                    <label for="codigo" class="absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 
+                    peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1 peer-focus:mt-1 w-full"><span class="text-red-500">*</span> Código</label>
+                </div>
+                <div class="flex w-1/6 border h-full relative">
+                    <input type="text" id="factura" name="factura" class="block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer" placeholder=" " />
+                    <label for="factura" class="absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 
+                    peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1 peer-focus:mt-1 w-full"><span class="text-red-500">*</span> Factura</label>
+                </div>
+                <div class="flex w-1/6 border h-full relative">
+                    <input type="text" id="conduce" name="conduce" class="block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer" placeholder=" " />
+                    <label for="conduce" class="absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 
+                    peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1 peer-focus:mt-1 w-full"><span class="text-red-500">*</span> Conduce</label>
+                </div>
+            </div>
+            <div class="flex">
+                <div class="flex w-1/5 border h-full relative">
+                    <input type="text" id="contrato" name="contrato" class="block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer" placeholder=" " />
+                    <label for="contrato" class="absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 
+                    peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1 peer-focus:mt-1 w-full"><span class="text-red-500">*</span> Contrato</label>
+                </div>
+                <div class="flex w-1/5 border h-full relative">
+                    <input type="text" id="manifiesto" name="manifiesto" class="block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer" placeholder=" " />
+                    <label for="manifiesto" class="absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 
+                    peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1 peer-focus:mt-1 w-full"><span class="text-red-500">*</span> Manifiesto</label>
+                </div>
+                <div class="flex w-1/5 border h-full relative">
+                    <input type="text" id="partida" name="partida" class="block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer" placeholder=" " />
+                    <label for="partida" class="absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 
+                    peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1 peer-focus:mt-1 w-full"><span class="text-red-500">*</span> Partida</label>
+                </div>
+                <div class="flex w-1/5 border h-full relative">
+                    <input type="text" id="embarque" name="embarque" class="block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer" placeholder=" " />
+                    <label for="embarque" class="absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 
+                    peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1 peer-focus:mt-1 w-full"><span class="text-red-500">*</span> Conoc. Embarque</label>
+                </div>
+                <div class="flex w-1/5 border h-full relative">
+                    <input type="text" id="expedicion" name="expedicion" class="block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer" placeholder=" " />
+                    <label for="expedicion" class="absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 
+                    peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1 peer-focus:mt-1 w-full"><span class="text-red-500">*</span> Orden de Expedición</label>
+                </div>
+            </div>
+            <div class="flex">
+                <div class="flex w-2/4 border h-full relative">
+                    <input type="text" id="transportador" name="transportador" class="block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer" placeholder=" " />
+                    <label for="transportador" class="absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 
+                    peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1 peer-focus:mt-1 w-full"><span class="text-red-500">*</span> Transportador</label>
+                </div>
+                <div class="flex w-1/4 border h-full relative">
+                    <input type="text" id="carne_identidad" name="ci" class="block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer" placeholder=" " />
+                    <label for="carne_identidad" class="absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 
+                    peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1 peer-focus:mt-1 w-full"><span class="text-red-500">*</span> Carné de Identidad</label>
+                </div>
+                <div class="flex w-1/4 border h-full relative">
+                    <input type="text" id="chapa" name="chapa" class="block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer" placeholder=" " />
+                    <label for="chapa" class="absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 
+                    peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1 peer-focus:mt-1 w-full"><span class="text-red-500">*</span> Chapa No.</label>
+                </div>
+            </div>
+            <div class="flex">
+                <div class="flex w-1/2">
+                    <span class="w-1/6 border h-full text-sm font-semibold text-center flex items-center justify-center">Código</span>
+                    <span class="w-2/6 border h-full text-sm font-semibold text-center flex items-center justify-center">Descripción</span>
+                    <span class="w-1/6 border h-full text-sm font-semibold text-center flex items-center justify-center">U/M</span>
+                    <span class="w-2/6 border h-full text-sm font-semibold text-center flex items-center justify-center">F.V</span>
+                </div>
+                <div class="flex w-1/2">
+                    <div class="flex w-1/2 h-full">
+                        <span class="w-1/3 border h-full text-sm font-semibold text-center flex items-center justify-center">Cantidad</span>
+                        <span class="w-2/3 border h-full text-sm font-semibold text-center">Precio </br> unitario total</span>
+                    </div>
+                    <div class="flex w-1/2">
+                        <span class="w-2/3 border h-full text-sm font-semibold text-center flex items-center justify-center">Importe</span>
+                        <span class="w-1/3 border h-full text-sm font-semibold text-center">Saldo en </br> existencia</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="" id="content-products">
+            </div>
+
+            <div class="flex w-full">
+                <span class="w-1/2 px-2.5 border-t border-b border-l">Importe total de la recepción</span>
+                <div class="flex w-1/2 border-t">
+                    <div class="w-1/2 border-r border-b"></div>
+                    <div class="flex w-1/2 border-r">
+                        <div class="flex w-2/3 border-l border-b">
+                            <span class="text-center h-full w-3/5" id="product-importe-1">0</span>
+                            <span class="w-0.5 bg-gray-200"></span>
+                            <span class="text-center h-full w-2/5" id="product-importe-2">00</span>
+                        </div>
+                        <span class="text-sm px-1 w-1/3 border-l-2 text-center">No.</span>
+                    </div>
+                </div>
+            </div>            
+            <div class="flex">
+                <div class="flex w-11/12">                    
+                    <!--<div class="flex w-1/5 border h-full relative">
+                        <input type="text" required="" id="j_almacen" name="j_almacen" class="block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer" placeholder=" " />
+                        <label for="j_almacen" class="absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 
+                        peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1 peer-focus:mt-1 w-full"><span class="text-red-500">*</span> J' Almacén</label>
+                    </div>
+                    <div class="flex w-1/5 border h-full relative">
+                        <input type="text" required="" id="j_transportador" name="j_transportador" class="block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer" placeholder=" " />
+                        <label for="j_transportador" class="absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 
+                        peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1 peer-focus:mt-1 w-full"><span class="text-red-500">*</span> Transportador</label>
+                    </div>
+                    <div class="flex w-1/5 border h-full relative">
+                        <input type="text" required="" id="recepcionado" name="recepcionado" class="block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer" placeholder=" " />
+                        <label for="recepcionado" class="absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 
+                        peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1 peer-focus:mt-1 w-full"><span class="text-red-500">*</span> Recepcionado</label>
+                    </div>
+                    <div class="flex w-1/5 border h-full relative">
+                        <input type="text" required="" id="contabilizado" name="contabilizado" class="block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer" placeholder=" " />
+                        <label for="contabilizado" class="absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 
+                        peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1 peer-focus:mt-1 w-full"><span class="text-red-500">*</span> Contabilizado</label>
+                    </div>
+                    <span class="flex w-1/5 border h-full text-sm px-2">Anotado control de inventario</span>-->
+                    <div class="flex w-1/5 border h-full relative items-top">
+                        <span class="block px-2.5 pb-1 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer">J' Almacén</span>
+                    </div>
+                    <div class="flex w-1/5 border h-full relative items-top">
+                        <span class="block px-2.5 pb-1 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer">Transportador</span>
+                    </div>
+                    <div class="flex w-1/5 border h-full relative items-top">
+                        <span class="block px-2.5 pb-1 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer">Recepcionado</span>
+                    </div>
+                    <div class="flex w-1/5 border h-full relative items-top">
+                        <span class="block px-2.5 pb-1 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer">Contabilizado</span>
+                    </div>
+                    <span class="flex w-1/5 border h-full text-sm px-2">Anotado control de inventario</span>
+                </div>
+                <div class="flex flex-col w-1/12 border-t-0 border-l  border-r border-b">
+                    <input type="text" id="numero" name="numero" class="hidden text-center block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0" placeholder=" " value="{{numero}}" />
+                </div>
+            </div>
+
+            
+            <div class="flex w-full border-t border-gray-400">
+                <span class="flex-1 px-2.5 border-t border-b border-l font-bold text-md py-2">Gastos involucrados</span>
+                <button class="flex focus:outline-none text-sm font-bold text-red-600 px-6 items-center border-t border-b border-r" onclick="addGasto()" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" class="mr-1">
+                        <path fill="currentColor" d="M11 17h2v-4h4v-2h-4V7h-2v4H7v2h4zm1 5q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22"/>
+                    </svg>
+                     Agregar gasto
+                </button>
+            </div> 
+            <div class="flex">
+                <span class="w-2/3 border h-full text-sm font-semibold px-2 py-1">Motivo del gasto</span>
+                <span class="w-1/3 border h-full text-sm font-semibold px-2 py-1">Monto</span>
+            </div>
+            <div class="" id="content-gastos">
+            </div>
+
+        </div>
+        <div class="flex mt-3 justify-end">            
+            <button type="button" class="focus:outline-none text-white bg-purple-500 hover:bg-purple-700 mr-3 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900" data-modal-target="medium-modal" data-modal-toggle="medium-modal" onclick='setFocus()'>Agregar Producto</button>
+            <button type="submit" class="focus:outline-none text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900">Enviar a almacén</button>
+        </div>
+    </form>
+</div>
+
+<!-- Default Modal -->
+<div id="medium-modal" tabindex="-1" data-modal-backdrop="static" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative w-full max-w-lg max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <!-- Modal header -->
+            <div class="flex flex-col items-center justify-start p-3 border-b rounded-t dark:border-gray-600">
+                <div class="flex items-center w-full justify-between">
+                    <h3 class="text-xl font-medium text-gray-900 dark:text-white">
+                        Seleccione el producto a agregar
+                    </h3>
+                    <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="medium-modal" id="close-modal-products">
+                        <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                        <span class="sr-only">Close modal</span> 
+                    </button>
+                </div>
+                <div class="w-full flex mt-3">
+                    <div class="relative flex-grow focus-within:text-purple-500">
+                        <div class="absolute inset-y-0 flex items-center pl-2">
+                        <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+                        </svg>
+                        </div>
+                        <input oninput="search()" class="w-full pl-8 pr-2 text-sm text-gray-700 placeholder-gray-600 bg-gray-100 border-0 rounded-md dark:placeholder-gray-500 dark:focus:shadow-outline-gray dark:focus:placeholder-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:placeholder-gray-500 focus:bg-white focus:border-purple-300 focus:outline-none focus:shadow-outline-purple form-input"
+                        type="text" placeholder="Buscar productos" id="input-search" aria-label="Search">                        
+                    </div>
+                    <button class="ml-2 truncate flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-white shadow-sm hover:shadow-lg bg-green-600 hover:bg-green-700 rounded-lg"
+                        data-modal-target="popup-modal" data-modal-toggle="popup-modal" id="btn-add-producto" onclick="abrirAgregarProducto()">
+                        <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 002.25-2.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v2.25A2.25 2.25 0 006 10.5zm0 9.75h2.25A2.25 2.25 0 0010.5 18v-2.25a2.25 2.25 0 00-2.25-2.25H6a2.25 2.25 0 00-2.25 2.25V18A2.25 2.25 0 006 20.25zm9.75-9.75H18a2.25 2.25 0 002.25-2.25V6A2.25 2.25 0 0018 3.75h-2.25A2.25 2.25 0 0013.5 6v2.25a2.25 2.25 0 002.25 2.25z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <!-- Modal body -->
+            <div class="p-6 space-y-6 divide-y divide-gray-100 dark:divide-gray-700 h-96 relative overflow-auto" id="body-productos">
+                {% for p in productos %}
+                <button id="product-{{p.id}}" class="item-product flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 w-full" barcode="{{p.codigo}}"
+                onclick="addProduct({{p.id}},'{{p.nombre}}','{{p.medida.abreviatura}}','{{p.codigo}}',{{ p.existencia }})">
+                  <div class="flex-shrink-0">
+                    {% if producto.img %}
+                    <img class="rounded-full w-11 h-11" src="{{p.img}}" alt="" />
+                    {% else %}
+                    <p class="rounded-full w-11 h-11 flex items-center justify-center font-bold text-md text-gray-600 bg-gray-100">{{ p.nombre.0 }}{{ p.nombre.1 }}<p>
+                    {% endif %}
+                  </div>
+                  <div class="w-full pl-3 flex flex-col">
+                      <span id="name-product-{{p.id}}" class="text-gray-900 font-bold text-md dark:text-gray-400 text-start">{{ p.nombre }} </span>
+                      <span id="code-product-{{p.id}}" class="text-xs dark:text-gray-400 text-start">{{ p.codigo }} </span>
+                      {% if p.descripcion %}<span class="text-gray-500 text-sm mb-0.5 dark:text-gray-400 text-start">{{ p.descripcion }} </span>{% endif %}
+                      <span class="text-xs text-blue-600 dark:text-blue-500 text-start">Categoria :{{ p.stok }} {{ p.categoria.nombre }} - Medida :{{ p.stok }} {{ p.medida.nombre }}</span>
+                      {% if not p.producto_transformado_final.all.exists %}<div class="flex justify-start py-1"><span class="text-xs font-bold bg-green-200 rounded-xl p-1 text-green-600 text-start hidden">RECOMENDADO</span></div>{% endif %}
+                  </div>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Default Modal -->
+<div id="popup-modal" tabindex="-1" data-modal-backdrop="static"  class="fixed top-0 left-0 right-0 z-50 hidden p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="w-auto max-w-3xl max-h-full">
+        <div class="p-2 bg-white rounded-lg shadow dark:bg-gray-700">
+            {% csrf_token %}
+            <div class="p-6" id="content-modal">
+            </div>
+            
+            <p class="flex justify-center font-bold text-md mt-2 text-red-700 dark:text-red-100 hidden" id="error-add"></p>
+            <div class="flex mt-2 px-2" id="content-options">
+                <button type="button" class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600" id="btn-cancel" data-modal-hide="popup-modal">Cancelar</button>
+                <button type="button" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2 " id="btn-accept"></button>
+            </div>
+            <div id="loading" class="w-full flex justify-center mt-2 py-4 hidden">
+                <svg id="loading-btn-add-product" aria-hidden="true" role="status" class="inline mr-3 w-6 h-6 text-purple-600 animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"/>
+                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"/>
+                </svg>
+                <span class="font-bold text-purple-600" id="text-loadding"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+
+{% block scripts %}
+<script src="{% static 'js/informe_recepcion.js' %}"></script>
+<script>
+    
+    let barcode = ""
+    document.addEventListener("keydown", function(event) {
+        if(event.key === "Enter"){
+            document.activeElement.blur();
+            event.preventDefault()
+
+            const elementos = document.querySelectorAll('[barcode]');
+            elementos.forEach(elemento => {
+                if (elemento.getAttribute('barcode') === barcode) {
+                    elemento.click()
+                }
+            });
+            barcode = ""
+        }
+        else{
+            barcode += event.key
+        }      
+        setTimeout(() => { barcode = "" }, 400);
+        
+    });
+
+
+    window.objMedidas = [{% for medida in medidas %}{'id': {{ medida.id }},'nombre': '{{ medida.nombre }}',},{% endfor %}];
+    window.objCategorias = [{% for categoria in categorias %}{'id': {{ categoria.id }},'nombre': '{{ categoria.nombre }}',},{% endfor %}];
+
+    document.getElementById("form-nueva-recepcion").addEventListener("submit", function(event) {
+        event.preventDefault();        
+        if (document.getElementsByName("product-cantidad").length == 0) {
+            alert("Debe indicar los productos que va a recepcionar.");
+            return false;
+        }
+
+        
+        var precios1 = document.getElementsByName("product-precio-1");
+        var precios2 = document.getElementsByName("product-precio-2");
+
+        for (var i = 0; i < precios1.length; i++) {
+            var precio1 = parseFloat(precios1[i].value) || 0;
+            var precio2 = parseFloat(precios2[i].value) || 0;
+
+            var sumaPrecios = precio1 + precio2;
+
+            if (sumaPrecios <= 0) {
+                alert("No pueden existir productos con precio de compra igual a $0.00");
+                return false;
+            }
+        }
+      
+        this.submit();
+    });
+
+    function setFocus(){
+        setTimeout(function() { 
+            document.getElementById("input-search").value = "";
+            document.getElementById("input-search").focus();
+            search();
+        }, 150);
+    }
+    
+    document.addEventListener("keydown", function(event) {
+        if (event.key === "Enter" || event.key === "ArrowUp" || event.key === "ArrowDown" || event.key === "ArrowRight" || event.key === "ArrowLeft") {
+            var element = event.target;
+            var next;
+
+            
+            if (event.key === "Enter" || event.key === "ArrowRight"){next = 1} 
+            else if (event.key === "ArrowLeft"){next = -1} 
+            else if (event.key === "ArrowUp"){next = -3} 
+            else if (event.key === "ArrowDown"){next = 3} 
+
+            if (element.tagName === "INPUT" || element.tagName === "BUTTON") {
+                event.preventDefault();
+        
+                var form = element.form;
+                var elements = form.getElementsByClassName("item-form");
+                var index = Array.prototype.indexOf.call(elements, element);
+                var nextElement;
+        
+                if (index === elements.length - 1) {
+                    nextElement = elements[0];
+                } else {
+                    nextElement = elements[index + next];
+                }
+        
+                if (nextElement) {
+                nextElement.focus();
+                if (nextElement.tagName === "INPUT") {
+                    nextElement.select();
+                }
+                }
+            }
+        }
+    });
+
+    var fecha = new Date();
+    document.getElementById("dia").innerHTML = fecha.getDate();
+    document.getElementById("mes").innerHTML = fecha.getMonth() + 1;
+    document.getElementById("anno").innerHTML = fecha.getFullYear();
+</script>
+{% endblock scripts %}

@@ -1,0 +1,351 @@
+{% extends base %}
+{% load static custom_filters%}
+
+{% block styles %}
+{% endblock styles %}
+                
+{% block content %}
+
+
+<div class="flex flex-col justify-center p-12 w-full items-center">
+    {% if transferencias|length == 0 %}
+    <p class="flex justify-center font-bold text-xl mt-12 text-gray-800 dark:text-gray-100">
+        <svg class="w-6 h-6 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.143 17.082a24.248 24.248 0 003.844.148m-3.844-.148a23.856 23.856 0 01-5.455-1.31 8.964 8.964 0 002.3-5.542m3.155 6.852a3 3 0 005.667 1.97m1.965-2.277L21 21m-4.225-4.225a23.81 23.81 0 003.536-1.003A8.967 8.967 0 0118 9.75V9A6 6 0 006.53 6.53m10.245 10.245L6.53 6.53M3 3l3.53 3.53"></path>
+        </svg>
+        No han realizado ninguna transferencia
+    </p>
+    {% endif %}
+    {% for transferencia in transferencias %}
+    <form method="POST" class="flex flex-col w-full max-w-5xl mx-12 bg-white mb-6">
+        {% csrf_token %}
+
+        <div class="flex flex-col bg-white shadow-md">
+            <div class="flex">
+                <span class="w-2/6 border h-full text-md p-2">Entidad: </br>Casa Laura S.R.L.</span>
+                <span class="w-1/6 border h-full text-md p-2">Codigo: </br>50004347244</span>
+                <span class="w-2/6 border h-full text-center p-2 font-bold">SC-2-09 TRANSFERENCIA ENTRE </br> ALMACENES</span>
+                <div class="w-1/6 border flex">
+                    <div class="w-1/3 border flex flex-col">
+                        <span class="border-b h-full text-center font-bold">D</span>
+                        <span class="border-t h-full text-center">{{transferencia.alta|date:"d"}}</span>
+                    </div>
+                    <div class="w-1/3 border flex flex-col">
+                        <span class="border-b h-full text-center font-bold">M</span>
+                        <span class="border-t h-full text-center">{{transferencia.alta|date:"m"}}</span>
+                    </div>
+                    <div class="w-1/3 border flex flex-col">
+                        <span class="border-b h-full text-center font-bold">A</span>
+                        <span class="border-t h-full text-center">{{transferencia.alta|date:"y"}}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex">
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Almacén que entrega </br>{{transferencia.emisor.nombre}} </span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Dirección </br>{{transferencia.emisor.direccion}}</span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Código </br>{{transferencia.emisor.codigo}}</span>
+            </div>
+            <div class="flex">
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Almacén receptor </br>Salón ({{transferencia.receptor.user}}) </span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Dirección </br>-</span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Código </br>-</span>
+            </div>
+            
+            <div class="flex">
+                <div class="flex w-1/3">
+                    <span class="w-2/6 border h-full text-sm font-semibold text-center">Código</span>
+                    <span class="w-3/6 border h-full text-sm font-semibold text-center">Descripción</span>
+                    <span class="w-1/6 border h-full text-sm font-semibold text-center">U/M</span>
+                </div>
+                <div class="flex w-1/3">
+                    <div class="flex flex-col w-1/2 h-full">
+                        <span class="w-full border h-full text-sm font-semibold text-center">Cantidad</span>
+                        <div class="flex w-full h-full">
+                            <span class="w-1/2 border h-full text-sm font-semibold text-center">Remitida</span>
+                            <span class="w-1/2 border h-full text-sm font-semibold text-center">Recibida</span>
+                        </div>
+                    </div>
+                    <span class="w-1/2 border h-full text-sm font-semibold text-center">Precio Unitario </br> Total o Costo </br> Predeterminado</span>
+                </div>
+                <div class="flex w-1/3">
+                    <div class="flex flex-col w-2/3 h-full">
+                        <span class="w-full border h-full text-sm font-semibold text-center">Importe</span>
+                        <div class="flex w-full h-full">
+                            <span class="w-1/2 border h-full text-sm font-semibold text-center">Productos</br>Remitidos</span>
+                            <span class="w-1/2 border h-full text-sm font-semibold text-center">Productos</br>Recibidos</span>
+                        </div>
+                    </div>
+                    <span class="w-1/3 border h-full text-sm font-semibold text-center">Saldo en </br> Existencia</span>
+                </div>
+            </div>
+            
+            
+            <div class="" id="content-products">
+                
+                {% if transferencia.stock_transferido|length == 0 %}
+                {% for prod in transferencia.stock %}
+                <div class="flex">
+                    <div class="flex w-1/3">
+                        <span class="w-2/6 border h-full text-sm text-center">{{ prod.producto.codigo }}</span>
+                        <span class="w-3/6 border h-full text-sm text-center">{{ prod.producto.nombre }}</span>
+                        <span class="w-1/6 border h-full text-sm text-center">{{ prod.producto.medida.abreviatura }}</span>
+                    </div>
+                    <div class="flex w-1/3">
+                        <div class="flex w-1/2 h-full">
+                            <span class="w-1/2 border h-full text-sm text-center">{{ prod.cantidad_remitida|parseFloat }}</span>
+                            <span class="w-1/2 border h-full text-sm text-center">{{ prod.cantidad_recibida|parseFloat }}</span>
+                        </div>
+                        <div class="flex w-1/2 h-full">
+                            {% with prod.producto.precio_venta|toMoneyList as precio_venta %}
+                            <span class="w-2/3 border h-full text-sm text-center">{{ precio_venta.0 }}</span>
+                            <span class="w-1/3 border h-full text-sm text-center">{{ precio_venta.1 }}</span>
+                            {% endwith %}
+                        </div>
+                    </div>
+                    <div class="flex w-1/3">
+                        <div class="flex w-2/3 h-full">
+                            <div class="flex w-1/2 h-full">
+                                {% with prod.importe_remitido|toMoneyList as importe_list %}
+                                <span class="w-2/3 border h-full text-sm text-center" id="">-</span>
+                                <span class="w-1/3 border h-full text-sm text-center" id="">-</span>
+                                {% endwith %}
+                            </div>
+                            <div class="flex w-1/2 h-full">
+                                {% with prod.importe_recibido|toMoneyList as importe_list %}
+                                <span class="w-2/3 border h-full text-sm text-center" id="">{{ importe_list.0  }}</span>
+                                <span class="w-1/3 border h-full text-sm text-center" id="">{{ importe_list.1 }}</span>
+                                {% endwith %}
+                            </div>
+                        </div>
+                        <span class="w-1/3 border h-full text-sm text-center">-</span>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                {% for prod in transferencia.stock_transferido %}
+                <div class="flex">
+                    <div class="flex w-1/3">
+                        <span class="w-2/6 border h-full text-sm text-center">{{ prod.producto.codigo }}</span>
+                        <span class="w-3/6 border h-full text-sm text-center">{{ prod.producto.nombre }}</span>
+                        <span class="w-1/6 border h-full text-sm text-center">{{ prod.producto.medida.abreviatura }}</span>
+                    </div>
+                    <input type="number" step="0.01" step-my  name="producto-pv-id" class="hidden" value="{{ prod.id }}" required>
+                    <!--<input type="number" step="0.01" step-my  name="lote-id" class="hidden" value="{{ prod.lote.id }}" required>-->
+                    <div class="flex w-1/3">
+                        <div class="flex w-1/2 h-full">
+                            <span name="cantidad-remitida" transferencia="{{transferencia.id}}" class="w-1/2 border h-full text-sm text-center">{{ prod.cantidad_remitida|parseFloat }}</span>
+                            <div class="flex w-1/2 border">
+                                <span class="text-red-700 mr-2">*</span>
+                                <input type="number" step="0.01" step-my  id="" name="cantidad" transferencia="{{transferencia.id}}" oninput="comprobarRecepcion({{transferencia.id}})" class="bg-transparent border-0 text-md  block w-full p-0.5 focus:ring-0 appearance-none focus:outline-none focus:ring-0 " min=0 required>
+                            </div>
+                        </div>
+                        <div class="flex w-1/2 h-full">
+                            {% with prod.producto.precio_venta|toMoneyList as precio_venta %}
+                            <span class="w-2/3 border h-full text-sm text-center">{{ precio_venta.0 }}</span>
+                            <span class="w-1/3 border h-full text-sm text-center">{{ precio_venta.1 }}</span>
+                            {% endwith %}
+                        </div>
+                    </div>
+                    <div class="flex w-1/3">
+                        <div class="flex w-2/3 h-full">
+                            <div class="flex w-1/2 h-full">
+                                {% with prod.importe_remitido|toMoneyList as importe_list %}
+                                <span class="w-2/3 border h-full text-sm text-center" id="importe-total-start">-</span>
+                                <span class="w-1/3 border h-full text-sm text-center" id="importe-total-end">-</span>
+                                {% endwith %}
+                            </div>
+                            <div class="flex w-1/2 h-full">
+                                <span class="w-2/3 border h-full text-sm text-center">-</span>
+                                <span class="w-1/3 border h-full text-sm text-center">-</span>
+                            </div>
+                        </div>
+                        <span class="w-1/3 border h-full text-sm text-center">-</span>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+            
+            <div class="flex">
+                <span class="w-2/3 px-2.5 border">Importe total</span>
+                <div class="flex w-1/3 border">
+                    <div class="flex w-2/3 h-full">
+                        
+                        {% if transferencia.stock_transferido|length == 0 %}
+                        <div class="flex w-1/2 h-full">
+                            {% with transferencia.stock|sum_importe_remitido as sum_importe %}
+                            <span class="w-2/3 border h-full text-sm text-center" id="">-</span>
+                            <span class="w-1/3 border h-full text-sm text-center" id="">-</span>
+                            {% endwith %}
+                        </div>
+                        <div class="flex w-1/2 h-full">
+                            {% with transferencia.stock|sum_importe_recibido as sum_importe %}
+                            <span class="w-2/3 border h-full text-sm text-center" id="">{{ sum_importe.0  }}</span>
+                            <span class="w-1/3 border h-full text-sm text-center" id="">{{ sum_importe.1 }}</span>
+                            {% endwith %}
+                        </div>
+                        {% else %}
+                        <div class="flex w-1/2 h-full">
+                            {% with transferencia.stock_transferido|sum_importe_remitido as sum_importe %}
+                            <span class="w-2/3 border h-full text-sm text-center" id="">-</span>
+                            <span class="w-1/3 border h-full text-sm text-center" id="">-</span>
+                            {% endwith %}
+                        </div>
+                        <div class="flex w-1/2 h-full">
+                            <span class="w-2/3 border h-full text-sm text-center" id="importe-total-start">-</span>
+                            <span class="w-1/3 border h-full text-sm text-center" id="importe-total-end">-</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <span class="w-1/3 border h-full text-sm text-center">-</span>
+                </div>
+            </div>
+            
+            <div class="flex">
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Entrega</span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Recibe</span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Autoriza</span>
+            </div>
+            
+            <div class="flex">
+                <div class="flex w-1/3 border h-full">
+                    <span class="h-full w-2/3 border text-sm px-3 pb-3">Nombre:</br>Firma:</span>
+                    <div class="flex w-1/3">
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">D</div>
+                            <div class="border-t h-full text-center">-</div>
+                        </div>
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">M</div>
+                            <div class="border-t h-full text-center">-</div>
+                        </div>
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">A</div>
+                            <div class="border-t h-full text-center">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex w-1/3 border h-full">
+                    <span class="h-full w-2/3 border text-sm px-3 pb-3">Nombre:</br>Firma:</span>
+                    <div class="flex w-1/3">
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">D</div>
+                            <div class="border-t h-full text-center">-</div>
+                        </div>
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">M</div>
+                            <div class="border-t h-full text-center">-</div>
+                        </div>
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">A</div>
+                            <div class="border-t h-full text-center">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex w-1/3 border h-full">
+                    <span class="h-full w-full border text-sm px-3 pb-3">Nombre:</br>Firma:</span>
+                </div>
+            </div>
+        </div>
+
+        {% if transferencia.stock_transferido|length > 0 %}
+        <div class="flex mt-3 justify-end">
+            <button data-modal-target="cancel-modal" onclick="openModalCancel({{transferencia.id}})" data-modal-toggle="cancel-modal" class="focus:outline-none text-white bg-red-500 hover:bg-red-700 mr-3 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900" type="button">
+                Rechazar Transferencia
+            </button>
+            <button type="submit" id="btn-confirmar-transferencia-{{transferencia.id}}" class="hidden focus:outline-none text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-900">Confirmar Transferencia</button>
+        </div>
+        {% elif transferencia.stock_pendiente|length > 0 %}
+        <span class="text-red-500 text-center p-2">Transferencia pendiente a confirmación</span>
+        {% endif %}
+    </form>
+    {% endfor %}
+</div>
+
+<div id="cancel-modal" tabindex="-1" class="fixed top-0 left-0 right-0 z-50 hidden p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative w-full max-w-md max-h-full">
+        <div class="bg-white rounded-lg shadow dark:bg-gray-700">
+            <form class="p-6 space-y-3" method="POST" action="/cancel-transferencia/0/salon" id="cancel-transferencia-modal">
+                {% csrf_token %}
+                <label for="message-cancel" class="mb-5 text-lg font-bold text-black">Motivo por el cual rechaza la transferencia:</label>
+                <textarea id="message-cancel" name="message" rows="4" required class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Indique aquí el motivo por el cual rechaza la transferencia..."></textarea>
+
+                <div class="flex space-x-3">
+                    <button data-modal-hide="cancel-modal" type="button" class="w-1/2 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700
+                    dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">Cancelar</button>
+                    <button type="submit" class="w-1/2 text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2">
+                        Rechazar transferencia
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block scripts %}
+<script>
+
+    function openModalCancel(id){
+        document.getElementById("cancel-transferencia-modal").setAttribute("action",`/cancel-transferencia/${id}/salon`);
+    }
+
+    function comprobarRecepcion(transferencia){
+        let spans = document.querySelectorAll('span[name="cantidad-remitida"]');
+        let inputs = document.querySelectorAll('input[name="cantidad"]');
+        for (let i = 0; i < spans.length; i++) {
+            if(transferencia == inputs[i].getAttribute("transferencia",transferencia)){
+                let spanText = spans[i].textContent;
+                let inputText = inputs[i].value;
+                
+                if (parseFloat(spanText) === parseFloat(inputText)) {
+                    document.getElementById(`btn-confirmar-transferencia-${transferencia}`).classList.remove("hidden");
+                } else {
+                    document.getElementById(`btn-confirmar-transferencia-${transferencia}`).classList.add("hidden");
+                    return;
+                }
+            }
+        }
+    }
+
+    
+    document.addEventListener("keydown", function(event) {
+        if (event.key === "Enter" || event.key === "ArrowUp" || event.key === "ArrowDown" || event.key === "ArrowRight" || event.key === "ArrowLeft") {
+            var element = event.target;
+            var next;
+
+            
+            if (event.key === "Enter" || event.key === "ArrowRight"){next = 1} 
+            else if (event.key === "ArrowLeft"){next = -1} 
+            else if (event.key === "ArrowUp"){next = -3} 
+            else if (event.key === "ArrowDown"){next = 3} 
+
+            if (element.tagName === "INPUT" || element.tagName === "BUTTON") {
+                event.preventDefault();
+        
+                var form = element.form;
+                var elements = form.getElementsByClassName("item-form");
+                var index = Array.prototype.indexOf.call(elements, element);
+                var nextElement;
+        
+                if (index === elements.length - 1) {
+                    nextElement = elements[0];
+                } else {
+                    nextElement = elements[index + next];
+                }
+        
+                if (nextElement) {
+                nextElement.focus();
+                if (nextElement.tagName === "INPUT") {
+                    nextElement.select();
+                }
+                }
+            }
+        }
+    });
+
+
+</script>
+{% endblock scripts %}

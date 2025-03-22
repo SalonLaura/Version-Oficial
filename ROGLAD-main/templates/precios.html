@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+{% load static custom_filters %}
+<html :class="{ 'theme-dark': dark }" x-data="data()" lang="en">
+    <head id="head">
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" id="meta-viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ROGLAD</title>
+
+        <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.ico' %}"/>
+
+        <script src="{% static 'js/cdn.tailwindcss.js' %}"></script>
+        <script src="{% static 'js/jquery.min.js' %}"></script>
+        <script src="{% static 'js/flowbite.min.js' %}"></script>
+    </head>
+
+    <body class="bg-gray-50">
+        <div class="flex flex-col bg-white/50">
+            
+            <div class="flex items-center justify-between py-3 px-5 border-b border-black w-full">
+                <div class="flex justify-center flex-1 w-full shadow rounded-md">
+                    <div class="relative w-full mr-6 h-10 focus-within:text-purple-500 rounded-md" >
+                        <div class="absolute inset-y-0 flex items-center pl-2">
+                            <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" ></path>
+                            </svg>
+                        </div>
+                        <input  oninput="search()" id="input-search"
+                            class="w-full h-full pl-8 pr-2 text-sm text-gray-700 placeholder-gray-600 bg-gray-100 border-0 rounded-l-md 
+                            focus:placeholder-gray-500 focus:bg-purple-50 focus:border-purple-300 focus:outline-none focus:shadow-outline-purple form-input"
+                            type="text"
+                            placeholder="Buscar productos"
+                            aria-label="Search" />
+                        <button id="clear-input" onclick="clearInput()" type="button" class="text-gray-400 bg-gray-100 hover:bg-gray-200 hover:text-gray-900 rounded-r-md text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white absolute inset-y-0">
+                            <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <a class="inline-flex px-6 py-3 items-center text-sm font-semibold text-white bg-purple-600 ml-6 rounded-xl"
+                href="{% url 'InformeRecepcion' %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M12 23C6.443 21.765 2 16.522 2 11V5l10-4l10 4v6c0 5.524-4.443 10.765-10 12M4 6v5a10.58 10.58 0 0 0 8 10a10.58 10.58 0 0 0 8-10V6l-8-3Z"/><circle cx="12" cy="8.5" r="2.5" fill="currentColor"/><path fill="currentColor" d="M7 15a5.782 5.782 0 0 0 5 3a5.782 5.782 0 0 0 5-3c-.025-1.896-3.342-3-5-3c-1.667 0-4.975 1.104-5 3"/>
+                    </svg>
+                    <span class="ml-2 truncate">Ir a panel principal</span>
+                </a>
+            </div>
+
+            
+            <table class="min-w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <thead>
+                    <tr class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400 sticky top-0 ">
+                        <th scope="col" class="px-6 py-3 truncate">Producto</th>
+                        <th scope="col" class="px-6 py-3 truncate">Categoría</th>
+                        <th scope="col" class="px-6 py-3 truncate">Precio de venta</th>                            
+                    </tr>
+                </thead>
+                <tbody id="body-productos"  data-accordion="collapse">
+                    {% for p in productos %}
+                    <tr class="bg-white border-b hover:bg-gray-50 item-product" id="{{p.id}}"
+                    aria-expanded="false" data-accordion-target="#accordion-collapse-body-{{p.id}}" aria-controls="accordion-collapse-body-{{p.id}}">
+                        <td class="px-6 py-4 truncate" id="nombre-{{p.id}}">{{p.nombre}}</td>
+                        <td class="px-6 py-4 truncate">{{p.categoria.nombre}}</td>
+                        <td class="px-6 py-4 truncate">{% if p.precio_venta %}${{p.precio_venta|toMoney}}{% else %}-{% endif %}</td>
+                        
+                    </tr>
+                    <tr class="bg-white border-b hover:bg-gray-50 hidden" 
+                    id="accordion-collapse-body-{{p.id}}" aria-labelledby="accordion-collapse-heading-{{p.id}}">
+                        {% if p.precios|length > 0 %}
+                        <td colspan="3" class="">
+                            <table class="min-w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                                <thead>
+                                    <tr class="text-xs text-gray-700 uppercase bg-gray-50">
+                                        <th scope="col" class="px-6 py-3 truncate">Fecha</th>
+                                        <th scope="col" class="px-6 py-3 truncate">Cantidad</th>
+                                        <th scope="col" class="px-6 py-3 truncate">Costo unitario</th>                            
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for precio in p.precios %}
+                                    <tr class="bg-white border-b hover:bg-gray-50">
+                                        <td class="px-6 py-4 truncate">{{precio.fecha}}</td>
+                                        <td class="px-6 py-4 truncate">{{precio.cant|parseFloat}}</td>
+                                        <td class="px-6 py-4 truncate">${{precio.costo|toMoney}}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+        
+    </body>
+
+
+
+    <script>
+                
+        function search(){
+            var elements = document.getElementsByClassName("item-product");
+            for (var i = 0; i < elements.length; i++) {                
+                var inputText = document.getElementById("input-search").value.toLowerCase();
+                try{
+                    var nameText = document.getElementById(`nombre-${elements[i].id}`).innerText.toLowerCase();
+                    
+                    if (nameText.includes(inputText)) {
+                        elements[i].classList.remove("hidden");
+                    } else {
+                        elements[i].classList.add("hidden");
+                    }
+                    }
+                catch{
+                    console.log("Error")
+                    elements[i].classList.add("hidden");
+                }
+            }
+        }
+
+        function clearInput(){
+            document.getElementById("input-search").value = ""
+            search()
+        }
+    </script>
+</html>

@@ -1,0 +1,134 @@
+{% extends 'estudio/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+<script src="{% static 'js/datepicker.min.js' %}"></script>
+{% endblock styles %}
+                
+{% block content %}
+
+
+<div class="relative overflow-x-auto">
+    <div class="flex h-full justify-center">
+        <div class="flex flex-col items-center flex-grow bg-white">
+            <div class="rounded-lg w-full flex items-center justify-center">
+                <div class="w-full h-full">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead>
+                            <tr class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                                <th scope="col" class="px-6 py-3"> Codigo</th>
+                                <th scope="col" class="px-6 py-3"> Cliente</th>
+                                <th scope="col" class="px-6 py-3"> Tipo de contrato</th>
+                                <th scope="col" class="px-6 py-3"> Nombre del contrato</th>
+                                <th scope="col" class="px-6 py-3">Fotografo</th>
+                                <th scope="col" class="px-6 py-3">Editor</th>
+                                <th scope="col" class="px-6 py-3">Fecha de solicitud</th>
+                                <th scope="col" class="px-6 py-3">Fecha acordada</th>
+                                <th scope="col" class="px-6 py-3"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for contrato in contratos %}
+                            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                <th class="px-6 py-3 font-bold"> {{contrato.numeroCliente}}{{contrato.fecha_solicitud|date:"MdY"}}</th>
+                                <th class="px-6 py-3 font-normal"> {{contrato.nombre}} </th>
+                                <th class="px-6 py-3 font-normal"> {{contrato.contrato.tipo.nombre}}</th>
+                                <th class="px-6 py-3 font-normal"> {{contrato.contrato.nombre}} </th>
+                                <th class="px-6 py-3 font-normal">{{contrato.fotografo.nombre}}</th>
+                                <th class="px-6 py-3 font-normal">{{contrato.editor.nombre}}</th>
+                                <th class="px-6 py-3 font-normal">{{contrato.fecha_solicitud|date:"d/m/Y"}}</th>
+                                <th class="px-6 py-3 font-normal">{{contrato.fecha_acordada|date:"d/m/Y"}}</th>
+                                <th class="py-3">
+                                    {% if not request.user.responsable_estudio_permission %}
+                                    <div class="flex space-x-3 items-center">
+                                        <a href="/estudio/contrato/{{contrato.id}}/?rc={{contrato.responsable_contrato.id}}&t={{contrato.contrato.tipo.id}}&ca={{contrato.contrato.id}}&f={{contrato.fotografo.id}}&e={{contrato.editor.id}}&rr={{contrato.responsable_revicion.id}}&end=ok" class="shadow-md text-red-600 bg-red-200 hover:bg-red-300 font-medium rounded-full text-sm items-center px-3 py-1.5 text-center">Editar</a>
+                                        <button type="button" data-modal-target="realizar-modal" data-modal-toggle="realizar-modal" 
+                                        onclick="document.getElementById('text-alert-modal').innerHTML = `¿Estas seguro de pasar a realizado el contrato de <span class='font-bold text-black'>{{contrato.nombre}}</span> porgramado para <span class='font-bold text-black'>{{contrato.fecha_acordada|date:"d/m/Y"}}</span> ?`;document.getElementById('fichacliente-id').value='{{contrato.id}}',
+                                        document.getElementById('precio_usd').value = '{{contrato.precio_usd|parseFloat}}',document.getElementById('precio_cup').value = '0.0',
+                                        monto_cobrar_usd={{contrato.precio_usd|parseFloat}}" 
+                                        class="shadow-md text-green-600 bg-green-200 hover:bg-green-300 font-medium rounded-full text-sm items-center px-3 py-1.5 text-center">Contrato Realizado</button>
+                                    </div>
+                                    {% endif %}
+                                </th>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="realizar-modal" tabindex="-1" data-modal-backdrop="static" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <form class="relative bg-white rounded-lg shadow dark:bg-gray-700" method="POST">
+            {% csrf_token %}
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="realizar-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <input class="hidden" type="text" id="fichacliente-id" name="fichacliente-id">
+            <div class="p-4 md:p-5 text-center">
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-8 text-lg font-normal text-gray-500 dark:text-gray-400" id="text-alert-modal">¿Estas seguro de pasar a realizado el contrato ?</h3>
+                
+                <div class="w-full flex items-center justify-center">
+                    <p class="text-gray-700 dark:text-gray-400 m-1.5 flex-1 truncate">Monto en USD:</p>
+                    <div class="flex items-center space-x-3">
+                        <div class="p-1 flex bg-gray-50 items-center h-10 w-32 border border-gray-300 text-gray-900 text-sm rounded-lg">
+                            <input type="number" step="0.01" step-my  id="precio_usd" name="precio_usd" class="w-full border-0 focus:ring-0 focus:border-0 block px-2.5 py-1" value="" step="0.01" required="" oninput="changeCup(this.value)">
+                            <span class="p-1 border-l font-bold hidden">USD</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="w-full flex items-center justify-center mt-3">
+                    <p class="text-gray-700 dark:text-gray-400 m-1.5 flex-1 truncate">Monto en CUP:</p>					
+                    <div class="flex items-center space-x-3">
+                        <div class="p-1 flex bg-gray-50 items-center h-10 w-32 border border-gray-300 text-gray-900 text-sm rounded-lg">
+                            <input type="number" step="0.01" step-my  id="precio_cup" name="precio_cup" class="w-full border-0 focus:ring-0 focus:border-0 block px-2.5 py-1" value="0.0" step="0.01" required="" oninput="changeUsd(this.value)">
+                            <span class="p-1 border-l font-bold hidden">CUP</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-red-600 m-1.5 text-sm">Razón de cambio: 1.00 USD X {{razon_cambio_usd|toMoney}} CUP</p>	
+
+
+                <div class="flex mt-8 px-2 justify-center space-x-3" id="content-options-delete">
+                    <button data-modal-hide="realizar-modal" id="btn-cancel-delete" type="button" class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                    <button type="submit" class="w-full text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 justify-center me-2">Guardar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock content %}
+
+
+{% block scripts %}
+<script type = "text/JavaScript">
+    const razon_cambio_usd = {{razon_cambio_usd|parseFloat}};
+    var monto_cobrar_usd = 0.0;
+
+    
+    function changeCup(monto){
+        const total_cup = (razon_cambio_usd * parseFloat(monto_cobrar_usd)).toFixed(2);
+        const usd_pagado = (razon_cambio_usd * parseFloat(monto)).toFixed(2);
+
+        document.getElementById("precio_cup").value = (total_cup - usd_pagado).toFixed(2);
+    }
+
+    function changeUsd(monto){
+        const cup_pagado = (parseFloat(monto)/razon_cambio_usd).toFixed(2);
+
+        document.getElementById("precio_usd").value = (parseFloat(monto_cobrar_usd) - cup_pagado).toFixed(2);
+    }
+
+</script>
+{% endblock scripts %}

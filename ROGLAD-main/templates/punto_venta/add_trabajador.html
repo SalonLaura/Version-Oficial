@@ -1,0 +1,40 @@
+{% extends 'punto_venta/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+
+{% block content %}
+
+
+<div class="flex h-full w-full flex-col px-6 pt-[1%] pb-[0.5%]">
+    <p class="text-3xl font-bold font-serif border-b mb-3 py-3">Agregue trabajadores al turno</p>
+
+    <form method="POST" id="form-add">
+        {%csrf_token%}
+        <input type="hidden" name="user-id-add" id="user-id-add">
+        <input type="hidden" name="user-id-delete" id="user-id-delete">
+        
+        {% for user in users %}
+        <div class="w-full flex justify-start py-5 items-center">
+            
+            {% if user not in users_extra %}
+            <button type="button" onclick="document.getElementById('user-id-add').value='{{user.id}}',document.getElementById('form-add').submit()" class="text-green-700 border border-green-700 bg-green-100 font-medium rounded-lg text-sm py-2 text-center w-24">Agregar</button>
+            {% else %}
+            <button type="button" onclick="document.getElementById('user-id-delete').value='{{user.id}}',document.getElementById('form-add').submit()" class="text-red-700 border border-red-700 bg-red-100 font-medium rounded-lg text-sm py-2 text-center w-24">Eliminar</button>
+            {% endif %}
+
+            <p class="ml-3 text-lg font-bold">{{user}}</p>
+        </div>
+        {% endfor %}
+
+    </form>
+
+</div>
+
+
+{% endblock content %}
+
+
+{% block scripts %}
+{% endblock scripts %}

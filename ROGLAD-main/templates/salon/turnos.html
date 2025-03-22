@@ -1,0 +1,213 @@
+{% extends 'salon/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+<script src="{% static 'js/datepicker.min.js' %}"></script>
+{% endblock styles %}
+                
+{% block content %}
+
+
+<div class="relative overflow-x-auto">
+    <div class="flex h-full justify-center">
+        <div class="flex flex-col items-center flex-grow bg-white">
+            <div class="rounded-lg w-full flex items-center justify-center">
+                <div class="w-full h-full">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead>
+                            <tr class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                                <th scope="col" class="px-6 py-3"> Cliente</th>
+                                <th scope="col" class="px-6 py-3"> Contrato</th>
+                                <th scope="col" class="px-6 py-3"> Servicios</th>
+                                <th scope="col" class="px-6 py-3"> Trabajador</th>
+                                <th scope="col" class="px-6 py-3"> Precio base(CUP)</th>
+                                <th scope="col" class="px-6 py-3"> Precio base(USD)</th>
+                                <th scope="col" class="px-6 py-3">Fecha de solicitud</th>
+                                <th scope="col" class="px-6 py-3">Fecha acordada</th>
+                                <th scope="col" class="px-6 py-1.5">
+                                    <button class="truncate ml-3 flex items-center justify-between px-4 py-2 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-200 hover:bg-gray-300 border border-transparent rounded-lg focus:outline-none focus:shadow-outline-gray"
+                                        data-modal-target="popup-modal" data-modal-toggle="popup-modal" id="btn-add-producto"
+                                        onclick="limpiarForm()">
+                                        <svg class="w-5 h-5 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 002.25-2.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v2.25A2.25 2.25 0 006 10.5zm0 9.75h2.25A2.25 2.25 0 0010.5 18v-2.25a2.25 2.25 0 00-2.25-2.25H6a2.25 2.25 0 00-2.25 2.25V18A2.25 2.25 0 006 20.25zm9.75-9.75H18a2.25 2.25 0 002.25-2.25V6A2.25 2.25 0 0018 3.75h-2.25A2.25 2.25 0 0013.5 6v2.25a2.25 2.25 0 002.25 2.25z"></path>
+                                        </svg>
+                                        Agregar cliente
+                                    </button>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cliente in clientes %}
+                            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                <th class="px-6 py-3 font-normal"> {{cliente.nombre}} </th>
+                                <th class="px-6 py-3 font-normal"> {{cliente.contrato}}</th>
+                                <th class="px-6 py-3 font-normal"> {{cliente.servicios_str}}</th>
+                                <th class="px-6 py-3 font-normal"> {{cliente.user_name}}</th>
+                                <th class="px-6 py-3 font-normal"> ${{cliente.precio_base_cup|toMoney}}</th>
+                                <th class="px-6 py-3 font-normal"> ${{cliente.precio_base_usd|toMoney}}</th>
+                                <th class="px-6 py-3 font-normal">{{cliente.fecha_solicitud|date:"d/m/Y"}}</th>
+                                <th class="px-6 py-3 font-normal">{{cliente.fecha_acordada|date:"d/m/Y"}}</th>
+                                <th class="px-6 py-3 font-normal">
+                                    <button type="button"  data-modal-target="delete-modal" data-modal-toggle="delete-modal" class="text-red-500 px-1 material-icons text-md" onclick="document.getElementById('turno-delete-id').value='{{cliente.id}}'">delete_outline</button>
+                                </th>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+<div id="delete-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="delete-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <form class="p-4 md:p-5 text-center" method="POST">
+                {% csrf_token %}
+                <input class="hidden" type="text" id="turno-delete-id" name="turno-delete-id">
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">¿Seguro de eliminar al cliente?</h3>
+                
+                <button data-modal-hide="delete-modal" type="button" class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">No, cancelar</button>
+                <button data-modal-hide="delete-modal" type="submit" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
+                    Si, eliminar
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div id="popup-modal" tabindex="-1" data-modal-backdrop="static"  class="fixed top-0 left-0 right-0 z-50 hidden p-4 overflow-hidden md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="w-auto max-w-5xl max-h-full">
+        <form class="bg-white rounded-lg shadow dark:bg-gray-700 max-h-full overflow-auto" method="POST">
+            {% csrf_token %}
+            <input class="hidden" type="text" id="actualizar-id" name="agregar_id" value="">
+
+            <div class="p-6" id="content-modal">
+                <div class="flex w-full overflow-auto">
+                    <div class="px-3 w-full">
+                        <h1 class="mb-2 text-xl font-semibold text-gray-700 dark:text-gray-200">Características:</h1>
+
+                        <div class="space-y-2">
+                            
+                            <div class="flex w-full space-x-2">
+                                <div class="w-1/2">
+                                    <p class="text-gray-700 dark:text-gray-400 m-1.5">Servicio asociado a contrato:</p>
+                                    <select id="contrato_asociado" name="contrato_asociado" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                        <option selected value="">Sin contrato asociado</option>
+                                        {% for c in contratos %}<option value="{{c.id}}" name="{{c.nombre}}" ci="{{c.ci}}" tel="{{c.telefono}}">{{c.nombre}} {{c.ci}} ({{c.identificador}})</option>{% endfor %}
+                                    </select>
+                                </div>
+                                <div class="w-1/2">
+                                    <p class="text-gray-700 dark:text-gray-400 m-1.5">Nombre del cliente:</p>
+                                    <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5" placeholder="" type="text" maxlength="100" id="nombre" required="" name="nombre">
+                                </div>
+                            </div>
+                            <div class="flex w-full space-x-2">
+                                <div class="w-1/3">
+                                    <p class="text-gray-700 dark:text-gray-400 m-1.5">Carné de identidad:</p>
+                                    <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5" placeholder="" type="text" maxlength="13" id="ci" name="ci">
+                                </div>
+                                <div class="w-1/3">
+                                    <p class="text-gray-700 dark:text-gray-400 m-1.5">Número telefónico:</p>
+                                    <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5" placeholder="" type="text" maxlength="50" id="telefono" name="telefono">
+                                </div>
+                                <div class="w-1/3">
+                                    <h3 class="text-gray-700 dark:text-gray-400 m-1.5">Fecha acordada:</h3>
+                                    <input id="" name="fecha-acordada" datepicker datepicker-autohide required type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5" placeholder="Seleccionar fecha">
+                                </div>
+                            </div>
+                            <h3 class="text-red-700 m-1.5 hidden" id="txt-descuento">* Se aplicará el descuento asociado a cada servicio</h3>
+                            <div class="w-full">
+                                <h3 class="text-gray-700 dark:text-gray-400 m-1.5">Servicios a realizar:</h3>
+                                <div class="w-full flex flex-col h-72 overflow-auto">
+                                    {% for servicio in servicios %}
+                                    <div class="flex items-center mb-4 m-3">
+                                        <input id="{{servicio.id}}-checkbox" type="checkbox" value="{{servicio.id}}" name="servicios-ids" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                        <label for="{{servicio.id}}-checkbox" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{servicio.nombre}}</label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <h3 class="text-gray-700 dark:text-gray-400 m-1.5">Trabajador que atenderá al cliente:</h3>
+                                <div class="w-full flex flex-wrap space-x-3">
+                                    {% for usuario in usuarios %}
+                                    <div class="flex items-center mb-4">
+                                        <input id="{{usuario.id}}-checkbox" type="radio" value="{{usuario.id}}" name="user-salon" required class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                        <label for="{{usuario.id}}-checkbox" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{usuario.user}}</label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="flex justify-center font-bold text-md mt-2 text-red-700 dark:text-red-100 hidden" id="error-add"></p>
+            <div class="flex my-2 px-2" id="content-options">
+                <button type="button" class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600" id="btn-cancel" data-modal-hide="popup-modal">Cancelar</button>
+                <button type="submit" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2 " id="btn-accept" onclick="">Agregar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block scripts %}
+<script>
+    function limpiarForm(){
+
+    }
+
+    document.getElementById('contrato_asociado').addEventListener('change', function() {
+        if(this.selectedIndex == 0){
+            document.getElementById("txt-descuento").classList.add("hidden")
+        }else{
+            document.getElementById("txt-descuento").classList.remove("hidden")
+        }
+
+        var selectedOption = this.options[this.selectedIndex];
+        var selectedOptionName = selectedOption.getAttribute('name');
+        if(selectedOptionName){
+            document.getElementById("nombre").disabled = true;
+            document.getElementById("nombre").value = selectedOptionName;
+        }
+        else{
+            document.getElementById("nombre").disabled = false;
+            document.getElementById("nombre").value = "";
+        }
+        var selectedOptionCi = selectedOption.getAttribute('ci');
+        if(selectedOptionCi){
+            document.getElementById("ci").disabled = true;
+            document.getElementById("ci").value = selectedOptionCi;
+        }
+        else{
+            document.getElementById("ci").disabled = false;
+            document.getElementById("ci").value = "";
+        }
+        var selectedOptionTel = selectedOption.getAttribute('tel');
+        if(selectedOptionTel){
+            document.getElementById("telefono").disabled = true;
+            document.getElementById("telefono").value = selectedOptionTel;
+        }
+        else{
+            document.getElementById("telefono").disabled = false;
+            document.getElementById("telefono").value = "";
+        }
+
+    });
+
+</script>
+{% endblock scripts %}

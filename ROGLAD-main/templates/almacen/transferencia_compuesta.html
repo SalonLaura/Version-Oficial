@@ -1,0 +1,453 @@
+{% extends base %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+                
+{% block content %}
+
+
+
+<div class="flex flex-col items-center p-12 w-full">  
+    <ul class="text-sm font-medium text-center text-gray-500 mb-3 rounded-lg shadow w-full max-w-6xl min-w-5xl flex space-x-1 dark:text-gray-400 p-0.5 bg-white">
+        <li class="w-full">
+            <a href="{% url 'TransferenciaSimple' %}" class="inline-block w-full p-4 hover:text-gray-700 rounded-lg hover:bg-gray-100 focus:ring-0 focus:outline-none dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" aria-current="page">Transferencia de productos simples</a>
+        </li>
+        <li class="w-full">
+            <a href="{% url 'TransferenciaCompuesta' %}" class="inline-block w-full p-4 text-gray-900 bg-purple-200 rounded-lg focus:ring-0 active focus:outline-none dark:bg-gray-700 dark:text-white">Transferencia para producto compuesto</a>
+        </li>
+        <li class="w-full">
+            <a href="{% url 'TransferenciaPedidos' %}" class="inline-block w-full p-4 hover:text-gray-700 rounded-lg hover:bg-gray-100 focus:ring-0 focus:outline-none dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700">Transferencia de pedidos</a>
+        </li>
+    </ul>
+
+        
+    <form class="lg:flex text-gray-900 border focus:outline-none focus:ring-0 w-full max-w-6xl min-w-5xl bg-purple-200" method="GET">
+        <div class="flex flex-1 m-0 py-2.5 px-4">
+            <select onchange="" id="formula-id" name="formula-id" required class="block px-2.5 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0">
+                <option disabled selected value="">Seleccionar producto</option>
+                {% for f in formulas %}
+                <option value="{{ f.id }}" {% if f == formula %}selected{% endif %}>{{ f.producto.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="flex border-l-2">
+            <span class="flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4 text-md text-center ">Cantidad a transferir:</span>            
+            <input type="number" step="0.01" step-my  id="cantiad-transferir" name="cantidad" 
+            class="flex-grow item-form bg-transparent border-0 text-md  block w-full p-0.5 focus:ring-0 appearance-none focus:outline-none focus:ring-0" 
+            min=0 value="{% if cantidad %}{{cantidad|parseFloat}}{% else %}1{% endif %}" required>
+            <span class="text-red-700 mr-2">*</span>
+        </div>
+        <button type="submit" class="bg-green-300 hover:bg-green-400 px-6 border-l-2 text-green-800 font-bold">Crear Kit</button>
+    </form>
+
+    <form method="POST" class="flex flex-col w-full max-w-6xl min-w-5xl mt-0.5" id="form-nueva-transferencia">
+        {% csrf_token %}
+        <div class="flex flex-col bg-purple-200">
+            <div class="flex">
+                <span class="w-2/6 border h-full text-md px-2 py-1">Entidad: </br>Casa Laura S.R.L.</span>
+                <span class="w-1/6 border h-full text-md px-2 py-1">Codigo: </br>50004347244</span>
+                <span class="w-2/6 border h-full text-center font-bold py-1">SC-2-09 TRANSFERENCIA ENTRE </br> ALMACENES</span>
+                <div class="w-1/6 border flex">
+                    <div class="w-1/3 flex flex-col">
+                        <div class="border-b h-full text-center font-bold">D</div>
+                        <div class="h-full text-center" id="dia"></div>
+                    </div>
+                    <div class="w-1/3 border-l flex flex-col">
+                        <div class="border-b h-full text-center font-bold">M</div>
+                        <div class="h-full text-center" id="mes"></div>
+                    </div>
+                    <div class="w-1/3 border-l flex flex-col">
+                        <div class="border-b h-full text-center font-bold">A</div>
+                        <div class="h-full text-center" id="anno"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex">
+                <div class="px-2.5 py-1 flex w-1/3 border h-full items-center relative h-full">
+                    <span class="text-red-500 mr-1">*</span>
+                    Entrega:
+                    <select onchange="getTransferencia(this.value)" id="emisor" name="emisor" class="block px-2.5 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0">
+                        <option disabled>Almacenes</option>
+                        {% for almacen in almacenes %}
+                        <option value="A-{{ almacen.id }}" {% if emisor == almacen %}selected{% endif %}>{{ almacen.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <span class="flex w-1/3 py-1 px-2.5 border h-full">{% if emisor %}{{ emisor.direccion }}{% else %}Dirección{% endif %}</span>
+                <span class="flex w-1/3 py-1 px-2.5 border h-full">{% if emisor %}{{ emisor.codigo }}{% else %}Código{% endif %}</span>
+            </div>
+            
+            <div class="flex">
+                <div class="px-2.5 py-1 flex w-1/3 border h-full items-center relative h-full">
+                    <span class="text-red-500 mr-1">*</span>
+                    Recibe:                    
+                    <select id="receptor" required name="receptor" class="block px-2.5 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0">
+                        <option disabled selected value="">Cocinas</option>
+                        {% for cocina in cocinas %}
+                        <option value="C-{{ cocina.id }}">{{ cocina.nombre }}</option>
+                        {% endfor %}
+                    </select>
+
+                </div>
+                <span class="flex w-1/3 py-1 px-2.5 border h-full">Dirección</span>
+                <span class="flex w-1/3 py-1 px-2.5 border h-full">Código</span>
+            </div>
+            
+            <div class="flex">
+                <div class="flex w-1/3">
+                    <span class="w-2/6 border h-full text-sm font-semibold text-center flex items-center justify-center">Código</span>
+                    <span class="w-3/6 border h-full text-sm font-semibold text-center flex items-center justify-center">Descripción</span>
+                    <span class="w-1/6 border h-full text-sm font-semibold text-center flex items-center justify-center">U/M</span>
+                </div>
+                <div class="flex w-1/3">
+                    <div class="flex flex-col w-1/2 h-full">
+                        <span class="w-full border h-full text-sm font-semibold text-center">Cantidad</span>
+                        <div class="flex w-full h-full">
+                            <span class="w-1/2 border h-full text-sm font-semibold text-center">Remitida</span>
+                            <span class="w-1/2 border h-full text-sm font-semibold text-center">Recibida</span>
+                        </div>
+                    </div>
+                    <span class="w-1/2 border h-full text-sm font-semibold text-center">Precio Unitario </br> Total o Costo </br> Predeterminado</span>
+                </div>
+                <div class="flex w-1/3">
+                    <div class="flex flex-col w-2/3 h-full">
+                        <span class="w-full border h-full text-sm font-semibold text-center">Importe</span>
+                        <div class="flex w-full h-full">
+                            <span class="w-1/2 border h-full text-sm font-semibold text-center">Productos</br>Remitidos</span>
+                            <span class="w-1/2 border h-full text-sm font-semibold text-center">Productos</br>Recibidos</span>
+                        </div>
+                    </div>
+                    <span class="w-1/3 border h-full text-sm font-semibold text-center flex items-center justify-center">Saldo en </br> Existencia</span>
+                </div>
+            </div>
+            
+            <div class="flex hidden">
+                <span class="w-2/3 px-2.5 border">Importe total</span>
+                <div class="flex w-1/3 border">
+                    <div class="flex w-2/3 h-full">
+                        <div class="flex w-1/2 h-full">
+                            <span class="w-2/3 border h-full text-sm text-center" id="importe-total-1">0</span>
+                            <span class="w-1/3 border h-full text-sm text-center" id="importe-total-2">00</span>
+                        </div>
+                        <div class="flex w-1/2 h-full">
+                            <span class="w-2/3 border h-full text-sm text-center">-</span>
+                            <span class="w-1/3 border h-full text-sm text-center">-</span>
+                        </div>
+                    </div>
+                    <span class="w-1/3 border h-full text-sm text-center">-</span>
+                </div>
+            </div>
+            
+            <div class="flex hidden">
+                <div class="flex w-1/3 border h-full relative">
+                    <span class="block px-2.5 pb-1 pt-3 w-full border-0 text-md font-semibold text-gray-900 bg-transparent appearance-none">Entrega</span>
+                </div>
+                <div class="flex w-1/3 border h-full relative">
+                    <span class="block px-2.5 pb-1 pt-3 w-full border-0 text-md font-semibold text-gray-900 bg-transparent appearance-none">Recibe</span>
+                </div>
+                <div class="flex w-1/3 border h-full relative">
+                    <span class="block px-2.5 pb-1 pt-3 w-full border-0 text-md font-semibold text-gray-900 bg-transparent appearance-none">Autoriza</span>
+                </div>
+            </div>
+            
+            <div class="flex hidden">
+                <div class="flex w-1/3 border h-full">
+                    <div class="flex flex-col w-2/3 h-full border">
+                        <div class="flex h-full relative">
+                            <input type="text" id="nombre_entrega" name="nombre_entrega" class="block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer" placeholder=" " />
+                            <label for="nombre_entrega" class="absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 
+                            peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1 peer-focus:mt-1 w-full"><span class="text-red-700">*</span> Nombre</label>
+                        </div>
+                        <span class="h-full text-sm px-3 pb-3">Firma:</span>
+                    </div>
+                    <div class="flex w-1/3">
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">D</div>
+                            <div class="border-t h-full text-center">-</div>
+                        </div>
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">M</div>
+                            <div class="border-t h-full text-center">-</div>
+                        </div>
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">A</div>
+                            <div class="border-t h-full text-center">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex w-1/3 border h-full">
+                    <div class="flex flex-col w-2/3 h-full border">
+                        <div class="flex h-full relative">
+                            <input type="text" id="nombre_recibe" name="nombre_recibe" class="block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer" placeholder=" " />
+                            <label for="nombre_recibe" class="absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 
+                            peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1 peer-focus:mt-1 w-full"><span class="text-red-700">*</span> Nombre</label>
+                        </div>
+                        <span class="h-full text-sm px-3 pb-3">Firma:</span>
+                    </div>
+                    <div class="flex w-1/3">
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">D</div>
+                            <div class="border-t h-full text-center">-</div>
+                        </div>
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">M</div>
+                            <div class="border-t h-full text-center">-</div>
+                        </div>
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">A</div>
+                            <div class="border-t h-full text-center">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex w-1/3 border h-full">
+                    <div class="flex flex-col w-full h-full border">
+                        <div class="flex h-full relative">
+                            <input type="text" id="nombre_autoriza" name="nombre_autoriza" class="block px-2.5 pb-1 pt-3 w-full border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer" placeholder=" " />
+                            <label for="nombre_autoriza" class="absolute text-sm duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-transparent px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 
+                            peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-1 peer-focus:mt-1 w-full"><span class="text-red-700">*</span> Nombre</label>
+                        </div>
+                        <span class="h-full text-sm px-3 pb-3">Firma:</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+            
+        <div class="flex flex-col bg-green-100 mt-1" id="content-products">
+            <p class="w-full text-center text-sm text-green-600 p-1 font-bold border border-green-400">Subproductos disponibles para transferir</p>
+            {% for subproducto in subproductos_existentes %}
+            <div class="flex">
+                <div class="flex w-1/3">
+                    <span class="w-2/6 border border-green-400 h-full text-sm text-center flex space-x-2 items-center">
+                        <input  type="radio" value="{{ subproducto.id }}" name="subproducto-transferir-{% if subproducto.subgrupo %}{{subproducto.subgrupo}}{%else%}{{forloop.counter}}{% endif %}"
+                         class="mx-2 w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
+                         {% if not subproducto.subgrupo %}checked readonly{% endif %} />
+                        {{ subproducto.producto.codigo }}
+                    </span>
+                    <span class="w-3/6 border border-green-400 h-full text-sm text-center">{{ subproducto.producto.nombre }}</span>
+                    <span class="w-1/6 border border-green-400 h-full text-sm text-center">{{ subproducto.producto.medida.abreviatura }}</span>
+                </div>
+                <div class="flex w-1/3">
+                    <div class="flex w-1/2 h-full">
+                        <span class="w-1/2 border border-green-400 h-full text-sm text-center" id-formula={{subproducto.id}} cantidad-formula={{subproducto.cantidad|parseFloat}} >{{ subproducto.cant_kit|parseFloat }}</span>
+                        <span class="w-1/2 border border-green-400 h-full text-sm text-center">-</span>
+                    </div>
+                    <div class="flex w-1/2 h-full">
+                        {% with subproducto.costo_cup|toMoneyList as importe_list %}
+                        <span class="w-2/3 border border-green-400 h-full text-sm text-center" id="importe-unitario-{{subproducto.id}}-1">{{ importe_list.0  }}</span>
+                        <span class="w-1/3 border border-green-400 h-full text-sm text-center" id="importe-unitario-{{subproducto.id}}-2">{{ importe_list.1 }}</span>
+                        {% endwith %}
+                    </div>
+                </div>
+                <div class="flex w-1/3">
+                    <div class="flex w-2/3 h-full">
+                        <div class="flex w-1/2 h-full">
+
+                            {% with subproducto.costo_cup|multiplica:subproducto.cant_kit as monto %}
+                            {% with monto|toMoneyList as importe_list %}
+                            <span class="w-2/3 border border-green-400 h-full text-sm text-center" id="importe-{{subproducto.id}}-1">{{ importe_list.0  }}</span>
+                            <span class="w-1/3 border border-green-400 h-full text-sm text-center" id="importe-{{subproducto.id}}-2">{{ importe_list.1 }}</span>
+                            {% endwith %}
+                            {% endwith %}
+                        </div>
+                        <div class="flex w-1/2 h-full">
+                            <span class="w-2/3 border border-green-400 h-full text-sm text-center">-</span>
+                            <span class="w-1/3 border border-green-400 h-full text-sm text-center">-</span>
+                        </div>
+                    </div>
+                    <span class="w-1/3 border border-green-400 h-full text-sm text-center" id="">{{ subproducto.existencia|parseFloat }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+            
+        <div class="flex flex-col bg-red-200 mt-1" id="">
+            <p class="w-full text-center text-sm text-red-600 p-1 font-bold border border-red-400">Subproductos no disponibles para transferir</p>
+            {% for subproducto in subproductos_faltantes %}
+            <div class="flex">
+                <div class="flex w-1/3">
+                    <span class="w-2/6 border border-red-400 h-full text-sm text-center flex space-x-2 px-2">
+                        {{ subproducto.producto.codigo }}
+                    </span>
+                    <span class="w-3/6 border border-red-400 h-full text-sm text-center">{{ subproducto.producto.nombre }}</span>
+                    <span class="w-1/6 border border-red-400 h-full text-sm text-center">{{ subproducto.producto.medida.abreviatura }}</span>
+                </div>
+                <div class="flex w-1/3">
+                    <div class="flex w-1/2 h-full">
+                        <span class="w-1/2 border border-red-400 h-full text-sm text-center" id-formula={{subproducto.id}} cantidad-formula={{subproducto.cantidad|parseFloat}} >{{ subproducto.cant_kit|parseFloat }} </span>
+                        <span class="w-1/2 border border-red-400 h-full text-sm text-center">-</span>
+                    </div>
+                    <div class="flex w-1/2 h-full">
+                        {% with subproducto.costo_cup|toMoneyList as importe_list %}
+                        <span class="w-2/3 border border-red-400 h-full text-sm text-center" id="importe-unitario-{{subproducto.id}}-1">{{ importe_list.0  }}</span>
+                        <span class="w-1/3 border border-red-400 h-full text-sm text-center" id="importe-unitario-{{subproducto.id}}-2">{{ importe_list.1 }}</span>
+                        {% endwith %}
+                    </div>
+                </div>
+                <div class="flex w-1/3">
+                    <div class="flex w-2/3 h-full">
+                        <div class="flex w-1/2 h-full">
+
+                            {% with subproducto.costo_cup|multiplica:subproducto.cant_kit as monto %}
+                            {% with monto|toMoneyList as importe_list %}
+                            <span class="w-2/3 border border-red-400 h-full text-sm text-center" id="importe-{{subproducto.id}}-1">{{ importe_list.0  }}</span>
+                            <span class="w-1/3 border border-red-400 h-full text-sm text-center" id="importe-{{subproducto.id}}-2">{{ importe_list.1 }}</span>
+                            {% endwith %}
+                            {% endwith %}
+                        </div>
+                        <div class="flex w-1/2 h-full">
+                            <span class="w-2/3 border border-red-400 h-full text-sm text-center">-</span>
+                            <span class="w-1/3 border border-red-400 h-full text-sm text-center">-</span>
+                        </div>
+                    </div>
+                    <span class="w-1/3 border border-red-400 h-full text-sm text-center" id="">{{ subproducto.existencia|parseFloat }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <button type="submit" id="submit-form" class="hidden"></button>
+        <input type="number" step="0.01" step-my  name="formula-id" class="hidden"  value={{formula.id}}>
+        <input type="number" step="0.01" step-my  id="cantidad-producto" name="cantidad" class="hidden"  value={{cantidad|parseFloat}} required>
+        <div class="w-full flex mt-3 justify-between max-w-6xl min-w-5xl">
+            <p id="costo-transferencia">Costo total de la transferencia: $0.00</p>
+            <button type="submit" onclick="" class="focus:outline-none text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900">Confirmar Transferencia</button>
+        </div>
+    </form> 
+
+
+</div>
+
+
+{% endblock content %}
+
+
+{% block scripts %}
+<script>
+    
+    document.getElementById("form-nueva-transferencia").addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        var origen = document.getElementById("emisor").value;
+        var destino = document.getElementById("receptor").value;
+        console.log(destino)
+      
+        if (origen == destino) {
+          alert("Debe seleccionar otro receptor");
+          return false;
+        }
+                
+        //if (document.getElementsByName("subproducto").length == 0) {
+        //    alert("Debe seleccionar el producto que va a transferir");
+        //    return false;
+        //}
+      
+        this.submit();
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        let costoTotal = 0.0
+        {% for subproducto in subproductos_existentes %}
+        costoTotal += {{subproducto.costo_cup|multiplica:subproducto.cant_kit}}
+        {% endfor %}
+
+        document.getElementById("costo-transferencia").innerText = `Costo total de la transferencia: ${toMoney(costoTotal)}`
+       
+    });
+    
+    document.addEventListener("keydown", function(event) {
+        if (event.key === "Enter" || event.key === "ArrowUp" || event.key === "ArrowDown" || event.key === "ArrowRight" || event.key === "ArrowLeft") {
+            var element = event.target;
+            var next;
+
+            
+            if (event.key === "Enter" || event.key === "ArrowRight" || event.key === "ArrowDown"){next = 1} 
+            else if (event.key === "ArrowLeft" || event.key === "ArrowUp"){next = -1} 
+            
+            if (element.tagName === "INPUT" || element.tagName === "BUTTON") {
+                event.preventDefault();
+        
+                var form = element.form;
+                var elements = form.getElementsByClassName("item-form");
+                var index = Array.prototype.indexOf.call(elements, element);
+                var nextElement;
+        
+                if (index === elements.length - 1) {
+                nextElement = elements[0];
+                } else {
+                nextElement = elements[index + next];
+                }
+        
+                if (nextElement) {
+                nextElement.focus();
+                if (nextElement.tagName === "INPUT") {
+                    nextElement.select(); // seleccionar el texto del próximo elemento
+                }
+                }
+            }
+        }
+    });
+
+    function getProducto(id){
+        var currentUrl = window.location.href;
+        var separator = currentUrl.indexOf('?') !== -1 ? '&' : '?';
+        
+        if (currentUrl.indexOf('formula-id=') === -1) {
+            var newUrl = currentUrl + separator + 'formula-id=' + id;
+            window.location.href = newUrl;
+        }else {
+            var oldValue = getParameterByName('formula-id');
+            var newUrl = currentUrl.replace('formula-id=' + oldValue, 'formula-id=' + id);
+            window.location.href = newUrl;
+        }
+    }
+
+    function getTransferencia(id){
+        var currentUrl = window.location.href;
+        var separator = currentUrl.indexOf('?') !== -1 ? '&' : '?';
+        
+        if (currentUrl.indexOf('emisor=') === -1) {
+            var newUrl = currentUrl + separator + 'emisor=' + id;
+            window.location.href = newUrl;
+        }else {
+            var oldValue = getParameterByName('emisor');
+            var newUrl = currentUrl.replace('emisor=' + oldValue, 'emisor=' + id);
+            window.location.href = newUrl;
+        }
+    }
+
+    function getParameterByName(name, url) {
+        if (!url) url = window.location.href;
+        name = name.replace(/[\[\]]/g, '\\$&');
+        var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+
+    
+    function toMoney(m) {
+        var monto_list = m.toString().split(".");
+        if (monto_list.length == 2){
+            if(monto_list[1].length > 1){
+                return `$${monto_list[0]}.${monto_list[1]}`;
+            }
+            else{
+                return `$${monto_list[0]}.${monto_list[1]}0`;
+            }
+
+        }
+        else{
+            return `$${monto_list[0]}.00`;
+        }
+    }
+
+    let fecha = new Date();
+    document.getElementById("dia").innerHTML = fecha.getDate();
+    document.getElementById("mes").innerHTML = fecha.getMonth() + 1;
+    document.getElementById("anno").innerHTML = fecha.getFullYear();
+</script>
+
+{% endblock scripts %}

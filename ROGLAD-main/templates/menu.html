@@ -1,0 +1,36 @@
+{% load static custom_filters %}
+<html lang="es" translate="no" class="-dark">
+    <head id="head">
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" id="meta-viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ROGLAD</title>
+        <script src="{% static 'js/cdn.tailwindcss.js' %}"></script>
+
+    </head>
+
+    <body class="flex flex-col bg-cover bg-center h-screen overflow-hidden" style="background-image: url('{% static 'images/bg_menu.jpg' %}')">
+        <h1 class="text-orange-600 font-bold font-serif text-3xl w-full flex justify-center my-3">Ofertas de hoy:</h1>
+        <div class="h-4/5 overflow-y-auto">
+            <table class="w-3/5 text-sm text-left text-black">
+                <tbody class="">
+                    {% for p in productos %}
+                    <tr class="text-xs">
+                        <td class="truncate font-bold pl-10 pb-3">{{ p.nombre }}</td> 
+                        <td class="truncate pr-10 pb-3">$  {{ p.precio_venta|toMoney }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="mb-24">
+                        <td class="truncate text-transparent pt-24">.</td> 
+                        <td class="truncate pr-10"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </body>
+
+<script>
+
+</script>
+
+</html>

@@ -1,0 +1,129 @@
+{% extends 'punto_venta/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+
+{% block content %}
+
+<div class="w-full h-full flex justify-center">
+    <div class="w-full h-full bg-white overflow-y-auto">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="bg-white">
+                <tr class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400 z-30 sticky top-0">
+                    <th scope="col" class="px-6 py-3 text-center"> Producto </th>
+                    <th scope="col" class="px-6 py-3 text-center"> Cuenta </th>
+                    <th scope="col" class="px-6 py-3 text-center"> Cocina </th>
+                    <th scope="col" class="px-6 py-3 text-center"> Cantidad Solicitada</th>
+                    <th scope="col" class="px-6 py-3 text-center">Tiempo Transcurrido</th>
+                    <th scope="col" class="px-6 py-3 text-center">Estado</th>
+                    <th scope="col" class="px-6 py-3 text-center"></th>
+                </tr>
+            </thead>
+            <tbody id="body-productos-compuestos">
+                {% for solicitud in solicitudes %}
+                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <th scope="row" class="flex items-center pl-3 py-4 h-full text-gray-900 whitespace-nowrap dark:text-white ">
+                        
+                        {% if solicitud.venta.producto.img %}
+                        <img class="rounded-full w-10 h-10" src="{{solicitud.venta.producto.img}}" alt="" />
+                        {% else %}
+                        <p class="rounded-full w-10 h-10 flex items-center justify-center font-bold text-md text-gray-600 bg-gray-100">{{ solicitud.venta.producto.nombre.0 }}{{ solicitud.venta.producto.nombre.1 }}<p>
+                        {% endif %}
+
+                        <span class="ml-3 text-base font-semibold truncate">{{ solicitud.venta.producto.nombre }}</span> 
+                    </th>
+                    <td class="px-3 py-4 text-base font-semibold text-center">{% if solicitud.venta.cuenta.nombre %}{{ solicitud.venta.cuenta.nombre }}{% else %}Venta rapida{% endif %}</td>
+                    <td class="px-3 py-4 text-base font-semibold text-center">{{ solicitud.cocina.nombre }}</td>
+                    <td class="px-3 py-4 text-base font-semibold text-center">{{ solicitud.cantidad|parseFloat }} {{ solicitud.venta.producto.medida.abreviatura }}</td>
+                    <td class="px-3 py-4 text-base font-semibold text-center">{{ solicitud.tiempo_transcurrido }}</td>
+                    {% if solicitud.estado == None %}
+                    <td class="px-3 py-4 text-base font-semibold text-center text-red-600">No procesado</td>
+                    {% elif solicitud.estado == False %}
+                    <td class="px-3 py-4 text-base font-semibold text-center text-orange-600">Procesandose</td>
+                    {% elif solicitud.transferido == True %}
+                    <td class="px-3 py-4 text-base font-semibold text-center text-green-500">Transferido</td>
+                    {% else %}
+                    <td class="px-3 py-4 text-base font-semibold text-center text-green-700">En Proceso</td>
+                    {% endif %}
+                    
+                    <td class="px-3 py-4 text-base font-semibold text-center flex justify-end space-x-3">
+                        {% if solicitud.estado == None %}
+                        
+                        <button class="truncate flex items-center justify-between px-3 py-1.5 text-sm font-medium leading-5 text-red-600 hover:text-red-800 shadow-sm hover:shadow-lg bg-red-100 hover:bg-red-300 border border-transparent rounded-full focus:outline-none focus:shadow-outline-gray"
+                            onclick="
+                            document.getElementById('text-modal').innerText='¿Se encuentra seguro de cancelar el pedido?',
+                            document.getElementById('input-value-id').value={{solicitud.id}},
+                            document.getElementById('input-value-id').setAttribute('name','id-solicitud-cancelada'),
+                            document.getElementById('message-cancel').removeAttribute('required'),
+                            document.getElementById('message-cancel').classList.add('hidden'),
+                            document.getElementById('btn-submit-modal').classList.remove('bg-green-600'),
+                            document.getElementById('btn-submit-modal').classList.add('bg-red-600')" 
+                            data-modal-target="cancel-modal" data-modal-toggle="cancel-modal">Cancelar pedido</button>
+                            
+                        {% elif solicitud.transferido == True %}
+                        <button class="truncate flex items-center justify-between px-3 py-1.5 text-sm font-medium leading-5 text-green-600 hover:text-green-800 shadow-sm hover:shadow-lg bg-green-200 hover:bg-green-300 border border-transparent rounded-full focus:outline-none focus:shadow-outline-gray"
+                            onclick="
+                            document.getElementById('text-modal').innerText='¿Se encuentra seguro de confirmar la transferencia?',
+                            document.getElementById('input-value-id').value={{solicitud.id}},
+                            document.getElementById('input-value-id').setAttribute('name','id-solicitud-transferida'),
+                            document.getElementById('message-cancel').removeAttribute('required'),
+                            document.getElementById('message-cancel').classList.add('hidden'),
+                            document.getElementById('btn-submit-modal').classList.remove('bg-red-600'),
+                            document.getElementById('btn-submit-modal').classList.add('bg-green-600')" 
+                            data-modal-target="cancel-modal" data-modal-toggle="cancel-modal"> Confirmar
+                        </button>
+                        <button class="hidden truncate flex items-center justify-between px-3 py-1.5 text-sm font-medium leading-5 text-red-600 hover:text-red-800 shadow-sm hover:shadow-lg bg-red-100 hover:bg-red-300 border border-transparent rounded-full focus:outline-none focus:shadow-outline-gray"
+                        onclick="
+                        document.getElementById('text-modal').innerText='¿Se encuentra seguro de rechazar la transferencia?',
+                        document.getElementById('input-value-id').value={{solicitud.id}},
+                        document.getElementById('input-value-id').setAttribute('name','id-solicitud-transferida-cancelada'),
+                        document.getElementById('message-cancel').setAttribute('required','true'),
+                        document.getElementById('message-cancel').classList.remove('hidden') ,
+                        document.getElementById('btn-submit-modal').classList.remove('bg-green-600'),
+                        document.getElementById('btn-submit-modal').classList.add('bg-red-600')" 
+                        data-modal-target="cancel-modal" data-modal-toggle="cancel-modal"> Cancelar
+                        </button>
+
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+<div id="cancel-modal" tabindex="-1" data-modal-backdrop="static" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="cancel-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <form method="post" class="p-4 md:p-5 text-center">
+                {% csrf_token %}
+                <input class="hidden" name="id-solicitud-cancelada" id="input-value-id"/>
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 id="text-modal" class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">¿Se encuentra seguro de cancelar el pedido?</h3>
+                <textarea id="message-cancel" name="message" rows="4" class="hidden block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 mb-4" placeholder="Indique aquí el motivo por el cual rechaza la transferencia..."></textarea>
+
+                <button data-modal-hide="cancel-modal" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                <button type="submit" id="btn-submit-modal" class="text-white bg-red-600 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">
+                    Si, estoy seguro
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block scripts %}
+{% endblock scripts %}

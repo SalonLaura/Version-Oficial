@@ -1,0 +1,179 @@
+{% extends 'salon/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+<script src="{% static 'js/datepicker.min.js' %}"></script>
+{% endblock styles %}
+                
+{% block content %}
+
+
+<div class="relative overflow-x-auto">
+    <div class="flex h-full justify-center">
+        <div class="flex flex-col items-center flex-grow bg-white">
+            <div class="rounded-lg w-full flex items-center justify-center">
+                <div class="w-full h-full">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead>
+                            <tr class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                                <th scope="col" class="px-6 py-3"> Cliente</th>
+                                <th scope="col" class="px-6 py-3"> Servicios</th>
+                                <th scope="col" class="px-6 py-3"> Precio base</th>
+                                <th scope="col" class="px-6 py-3"> Precio cobrado</th>
+                                <th scope="col" class="px-6 py-3">Descuento</th>
+                                <th scope="col" class="px-6 py-3">Fecha/Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cliente in clientes %}
+                            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                <th class="px-6 py-3 font-normal"> {{cliente.nombre}} </th>
+                                <th class="px-6 py-3 font-normal"> {{cliente.servicios_str}}</th>
+                                {% if cliente.moneda == "USD" %}
+                                <th class="px-6 py-3 font-normal"> ${{cliente.monto_base|toMoney}} USD</th>
+                                <th class="px-6 py-3 font-normal"> ${{cliente.monto_cobrado|toMoney}} USD</th>
+                                {% else %}
+                                <th class="px-6 py-3 font-normal"> ${{cliente.monto_base|toMoney}} CUP</th>
+                                <th class="px-6 py-3 font-normal"> ${{cliente.monto_cobrado|toMoney}} CUP</th>
+                                {% endif %}
+                                <th class="px-6 py-3 font-normal">
+                                    {% if cliente.contrato_id %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="#4CAF50"/><path fill="#CCFF90" d="M34.6 14.6L21 28.2l-5.6-5.6l-2.8 2.8l8.4 8.4l16.4-16.4z"/></svg>
+                                    {% else %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 512 512"><path fill="#FF473E" d="M255.107 1.894C114.768 1.894 1.001 115.661 1.001 256s113.767 254.106 254.106 254.106S509.213 396.339 509.213 256S395.445 1.894 255.107 1.894M124.924 386.183C90.151 351.41 71.001 305.176 71.001 256c0-37.761 11.303-73.78 32.289-104.214l256.03 256.031c-30.434 20.986-66.453 32.289-104.214 32.289c-49.176 0-95.409-19.151-130.182-53.923m283.54-28.218L153.141 102.643c29.952-20.004 65.133-30.749 101.966-30.749c49.176 0 95.41 19.15 130.183 53.923c34.773 34.773 53.923 81.006 53.923 130.183c0 36.833-10.745 72.013-30.749 101.965"/></svg>
+                                    {% endif %}
+                                </th>
+                                <th class="px-6 py-3 font-normal">{{cliente.fecha_realizacion}}</th>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if cliente %}
+<button class="hidden" data-modal-target="cliente-modal" data-modal-toggle="cliente-modal"></button>
+<!-- Default Modal -->
+<div id="cliente-modal" tabindex="-1" data-modal-backdrop="static" class="flex items-center justify-center bg-black/40 fixed top-0 left-0 right-0 z-50 w-full p-4 overflow-auto md:inset-0 h-full max-h-full">
+    <div class="w-full max-w-lg max-h-full">
+        <!-- Modal content -->
+        <div class="bg-white rounded-lg shadow dark:bg-gray-700">
+            <!-- Modal header -->
+            <div class="flex flex-col items-center justify-start p-3 border-b rounded-t dark:border-gray-600">
+                <div class="flex items-center w-full justify-between">
+                    <h3 class="text-xl font-medium text-gray-900 dark:text-white">
+                        Atendiendo cliente
+                    </h3>
+                    <button type="button" onclick="" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="cliente-modal" id="close-modal-products">
+                        <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                        <span class="sr-only">Close modal</span> 
+                    </button>
+                </div>
+            </div>
+            <!-- Modal body -->
+            <form method="POST" class="p-2 max-h-5/6 relative overflow-auto" id="body-productos">
+                {% csrf_token %}
+                <input type="hidden" name="cliente-id" value="{{cliente.id}}">
+                <p class="m-2 font-bold">Cliente atendido: <span class="font-normal">{{ cliente.nombre }} {{ cliente.ci|nullToNone }}</span></p>
+                <p class="mx-2 font-bold">Servicios: </p>
+
+                <div class="border-b">
+                {% for servicio in cliente.servicios.all %}
+                <p class="mx-2 font-semibold">{{forloop.counter}}- {{servicio.nombre}}</p>
+                <p class="mx-2 text-xs font-bold underline mb-4">Subproductos a usar:</p>
+                
+
+                {% for s in servicio.subproductos_list.requeridos %}
+                <div class="flex items-center mb-4 mx-2">
+                    <input id="{{s.id}}-checkbox" type="radio" value="{{servicio.id}}-{{s.id}}" name="subproducto" required checked class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2">
+                    <label for="{{s.id}}-checkbox" class="ms-1 text-xs text-gray-900 font-semibold">{{s.n}}</label>
+                </div>
+                {% endfor %}
+
+                {% for subproductos in servicio.subproductos_list.opcionales %}
+                {% with forloop.counter as i %}
+                <div class="flex flex-wrap mb-4">
+                    {% for s in subproductos %}
+                    <div class="flex items-center mb-2 mx-2">
+                        <input id="{{s.id}}-checkbox" name="{{i}}-subproducto" required type="radio" value="{{servicio.id}}-{{s.id}}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2">
+                        <label for="{{s.id}}-checkbox" class="ms-1 text-xs text-gray-900 font-semibold">{{s.n}}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endwith %}
+                {% endfor %}
+
+                {% endfor %}
+                </div>
+
+                <div class="flex space-x-2 my-6">
+                    <div class="w-1/2 flex flex-col items-center justify-center">
+                        <p class="text-gray-700 dark:text-gray-400 m-1.5">Precio Base(CUP)</p>
+                        <span class="p-1 font-bold text-xl">${{cliente.precio_base_cup|toMoney}}</span>
+                    </div>
+                    <div class="w-1/2 flex flex-col items-center justify-center">
+                        <p class="text-gray-700 dark:text-gray-400 m-1.5">Precio Final</p>					
+                        <div class="flex items-center space-x-3">
+                            <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="downInput('precio_total_final')">
+                                <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                            </button>
+                            <div class="p-1 flex bg-gray-50 w-36 items-center h-10 border border-gray-300 text-gray-900 text-sm rounded-lg">
+                                <input type="number" step="0.01" step-my  id="precio_total_final" name="precio_total_final" class="w-full border-0 focus:ring-0 focus:border-0 block px-2.5 py-1" value="{{cliente.precio_base_cup|parseFloat}}" step="0.01" required="" onchange="">
+                                <span class="p-1 border-l font-bold">CUP</span>
+                            </div>
+                            <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="upInput('precio_total_final')">
+                                <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex mt-2 px-2" id="content-options">
+                    <button type="button" onclick="" class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600" id="btn-cancel" data-modal-hide="cliente-modal">Cancelar</button>
+                    <button type="submit" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2 " id="btn-accept" onclick="">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock content %}
+
+
+{% block scripts %}
+
+<script>
+    
+    function inputChange(id){
+        let element = document.getElementById(id);
+        let max = element.getAttribute("max");
+    
+        if(parseInt(element.value) > parseInt(max)){
+            element.value = max;
+        } else if(parseInt(element.value) < 0){
+            element.value = 0;
+        }
+    }
+    
+    function upInput(id){
+        let element = document.getElementById(id);
+        let max = element.getAttribute("max");
+        if(max == null || parseInt(element.value) < parseInt(max)){
+            element.value = parseInt(element.value) + 1;
+        } else{
+            element.value = max;
+        }
+    }
+    
+    function downInput(id){
+        let element = document.getElementById(id);
+        if(parseInt(element.value) > 0){
+            element.value = parseInt(element.value) - 1;
+        }
+    }
+    
+    </script>
+{% endblock scripts %}

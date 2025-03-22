@@ -1,0 +1,51 @@
+{% extends 'cocina/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+
+{% block content %}
+
+
+<div class="flex h-full w-full px-6 pt-[1%] pb-[0.5%] justify-center">
+    <form class="h-[30rem] w-96 mr-3" method="POST">
+        {% csrf_token %}
+        <div class="p-12 bg-cover bg-center h-[28rem] flex items-center" style="background-image: url('{% static 'images/nota_bg.png' %}');">
+            <textarea id="add-nota" name="nueva-nota" required class="resize-none mt-14 block p-2.5 w-full h-72 text-md text-black border-0 bg-transparent focus:ring-0 focus:border-0 placeholder-gray-700" placeholder="Escriba y agregue una nota que veran los puntos de ventas asociados a su cocina..."></textarea>                    
+        </div>
+        <div class="w-full flex justify-center">
+            <button type="submit" class="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Agregar Nota</button>
+        </div>
+    </form>
+    <form class="h-full flex-1" method="POST">
+        {% csrf_token %}
+        <div class="w-full flex mb-3 justify-between">
+            <p class="text-3xl font-bold font-serif">TUS NOTAS</p>
+            <button type="submit" class="py-2.5 px-5 text-sm font-medium text-red-700 focus:outline-none bg-white rounded-lg border border-red-200 hover:bg-red-300 hover:text-red-700 focus:z-10 focus:ring-4 focus:ring-red-200">Eliminar notas seleccionadas</button>
+        </div>
+        
+        {% if notas|length == 0 %}<p class="text-xl font-bold font-serif w-full text-center border-t pt-12">No hay notas</p>{% endif %}
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 ">
+            {% for nota in notas %}
+            <div class="pb-6 w-full flex flex-col items-start bg-yellow-200 shadow-xl">
+                <div class="w-full flex justify-between">
+                    <img class="bg-cover bg-center w-12" src="{% static 'images/chincha.png' %}" alt="" />
+                    <div class="flex items-center me-4">
+                        <input id="delete-{{nota.id}}" name="delete-note" type="checkbox" value="{{nota.id}}" class="w-6 h-6 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                    </div>
+                </div>
+                <p class="px-12 w-full text-start font-serif">{{nota.nota|linebreaksbr}}</p>
+                <p class="px-12 w-full text-xs font-bold mt-3">Cocinero: {{nota.cocinero_nombre}}</p>
+                <p class="px-12 w-full text-xs font-bold">Fecha: {{nota.fecha}}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </form>
+</div>
+
+
+{% endblock content %}
+
+
+{% block scripts %}
+{% endblock scripts %}

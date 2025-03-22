@@ -1,0 +1,103 @@
+{% extends 'cocina/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+                
+{% block content %}
+
+<div class="flex flex-col items-center justify-center w-full h-full">
+    <div class="w-full bg-white p-1 flex flex-col justify-between h-full">
+        <div class="overflow-auto h-full">
+            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <thead class="">
+                    <tr class="text-xs text-gray-700 bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                        <th scope="col" class="px-6 py-3 truncate"> Producto </th>
+                        <th scope="col" class="px-6 py-3"> Medida</th>  
+                        <th scope="col" class="px-6 py-3"> IPV/Inicial</th> 
+                        <th scope="col" class="px-6 py-3"> Entradas</th>
+                        <th scope="col" class="px-6 py-3 hidden"> Salidas</th>
+                        <th scope="col" class="px-6 py-3 truncate hidden"> Usadas para elaboración</th>  
+                        <th scope="col" class="px-6 py-3 truncate hidden">IPV/Final</th>  
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in productos_usados %}
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                            
+                            {% if producto.producto.img %}
+                            <img class="rounded-full w-10 h-10" src="{{producto.producto.img}}" alt="" />
+                            {% else %}
+                            <p class="rounded-full w-10 h-10 flex items-center justify-center font-bold text-md text-gray-600 bg-gray-100">{{ producto.producto.nombre.0 }}{{ producto.producto.nombre.1 }}<p>
+                            {% endif %}
+                            
+                            <div class="px-3">
+                                <div class="text-base font-semibold truncate">{{ producto.producto.nombre }}</div>
+                                <div class="font-normal text-gray-500 truncate">{{ producto.producto.categoria }}</div>
+                            </div>  
+                        </th>
+                        <td class="px-6 py-4 truncate">{{ producto.producto.medida }}</td>
+                        <td class="px-6 py-4 truncate">{{ producto.recibido|parseFloat }}</td>
+                        <td class="px-6 py-4 truncate">{{ producto.cantidad_insertada_producto|parseFloat }}</td>
+                        <td class="px-6 py-4 truncate hidden">{{ producto.cantidad_retirada|parseFloat }}</td>
+                        <td class="px-6 py-4 truncate hidden">{{ producto.usado|parseFloat }}</td>
+                        <td class="px-6 py-4 truncate hidden">{{ producto.existencia|parseFloat }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="flex justify-center items-center p-3">
+            {% if message %}
+            <p class="flex justify-center font-bold text-md text-red-700 dark:text-red-100">
+                <svg class="w-6 h-6 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+                </svg>
+                {{ message }}
+            </p>
+            {% else %}
+                <button type="button" data-modal-target="popup-modal" data-modal-toggle="popup-modal" class="w-auto text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-full text-sm items-center px-5 py-2.5 text-center flex">Cerrar turno
+                    <svg class="w-4 h-4 text-white rotate-180 ml-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4"></path>
+                    </svg>
+                </button>
+            {% endif %}
+        </div>
+    </div>  
+</div>
+
+    
+<div id="popup-modal" tabindex="-1" data-modal-backdrop="static" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="popup-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <form class="p-4 md:p-5 text-center" method="POST">
+                {% csrf_token %}
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-12 text-xl font-normal text-gray-900 dark:text-gray-100">¿Seguro de cerrar el turno?</h3>
+                <button data-modal-hide="popup-modal" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                <button type="submit" class="text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">
+                    Si, cerrar turno
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+    
+{% endblock content %}
+
+
+
+{% block scripts %}
+<script>
+</script>
+<script src="{% static 'js/entregar_turno.js' %}"></script>
+{% endblock scripts %}

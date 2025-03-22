@@ -1,0 +1,37 @@
+<ul class="flex text-sm font-medium text-center" id="">
+    <li class="p-1" role="presentation">
+        <a class="{% if 'config/medios_basicos/' in request.path %} flex items-center inline-block p-2.5 text-purple-600 border-b-2 border-purple-600 truncate
+        {% else %} flex items-center inline-block p-2.5 hover:text-purple-600 hover:border-b-2 border-purple-600 truncate
+        {% endif %}" href="{% url "Config" area="medios_basicos" %}">Medios Basicos</a>
+    </li>
+
+    <li class="p-1" role="presentation">
+        <a class="{% if 'config/utiles/' in request.path %} flex items-center inline-block p-2.5 text-purple-600 border-b-2 border-purple-600 truncate
+        {% else %} flex items-center inline-block p-2.5 hover:text-purple-600 hover:border-b-2 border-purple-600 truncate
+        {% endif %}" href="{% url "Config" area="utiles" %}">Utiles</a>
+    </li>
+
+    <li class="p-1" role="presentation">
+        <a class="{% if 'config/productos/' in request.path %} flex items-center inline-block p-2.5 text-purple-600 border-b-2 border-purple-600 truncate
+        {% else %} flex items-center inline-block p-2.5 hover:text-purple-600 hover:border-b-2 border-purple-600 truncate
+        {% endif %}" href="{% url "Config" area="productos" %}">Productos Para Venta</a>
+    </li>
+
+    <li class="p-1" role="presentation">
+        <a class="{% if 'config/subproductos/' in request.path %} flex items-center inline-block p-2.5 text-purple-600 border-b-2 border-purple-600 truncate
+        {% else %} flex items-center inline-block p-2.5 hover:text-purple-600 hover:border-b-2 border-purple-600 truncate
+        {% endif %}" href="{% url "Config" area="subproductos" %}">Subproductos</a>
+    </li>
+
+    <li class="p-1" role="presentation">
+        <a class="{% if 'config/subproductos_elaborados/' in request.path %} flex items-center inline-block p-2.5 text-purple-600 border-b-2 border-purple-600 truncate
+        {% else %} flex items-center inline-block p-2.5 hover:text-purple-600 hover:border-b-2 border-purple-600 truncate
+        {% endif %}" href="{% url "Config" area="subproductos_elaborados" %}">Subproductos Elaborados</a>
+    </li>
+    
+    <li class="p-1" role="presentation">
+        <a class="{% if 'config/productos_compuestos/' in request.path %} flex items-center inline-block p-2.5 text-purple-600 border-b-2 border-purple-600 truncate
+        {% else %} flex items-center inline-block p-2.5 hover:text-purple-600 hover:border-b-2 border-purple-600 truncate
+        {% endif %}" href="{% url "Config" area="productos_compuestos" %}">Platos/Productos Elaborados</a>
+    </li>
+</ul>

@@ -1,0 +1,119 @@
+{% load static custom_filters %}
+
+<div class="flex justify-between">
+    <span class="w-16 text-xs font-light"></span>
+    <h1 class="font-bold text-black text-lg">Contrato</h1>
+    <div class="w-16"></div>
+</div>
+<table class="w-full text-sm text-left text-gray-900">
+    <thead class="text-xs text-black uppercase  border border-b-0 border-black">
+        <tr>
+            <th scope="col" class="px-6 border-r border-black">No.</th>
+            <th scope="col" class="px-6 border-r border-black hidden">Fecha</th>
+            <th scope="col" class="px-6 border-r border-black">Contenido y Descripción</th>
+            <th scope="col" class="px-6 border-r border-black">Cantidad</th>
+            <th scope="col" class="px-6 border-r border-black">Cumplimiento</th>
+            <th scope="col" class="px-6 border-r border-black">Selección</th>
+            <th scope="col" class="px-6">Entrega</th>
+        </tr>
+    </thead>
+    <tbody class="border-0 border-b border-black">
+        {% if ficha_cliente.servicios_contrato.all|length == 0 %}
+        <tr class="bg-white border border-b-0 border-black">
+            <td colspan="6" class="px-6 border-r border-black text-center">No existen servicios asociados a este contrato</td>
+        </tr>
+        {% endif %}
+        {% for servicio in ficha_cliente.servicios_contrato.all  %}
+        <tr class="bg-white border border-b-0 border-black">
+            <td class="px-6 border-r border-black">{{forloop.counter}}</td>
+            <td class="px-6 border-r border-black hidden">-</td>
+            <td class="px-6 border-r border-black">{{servicio.servicio.nombre}}</td>
+            <td class="px-6 border-r border-black">{{servicio.cantidad}}</td>
+            <td class="border-r border-black">
+                <select id="estado-{{servicio.id}}" name="estado-{{servicio.id}}" class="w-full border-0 bg-transparent focus:border-0 focus:ring-0 focus:bg-transparent px-3 py-0">
+                    <option value="">-</option>
+                    {% for estado in servicio.servicio.estado.estados.all %}
+                    <option value="{{estado.id}}" {% if servicio.estado == estado %}selected{% endif %}>{{ estado.nombre }}</option>
+                    {% endfor %}
+                    <option value="ok" {% if servicio.terminado or servicio.servicio.estado.estados.all|length == 0  %}selected{% endif %}>Terminado</option>
+                </select>
+            </td>
+            <td class="px-6 border-r border-black">
+                <input class="w-full border-0 bg-transparent focus:border-0 focus:ring-0 focus:bg-transparent p-0" type="text" id="seleccion-{{servicio.id}}" name="seleccion-{{servicio.id}}" {% if servicio.terminado %}disabled{% endif %} value="{{servicio.seleccion|nullToNone}}" placeholder="-">
+            </td>
+            <td class="px-6 border-r border-black">-</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h1 class="text-black text-md">Valor de los servicios incluidos en el contrato:
+    <span class="font-bold text-black">{% if ficha_cliente.precio_cup %}${{ficha_cliente.precio_cup|toMoney}}{% else %}$0.00{% endif %} CUP /
+    {% if ficha_cliente.precio_cup %}${{ficha_cliente.precio_usd|toMoney}}{% else %}$0.00{% endif %} USD
+    </span>
+</h1>
+
+<div class="flex justify-between mt-10">
+    <span class="w-48"></span>
+    <h1 class="font-bold text-black text-lg text-center">Otros servicios y ventas</h1>
+    {% if  not ficha_cliente.fecha_realizacion  and request.user.super_permission == True or request.user.balanc_permission == True%}
+    <button class="flex focus:outline-none text-sm font-bold text-green-600 px-6 items-center" onclick="addServicio()" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" class="mr-1">
+            <path fill="currentColor" d="M11 17h2v-4h4v-2h-4V7h-2v4H7v2h4zm1 5q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22"></path>
+        </svg>
+        Agregar servicio
+    </button>
+    {% else %}
+    <span class="w-48"></span>
+    {% endif %}
+</div>
+<table class="w-full text-sm text-left text-gray-900">
+    <thead class="text-xs text-black uppercase  border border-b-0 border-black">
+        <tr>
+            <th scope="col" class="px-2 border-r border-black">No.</th>
+            <th scope="col" class="px-2 border-r border-black">Fecha</th>
+            <th scope="col" class="px-2 border-r border-black truncate">Contenido y Descripción</th>
+            <th scope="col" class="px-2 border-r border-black">Cantidad</th>
+            <th scope="col" class="px-2 border-r border-black">Cumplimiento</th>
+            <th scope="col" class="px-2 border-r border-black">Selección</th>
+            <th scope="col" class="px-2">Entrega</th>
+        </tr>
+    </thead>
+    <tbody class="border-0 border-b border-black" id="content-servicios">
+        <tr class="bg-white border border-b-0 border-black {% if ficha_cliente.servicios_adicionales.all|length > 0 %}hidden{% endif %}" id="not-servicios">
+            <td colspan="7" class="px-6 border-r border-black text-center">No existen otros servicios o ventasagregados a este contrato</td>
+        </tr>
+        
+        {% for servicio in ficha_cliente.servicios_adicionales.all %}
+        <tr class="bg-white border border-b-0 border-black">
+            <td class="px-2 border-r border-black quantity-service">{{ forloop.counter }}</td>
+            <td class="px-2 border-r border-black">
+                <button type="button" class="" id="btn-otros-servicios-fechas-{% now "Ymd" %}{{forloop.counter}}" {% if servicio.terminado %}disabled{% endif %} onclick="document.getElementById('btn-open-select-date').click(),setDateChangeId('otros-servicios-fechas-{% now "Ymd" %}{{forloop.counter}}')"
+                {% if request.user.super_permission == False and request.user.balanc_permission == False %}disabled{% endif %}>{{servicio.fecha_acordada|date:"d/m/Y"}}</button>
+                <input type="text" class="hidden" value="{{servicio.fecha_acordada|date:"d/m/Y"}}" required="" name="otros-servicios-fechas" id="otros-servicios-fechas-{% now "Ymd" %}{{forloop.counter}}">
+            </td>
+            <td class="px-2 border-r border-black">{{servicio.servicio.nombre}}</td>
+            <td class="px-2 border-r border-black">{{servicio.cantidad}}</td>
+            <td class="px-2 border-r border-black">
+                <select id="estado-{{servicio.id}}" name="estado-{{servicio.id}}" class="w-full border-0 bg-transparent focus:border-0 focus:ring-0 focus:bg-transparent px-3 py-0">
+                    <option value="">-</option>
+                    {% for estado in servicio.servicio.estado.estados.all %}
+                    <option value="{{estado.id}}" {% if servicio.estado == estado %}selected{% endif %}>{{ estado.nombre }}</option>
+                    {% endfor %}
+                    <option value="ok" {% if servicio.terminado or servicio.servicio.estado.estados.all|length == 0 %}selected{% endif %}>Terminado</option>
+                </select>
+            </td>
+            <td class="px-6 border-r border-black">
+                <input class="w-full border-0 bg-transparent focus:border-0 focus:ring-0 focus:bg-transparent p-0" type="text" id="seleccion-{{servicio.id}}" {% if servicio.terminado %}disabled{% endif %} name="seleccion-{{servicio.id}}" value="{{servicio.seleccion|nullToNone}}" placeholder="-">
+            </td>
+            <td class="px-2 border-r border-black">-</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h1 class="text-black text-md">Valor de los servicios extras al contrato:
+    <span class="font-bold text-black" id="precio-servicios-extras">{% if ficha_cliente.precio_cup %}${{ficha_cliente.precio_cup|toMoney}}{% else %}$0.00{% endif %} CUP /
+    {% if ficha_cliente.precio_cup %}${{ficha_cliente.precio_usd|toMoney}}{% else %}$0.00{% endif %} USD
+    </span>
+</h1>

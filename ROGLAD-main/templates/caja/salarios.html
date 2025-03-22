@@ -1,0 +1,536 @@
+{% extends 'caja/base.html' %}
+{% load static custom_filters %}
+
+{% block contentFilter %}
+<form class="flex h-auto bg-white w-full border-t mb-0 pt-0.5 mt-0.5" method="GET">
+    <div class="flex w-2/3 items-center px-2 space-x-2">
+        <span class="text-md font-bold">Último día a tener en cuenta para el pago:</span>
+        <input name="fin" type="text" value="{{fin}}" datepicker class="border-0 text-gray-900 text-sm rounded-lg focus:ring-0 focus:border-0 block p-2.5 flex-1" placeholder="Hasta">
+    </div>  
+    <button class="w-1/3 flex items-center justify-center  p-2.5 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-200 hover:bg-gray-300 border border-transparent rounded-lg focus:outline-none focus:shadow-outline-gray" type="submit">
+        <svg class="w-5 h-5 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z"></path>
+        </svg>
+        Cargar salarios del período
+    </button>
+</form>
+{% endblock contentFilter %}
+
+
+
+{% block contentCaja %}
+<div class="flex w-full h-[88%]">
+    <div class="w-48 h-full border shadow-md rounded-lg bg-white p-1 space-y-1 overflow-auto">
+        <ul class="items-center text-sm font-medium text-start text-gray-500 flex-1 flex flex-col space-x-1 dark:text-gray-400">
+
+            {% if not pending_prenomina %}
+            <li class="w-full">
+                <a href="{% url 'SalariosCaja' %}" 
+                class="{% if "caja/salarios?select=pendientes" in request.build_absolute_uri or "caja/salarios?select=" not in request.build_absolute_uri %}inline-block w-full px-4 py-3 text-purple-900 bg-purple-200 rounded-lg focus:ring-0 active focus:outline-none
+                {% else %}inline-block w-full px-4 py-3 hover:text-gray-700 rounded-lg hover:bg-gray-100 focus:ring-0 focus:outline-none
+                {% endif %}" aria-current="page">
+                Salarios por pagar</a>
+            </li>
+            {% endif %}
+
+            {% for n in nominas%}
+            <li class="w-full">
+                <a href="{% url 'SalariosCaja' %}?select={{n.id}}-nom" 
+                    class="{% if "select="|concatenate:n.id|concatenate:"-nom" in request.build_absolute_uri %}inline-block w-full px-4 py-3 text-purple-900 bg-purple-200 rounded-lg focus:ring-0 active focus:outline-none
+                    {% else %}inline-block w-full px-4 py-3 hover:text-gray-700 rounded-lg hover:bg-gray-100 focus:ring-0 focus:outline-none
+                    {% endif %}" aria-current="page">
+                    {{n.fecha|date:"MdY-His"}}
+                </a>
+            </li>
+            {% endfor %}
+
+        </ul>
+    </div>
+
+    <div class="h-full border shadow-md rounded-lg bg-white flex-1 ml-2 overflow-auto">
+        <div id="accordion-salarios" data-accordion="collapse" data-active-classes="bg-white text-gray-900" data-inactive-classes="text-gray-500 border-b border-gray-200">
+            
+            {% if usuarios %}
+            <div class="w-full flex justify-between px-6 py-3">
+                <p class="font-bold text-xl">Monto total a pagar: ${{monto_pagar|toMoney}}</p> 
+                <div class="flex space-x-3">
+                    <button type="button" class="rounded-lg text-sm font-medium px-4 py-2 bg-green-200 hover:bg-green-300 text-green-700" id=""
+                    onclick="document.getElementById('monto-agregado-text').innerText='Monto a agregar:',
+                    document.getElementById('add-pago-text-body').innerText='Agregar pago a trabajador',
+                    document.getElementById('text-motivo-pago').innerText='Motivo del pago:',
+                    document.getElementById('add-pago').setAttribute('name','add-pago')" data-modal-target="add-monto-modal" data-modal-toggle="add-monto-modal">Agregar pago</button>
+                    <button type="button" class="rounded-lg text-sm font-medium px-4 py-2 bg-red-200 hover:bg-red-300 text-red-700" id=""
+                    onclick="document.getElementById('monto-agregado-text').innerText='Monto a descontar:',
+                    document.getElementById('add-pago-text-body').innerText='Agregar descuento a trabajador',
+                    document.getElementById('text-motivo-pago').innerText='Motivo del descuento:',
+                    document.getElementById('add-pago').setAttribute('name','add-descuento')" data-modal-target="add-monto-modal" data-modal-toggle="add-monto-modal">Agregar descuento</button>
+                    <button type="button" class="rounded-lg text-sm font-medium px-4 py-2 bg-blue-200 hover:bg-blue-300 text-blue-700" id=""
+                    onclick="" data-modal-target="crear-prenomina-modal" data-modal-toggle="crear-prenomina-modal">Crear prenómina</button>
+                </div>
+            </div>
+            
+            <div class="w-full h-full border-black" id="table-prenomina">
+                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead class="bg-white">
+                        <tr class="text-xs border-b-black text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400  sticky top-0" add-class-print="">
+                            <th scope="col" class="pl-4 py-3"></th>
+                            <th scope="col" class="px-6 py-3"> Trabajador </th>
+                            <th scope="col" class="px-6 py-3"> Carné de identidad </th>
+                            <th scope="col" class="px-6 py-3">Teléfono</th>
+                            <th scope="col" class="px-6 py-3"> Salario acumulado</th>
+                            <th scope="col" class="px-6 py-3"> Descuento acumulado</th>
+                            <th scope="col" class="px-6 py-3"> Salario a cobrar</th>
+                            <th scope="col" class="px-6 py-3"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in usuarios %}
+                        {% if usuario.get_pagos or usuario.get_descuentos %}
+                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600" add-class-print="border-black" id="tr-content-{{producto.id}}">
+                            <td class="pl-4 py-1 font-semibold text-black truncate"></td>
+                            <td class="px-6 py-1">{{ usuario }}</td>
+                            <td class="px-6 py-1">{{ usuario.ci|nullToBlank }}</td>
+                            <td class="px-6 py-1">{{ usuario.telefono|nullToBlank }}</td>
+                            <td class="px-6 py-1">${{ usuario.get_pago_acumulado|toMoney }}</td>
+                            <td class="px-6 py-1">${{ usuario.get_monto_descontar|toMoney }}</td>
+                            <td class="px-6 py-1">${{ usuario.get_monto_pagar|toMoney }}</td>
+                            <td class="px-6 py-1">
+                                <a href="?u={{usuario.tag_id}}" class="text-blue-800 hover:bg-blue-200 truncate focus:ring-0 focus:outline-none font-medium rounded-lg text-sm px-3 py-1.5 text-center inline-flex items-center">
+                                    Ver pagos y descuentos
+                                </a>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% elif nomina_select %}
+            {% with nomina_select.datos_nomina as nomina %}
+            <div class="w-full flex flex-col">
+                <div class="w-full flex justify-between px-6 py-3 space-x-2">
+                    <p class="font-bold text-xl flex-1">Monto total a pagar: ${{nomina.total|toMoney}}</p> 
+                    {% if not nomina_select.user_confirm %}
+                        {% if request.user.super_permission %}
+                        <button type="button" class="rounded-lg text-sm font-medium px-4 py-2 bg-red-200 hover:bg-red-300 text-red-700" id=""
+                        onclick="" data-modal-target="denegar-prenomina-modal" data-modal-toggle="denegar-prenomina-modal">Denegar prenómina</button>
+
+                        <button type="button" class="rounded-lg text-sm font-medium px-4 py-2 bg-green-200 hover:bg-green-300 text-green-700" id=""
+                        onclick="" data-modal-target="confirmar-prenomina-modal" data-modal-toggle="confirmar-prenomina-modal">Confirmar prenómina</button>
+                        {% endif %}
+                    {% else %}
+                    <button class="undefined text-md leading-none flex items-center" type="button"
+                        onclick="printTable('table-nomina')">
+                        <span class="material-icons mr-2">print</span>
+                        Imprimir Nómina
+                    </button>
+                    {% endif %}
+                </div>
+                
+                <div class="w-full h-full border-black" id="table-nomina">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead class="bg-white">
+                            <tr class="text-xs border-b-black text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400  sticky top-0" add-class-print="">
+                                <th scope="col" class="pl-4 py-3" add-class-print="border border-b-black"></th>
+                                <th scope="col" class="px-6 py-3" add-class-print="border border-b-black"> Trabajador </th>
+                                <th scope="col" class="px-6 py-3" add-class-print="border border-b-black"> Carné de identidad </th>
+                                <th scope="col" class="px-6 py-3" add-class-print="border border-b-black">Teléfono</th>
+                                <th scope="col" class="px-6 py-3" add-class-print="border border-b-black"> Salario acumulado</th>
+                                <th scope="col" class="px-6 py-3" add-class-print="border border-b-black"> Descuento acumulado</th>
+                                <th scope="col" class="px-6 py-3" add-class-print="border border-b-black"> Salario a cobrar</th>
+                                <th scope="col" class="px-6 py-3" add-class-print="border border-b-black"> Firma</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pago in nomina.pagos %}
+                            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600" add-class-print="border-black" id="tr-content-{{producto.id}}">
+                                <td class="pl-4 py-1 font-semibold text-black truncate" add-class-print="border border-b-black">{{ forloop.counter }} -</td>
+                                <td class="px-6 py-1" add-class-print="border border-b-black">{{ pago.nombre }}</td>
+                                <td class="px-6 py-1" add-class-print="border border-b-black">{{ pago.ci|nullToBlank }}</td>
+                                <td class="px-6 py-1" add-class-print="border border-b-black">{{ pago.telefono|nullToBlank }}</td>
+                                <td class="px-6 py-1" add-class-print="border border-b-black">{{ pago.pago_acumulado|toMoney }}</td>
+                                <td class="px-6 py-1" add-class-print="border border-b-black">{{ pago.monto_descontar|toMoney }}</td>
+                                <td class="px-6 py-1" add-class-print="border border-b-black">{{ pago.monto_pagar|toMoney }}</td>
+                                <td class="px-6 py-1" add-class-print="border border-b-black"></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endwith %}
+            {% endif %}
+        </div>  
+    </div>
+</div>
+
+{% if usuarios %}
+<!-- Main modal -->
+<div id="edit-monto-modal" tabindex="-1" data-modal-backdrop="static" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white" id="modal-text-header"></h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="edit-monto-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <form class="p-4 md:p-5" id="form-modificar" method="POST">
+                <input class="hidden" type="text" id="pago-id" name="pago-id">
+                <input class="hidden" type="text" id="usuario-id" name="usuario-id">
+                <input class="hidden" type="text" id="liquidado">
+                {% csrf_token %}
+                <div class="">
+                    <p class="block mb-2 text-lg font-medium text-gray-900 dark:text-white" id="modal-text-body"></p>
+                    <div class="flex space-x-2 items-center pb-6">
+                        <label for="monto-modificado" class="block mb-2 text-lg font-medium text-gray-900 dark:text-white">Nuevo Monto:</label>
+                        <input type="number" step="0.01" step-my  step="0.00001" name="monto-modificado" id="monto-modificado" class="w-24 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block p-2 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="" required="">
+                    </div>
+
+                    <p class="flex justify-center font-bold text-md mt-2 text-red-700 dark:text-red-100 hidden" id="error-add"></p>
+                    <div class="flex mt-2 px-2" id="content-options">
+                        <button type="button" class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600" id="btn-cancel" data-modal-hide="edit-monto-modal">Cancelar</button>
+                        <button type="submit" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2 ">Modificar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div> 
+
+<div id="add-monto-modal" tabindex="-1" data-modal-backdrop="static" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white" id="add-pago-text-body"></h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="add-monto-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <form class="p-4 md:p-5" id="" method="POST">
+                <input class="hidden" type="text" id="add-pago">
+                {% csrf_token %}
+                <div class="">
+                    <div class="flex space-x-2 items-center w-full">
+                        <div class="w-1/2">
+                            <label for="user-monto-agregado" id="user-monto-agregado-text" class="mb-2 text-center block w-full text-lg font-medium text-gray-900 dark:text-white">Trabajador:</label>
+                            <select class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block p-2 " 
+                                id="user-monto-agregado" name="user-monto-agregado" required>
+                                {% for u in usuarios %}
+                                {% if u.is_active or u.activo %}
+                                <option value="{{u.tag_id}}">{{u}}</option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="w-1/2">
+                            <label for="monto-agregado" id="monto-agregado-text" class="mb-2 text-center block w-full text-lg font-medium text-gray-900 dark:text-white">Monto a agregar:</label>
+                            <input type="number" step="0.01" step-my  step="0.00001" name="monto-agregado" id="monto-agregado" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block p-2" placeholder="" required min=0>
+                        </div>
+                    </div>
+                        
+                    <label for="motivo-pago" id="text-motivo-pago" class="block mb-2 mt-3 text-sm font-medium text-black">Motivo del pago efectudao</label>
+                    <textarea name="motivo-pago" id="motivo-pago" required rows="4" class="block mt-2 p-2.5 w-full text-sm text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="Escriba el motivo..."></textarea>
+
+                    <div class="flex mt-6 px-2" id="content-options">
+                        <button type="button" class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600" id="" data-modal-hide="add-monto-modal">Cancelar</button>
+                        <button type="submit" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2 ">Agregar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div> 
+ 
+<div id="crear-prenomina-modal" tabindex="-1" data-modal-backdrop="static" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="crear-prenomina-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <form class="p-4 md:p-5 text-center" method="GET" action="{% url 'CrearPrenomina' %}">
+                <input class="hidden" type="text" name="fin" value='{{fin}}'>
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-12 text-xl font-normal text-gray-900 dark:text-gray-100">¿Seguro de crear prenómina?</h3>
+                <button data-modal-hide="crear-prenomina-modal" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                <button type="submit" class="text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">
+                    Si, crear prenómina
+                </button>
+            </form>
+        </div>
+    </div>
+</div> 
+{% elif nomina_select and not nomina_select.user_confirm %}
+<div id="confirmar-prenomina-modal" tabindex="-1" data-modal-backdrop="static" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="confirmar-prenomina-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <form class="p-4 md:p-5 text-center" method="POST">
+                <input class="hidden" type="text" id="comfirm-id" name="comfirm-id" value='{{nomina_select.id}}'>
+                {% csrf_token %}
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-1 text-xl font-normal text-gray-900 dark:text-gray-100">¿Seguro de confirmar la prenómina?</h3>
+                <h3 class="mb-12 text-md font-normal text-red-600 dark:text-gray-100">(Una vez confirmada no habrá marcha atrás)</h3>
+                <button data-modal-hide="confirmar-prenomina-modal" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                <button type="submit" class="text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">
+                    Si, confirmar prenómina
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="denegar-prenomina-modal" tabindex="-1" data-modal-backdrop="static" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="denegar-prenomina-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <form class="p-4 md:p-5 text-center" method="POST">
+                <input class="hidden" type="text" id="denegar-id" name="denegar-id" value='{{nomina_select.id}}'>
+                {% csrf_token %}
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-1 text-xl font-normal text-gray-900 dark:text-gray-100">¿Seguro de denegar la prenómina?</h3>
+                <h3 class="mb-12 text-md font-normal text-red-600 dark:text-gray-100">(Una vez denegada deberá crear una nueva prenómina)</h3>
+                <button data-modal-hide="denegar-prenomina-modal" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                <button type="submit" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">
+                    Si, denegar prenómina
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+
+
+{% if "?u=" in request.build_absolute_uri %}
+<button class="hidden" data-modal-target="pagos-descuentos-modal" data-modal-toggle="pagos-descuentos-modal"></button>
+<!-- Default Modal -->
+<div id="pagos-descuentos-modal" tabindex="-1" data-modal-backdrop="static" class="flex items-center justify-center bg-black/40 fixed top-0 left-0 right-0 z-30 w-full p-4 overflow-auto md:inset-0 h-full max-h-full">
+    <div class="w-full max-w-lg max-h-full">
+        <!-- Modal content -->
+        <div class="bg-white rounded-lg shadow dark:bg-gray-700">
+            <!-- Modal header -->
+            <div class="flex flex-col items-center justify-start p-3 border-b rounded-t dark:border-gray-600">
+                <div class="flex items-center w-full justify-between">
+                    <h3 class="text-xl font-medium text-gray-900 dark:text-white">Pagos y descuentos pendientes</h3>
+                    <button type="button" onclick="" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="pagos-descuentos-modal" id="close-modal-products">
+                        <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                        <span class="sr-only">Close modal</span> 
+                    </button>
+                </div>
+            </div>
+            <!-- Modal body -->
+            <div class="p-2 relative overflow-auto">
+
+                {% for usuario in usuarios %}
+                {% if usuario.tag_id|add:'&' in request.build_absolute_uri|add:'&' %}
+                
+                <div class="w-full flex justify-between px-6 py-3 items-center">
+                    <p class="m-2 font-bold truncate">{{usuario}} </p>
+                    <div class="flex space-x-3">
+                        <button type="button" class="rounded-lg text-xs font-medium px-2 py-1.5 bg-green-200 hover:bg-green-300 text-green-700" id=""
+                        onclick="document.getElementById('monto-agregado-text').innerText='Monto a agregar:',
+                        document.getElementById('add-pago-text-body').innerText='Agregar pago a trabajador',
+                        document.getElementById('text-motivo-pago').innerText='Motivo del pago:',
+                        document.getElementById('user-monto-agregado').value='{{usuario.tag_id}}',
+                        document.getElementById('add-pago').setAttribute('name','add-pago')" data-modal-target="add-monto-modal" data-modal-toggle="add-monto-modal">Agregar pago</button>
+                        <button type="button" class="rounded-lg text-xs font-medium px-2 py-1.5 bg-red-200 hover:bg-red-300 text-red-700" id=""
+                        onclick="document.getElementById('monto-agregado-text').innerText='Monto a descontar:',
+                        document.getElementById('add-pago-text-body').innerText='Agregar descuento a trabajador',
+                        document.getElementById('text-motivo-pago').innerText='Motivo del descuento:',
+                        document.getElementById('user-monto-agregado').value='{{usuario.tag_id}}',
+                        document.getElementById('add-pago').setAttribute('name','add-descuento')" data-modal-target="add-monto-modal" data-modal-toggle="add-monto-modal">Agregar descuento</button>
+                    </div>
+                </div>
+                
+                <div class="border-b border-gray-200 ">
+                    <ul class="flex text-md font-medium text-center w-full" id="default-tab" data-tabs-toggle="#default-tab-content" role="tablist">
+                        <li class="w-1/2" role="presentation">
+                            <button class="inline-block p-2 w-full border-b-2 rounded-t-lg" id="content-pagos-tab" data-tabs-target="#content-pagos" type="button" role="tab" aria-controls="profile" aria-selected="false">Pagos</button>
+                        </li>
+                        <li class="w-1/2" role="presentation">
+                            <button class="inline-block p-2 w-full border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="content-descuentos-tab" data-tabs-target="#content-descuentos" type="button" role="tab" aria-controls="content-descuentos" 
+                            aria-selected="{% if "s=desc" in request.build_absolute_uri %}true{% endif %}">Descuentos</button>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="hidden p-2 w-full h-96 bg-white overflow-y-auto" id="content-pagos" role="tabpanel" aria-labelledby="content-pagos-tab">
+
+                    {% if usuario.get_pagos %}
+                
+                    {% for pago in usuario.get_pagos %}
+                    <div class="border-b p-2">
+                        <p class="mb-1 text-black font-semibold flex">
+                            <button class="flex items-center bg-purple-100 justify-between p-1 w-6 h-6 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray mr-1" title="Editar monto a pagar" aria-label="Edit"
+                            data-modal-target="edit-monto-modal" data-modal-toggle="edit-monto-modal"
+                            onclick="document.getElementById('modal-text-header').innerText='Modificar pago a {{usuario.user}}',
+                            document.getElementById('modal-text-body').innerText='Monto: ${{pago.monto|toMoney}} &nbsp;&nbsp;&nbsp; Liquidado: ${{pago.liquidado|toMoney}}',
+                            document.getElementById('monto-modificado').value='{{pago.monto|parseFloat}}',
+                            document.getElementById('pago-id').setAttribute('name', 'pago-id'),
+                            document.getElementById('usuario-id').value='{{usuario.tag_id}}',
+                            document.getElementById('pago-id').value='{{pago.id}}',
+                            document.getElementById('liquidado').value='{{pago.liquidado|parseFloat}}'">
+                                <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 24 24">
+                                    <path fill="currentColor" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h8.925l-2 2H5v14h14v-6.95l2-2V19q0 .825-.587 1.413T19 21zm4-7v-2.425q0-.4.15-.763t.425-.637l8.6-8.6q.3-.3.675-.45t.75-.15q.4 0 .763.15t.662.45L22.425 3q.275.3.425.663T23 4.4q0 .375-.137.738t-.438.662l-8.6 8.6q-.275.275-.637.438t-.763.162H10q-.425 0-.712-.288T9 14m12.025-9.6l-1.4-1.4zM11 13h1.4l5.8-5.8l-.7-.7l-.725-.7L11 11.575zm6.5-6.5l-.725-.7zl.7.7z"/>
+                                </svg>
+                            </button>
+                            {{pago.descripcion}}:
+                        </p>
+                        <p class="mb-5 text-black px-7">Monto: ${{pago.monto|toMoney}} &nbsp;&nbsp;&nbsp; Liquidado: ${{pago.liquidado|toMoney}} &nbsp;&nbsp;&nbsp; Fecha:{{pago.fecha}}</p>
+                        {% if pago.monto != pago.monto_original %}<p class="text-gray-600 px-7 -mt-5 mb-5"><span class="text-red-600 text-xl">*</span>(El monto ha sido modificado de ${{pago.monto_original|toMoney}} a ${{pago.monto|toMoney}})</p>{% endif %}
+                    </div>                    
+                    {% endfor %}
+
+                    {% else %} 
+                    <p class="mb-1 text-black font-semibold">Este trabajador no tiene pagos pendientes</p>
+                    {% endif %}
+                    
+
+                </div>
+                
+                <div class="hidden w-full h-96 bg-white overflow-y-auto" id="content-descuentos" role="tabpanel" aria-labelledby="content-descuentos-tab">
+                
+                    {% if usuario.get_descuentos %}
+                    
+                        {% for descuento in usuario.get_descuentos %}
+                        <div class="border-b p-2">
+                            <p class="mb-1 text-black font-semibold flex">
+                                <button class="flex items-center bg-purple-100 justify-between p-1 w-6 h-6 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray mr-1" title="Editar monto a descontar" aria-label="Edit"
+                                data-modal-target="edit-monto-modal" data-modal-toggle="edit-monto-modal"
+                                onclick="document.getElementById('modal-text-header').innerText='Modificar descuento a {{usuario.user}}',
+                                document.getElementById('modal-text-body').innerText='Monto: ${{descuento.monto|toMoney}} &nbsp;&nbsp;&nbsp; Liquidado: ${{descuento.liquidado|toMoney}}',
+                                document.getElementById('monto-modificado').value='{{descuento.monto|parseFloat}}',
+                                document.getElementById('pago-id').setAttribute('name', 'descuento-id'),
+                                document.getElementById('usuario-id').value='{{usuario.tag_id}}',
+                                document.getElementById('pago-id').value='{{descuento.id}}',
+                                document.getElementById('liquidado').value='{{descuento.liquidado|parseFloat}}'">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 24 24">
+                                        <path fill="currentColor" d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h8.925l-2 2H5v14h14v-6.95l2-2V19q0 .825-.587 1.413T19 21zm4-7v-2.425q0-.4.15-.763t.425-.637l8.6-8.6q.3-.3.675-.45t.75-.15q.4 0 .763.15t.662.45L22.425 3q.275.3.425.663T23 4.4q0 .375-.137.738t-.438.662l-8.6 8.6q-.275.275-.637.438t-.763.162H10q-.425 0-.712-.288T9 14m12.025-9.6l-1.4-1.4zM11 13h1.4l5.8-5.8l-.7-.7l-.725-.7L11 11.575zm6.5-6.5l-.725-.7zl.7.7z"/>
+                                    </svg>
+                                </button>
+                                {{descuento.descripcion}}:
+                            </p>
+                            <p class="mb-1 text-black px-7">Monto: ${{descuento.monto|toMoney}} &nbsp;&nbsp;&nbsp; Liquidado: ${{descuento.liquidado|toMoney}} &nbsp;&nbsp;&nbsp; Fecha:{{descuento.fecha}}</p>
+                            <p class="mb-5 text-black px-7">Motivo: {{ descuento.motivo }}</p>
+                            {% if descuento.monto != descuento.monto_original %}<p class="text-gray-600 px-7 -mt-5 mb-5"><span class="text-red-600 text-xl">*</span>(El monto ha sido modificado de ${{descuento.monto_original|toMoney}} a ${{descuento.monto|toMoney}})</p>{% endif %}
+                        </div>
+                        {% endfor %}
+
+                    {% else %} 
+                    <p class="mb-1 text-black font-semibold">Este trabajador no tiene descuentos pendientes</p>
+                    {% endif %} 
+                </div>
+                
+                {% endif %}
+                {% endfor %}
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+
+{% endblock contentCaja %}
+
+
+{% block scripts %}
+<script >
+    
+    function printTable(id){
+        const styles = document.head.querySelectorAll('style');
+        let styleContent = "";
+        styles.forEach( style => {
+            styleContent += `<style type="text/css">${style.innerHTML}</style>`
+        });
+        print(styleContent,document.getElementById(id).innerHTML)
+    }
+    function scroll() {
+        try {
+            const contentPagos = document.getElementById('content-pagos');
+            contentPagos.scrollTop = parseInt(localStorage.getItem("scroll-pagos"));
+            contentPagos.onscroll = (e)=>{ 
+                localStorage.setItem("scroll-pagos", JSON.stringify(contentPagos.scrollTop))
+            }
+            
+            const contentDescuentos = document.getElementById('content-descuentos');
+            contentDescuentos.onscroll = (e)=>{ 
+                localStorage.setItem("scroll-descuentos", JSON.stringify(contentDescuentos.scrollTop))
+            }
+            contentDescuentos.scrollTop = parseInt(localStorage.getItem("scroll-descuentos"));
+        } catch (error) {
+            console.log(error.message);
+        }
+    
+    }
+    setTimeout(scroll, 200); 
+
+    try {
+        document.getElementById("form-modificar").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const liquidado = parseFloat(document.getElementById("liquidado").value);
+            const monto_modificado = parseFloat(document.getElementById("monto-modificado").value);
+            
+            if(isNaN(monto_modificado)){
+                let alert = document.getElementById("error-add");
+                alert.innerHTML = `
+                <svg class="w-6 h-6 mr-1" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+                </svg>
+                Proporcione el monto a asignar`;
+                alert.classList.remove("hidden");
+                return false;
+            }
+            if(monto_modificado < liquidado){
+                let alert = document.getElementById("error-add");
+                alert.innerHTML = `
+                <svg class="w-6 h-6 mr-1" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+                </svg>
+                El monto modificado debe ser mayor o igual a la cantidad liquidada`;
+                alert.classList.remove("hidden");
+                return false;
+            }
+
+            this.submit();
+        });
+    } catch (error) {
+        console.log("Se ha producido un error: " + error);
+    }
+    
+</script>
+{% endblock scripts %}

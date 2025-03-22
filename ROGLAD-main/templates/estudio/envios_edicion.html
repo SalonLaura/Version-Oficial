@@ -1,0 +1,264 @@
+{% extends 'estudio/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+                
+{% block content %}
+
+<div class="flex flex-col h-full w-full">
+    <div class="flex px-6 items-center space-x-6">
+        <p class="font-bold text-lg:">Seleccione el editor:</p>
+        <div class="text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:text-gray-400 dark:border-gray-700">
+            <ul class="flex flex-wrap">                
+                {% for e in editores %}
+                <li class="me-6">
+                    <a href="/estudio/fotos-edicion/?e={{e.id}}&" class="inline-block px-4 py-2 border-b-2 {% if "e="|concatenate:e.id in request.build_absolute_uri %} border-blue-600 text-blue-600 {% else %} border-transparent {% endif %} hover:text-blue-600 hover:border-blue-300">{{e.nombre}}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="grid grid-cols-3 gap-2 flex-grow w-full">
+        <form class="h-full w-full bg-white flex flex-col" method="POST" id="form-send-edicion">
+            {% csrf_token %}
+            <div class="h-96 overflow-auto border flex-grow">
+                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 border">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">
+                                Fotos pendientes a ser editadas
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for foto in fotos_pendientes %}
+                        <tr class="bg-white hover:bg-gray-50">
+                            <th scope="row" class="relative px-3 font-medium text-gray-900 whitespace-nowrap dark:text-white flex items-center">      
+                                <input type="checkbox" name="foto-editar" value="{{foto.id}}" id="checkbox-foto-{{foto.id}}" class="absolute peer w-4 h-4 ml-2 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" required="">
+                                <label for="checkbox-foto-{{foto.id}}" class="inline-flex items-center justify-between w-full p-2 pl-10 text-gray-500 bg-white cursor-pointer peer-checked:bg-blue-100 hover:text-gray-600 peer-checked:text-gray-600 hover:bg-gray-50">
+                                    {{foto.seleccion}} - {{foto.servicio.nombre}} ( 
+                                    {% if foto.servicios_contrato_ficha.all %}
+                                    {{foto.servicios_contrato_ficha.all.first.identificador}} - {{foto.servicios_contrato_ficha.all.first.nombre}} {{foto.servicios_contrato_ficha.all.first.ci}} 
+                                    {% else %}
+                                    {{foto.servicios_adicionales_ficha.all.first.identificador}} - {{foto.servicios_adicionales_ficha.all.first.nombre}} {{foto.servicios_adicionales_ficha.all.first.ci}} 
+                                    {% endif %})
+                                </label>
+                            </th>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <button  data-modal-target="editar-modal" data-modal-toggle="editar-modal" type="button" class=" m-2 text-white bg-green-600 hover:bg-green-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center">
+                Enviar a edición
+            </button>
+        </form>
+        <form class="h-full w-full bg-white flex flex-col" method="POST" id="form-send-editadas">
+            {% csrf_token %}
+            <input type="text" class="hidden" name="action" id="action-form-send-editadas" value="ok"/>
+            <div class="h-96 overflow-auto border flex-grow">
+                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 border">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">
+                                Fotos en edición
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for envio in fotos_editando %}
+                        <tr class="bg-{{envio.color}}-100 hover:bg-{{envio.color}}-200 ">
+                            <th scope="row" class="relative px-3 font-medium text-gray-900 whitespace-nowrap dark:text-white flex items-center">      
+                                <input type="checkbox" name="foto-editada" value="{{envio.id}}" id="checkbox-foto-{{envio.id}}" class="absolute peer w-4 h-4 ml-2 text-{{envio.color}}-600 bg-gray-100 border-gray-300 rounded focus:ring-{{envio.color}}-500 focus:ring-2" required="">
+                                <label for="checkbox-foto-{{envio.id}}" class="items-center justify-between w-full p-2 pl-10 text-gray-500 cursor-pointer peer-checked:bg-{{envio.color}}-200 hover:text-gray-600 peer-checked:text-gray-600">
+                                    <p> <span class="font-bold text-black">{{envio.servicio.seleccion}} - {{envio.servicio.servicio.nombre}}</span> ( 
+                                        {% if envio.servicio.servicios_contrato_ficha.all %}
+                                        {{envio.servicio.servicios_contrato_ficha.all.first.identificador}} - {{envio.servicio.servicios_contrato_ficha.all.first.nombre}} {{envio.servicio.servicios_contrato_ficha.all.first.ci}} 
+                                        {% else %}
+                                        {{envio.servicio.servicios_adicionales_ficha.all.first.identificador}} - {{envio.servicio.servicios_adicionales_ficha.all.first.nombre}} {{envio.servicio.servicios_adicionales_ficha.all.first.ci}} 
+                                        {% endif %})</p>
+                                    <p class="font-semibold text-xs">Fecha de envío: {{envio.fecha_envio}}</p>
+                                </label>
+                            </th>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="w-full flex">
+                <button data-modal-target="back-modal" data-modal-toggle="back-modal" onclick="document.getElementById('action-form-send-editadas').value='back'" type="button" class="w-1/2 m-2 text-white bg-red-600 hover:bg-red-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center">
+                    Retroceder a pendientes
+                </button>
+                <button  type="button" data-modal-target="next-modal" data-modal-toggle="next-modal" onclick="document.getElementById('action-form-send-editadas').value='next'" class="w-1/2 m-2 truncate text-white bg-green-600 hover:bg-green-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center">
+                    Pasar a fotos editadas
+                </button>
+            </div>
+        </form>
+        <form class="h-full w-full bg-white flex flex-col" method="POST" id="form-back-editadas">
+            {% csrf_token %}
+            <input type="text" class="hidden" name="action" id="action-form-send-impresion" value="back-edicion"/>
+            <div class="h-96 overflow-auto border flex-grow">
+                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 border">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">
+                                Fotos editadas
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for envio in fotos_editadas %}
+                        <tr class="bg-{{envio.color}}-100 hover:bg-{{envio.color}}-200 ">
+                            <th scope="row" class="relative px-3 font-medium text-gray-900 whitespace-nowrap dark:text-white flex items-center">      
+                                <input type="checkbox" name="foto-editada-ok" value="{{envio.id}}" id="checkbox-foto-{{envio.id}}" class="absolute peer w-4 h-4 ml-2 text-{{envio.color}}-600 bg-gray-100 border-gray-300 rounded focus:ring-{{envio.color}}-500 focus:ring-2" required="">
+                                <label for="checkbox-foto-{{envio.id}}" class="items-center justify-between w-full p-2 pl-10 text-gray-500 cursor-pointer peer-checked:bg-{{envio.color}}-200 hover:text-gray-600 peer-checked:text-gray-600">
+                                    <p><span class="font-bold text-black">{{envio.servicio.seleccion}} - {{envio.servicio.servicio.nombre}}</span> ( 
+                                        {% if envio.servicio.servicios_contrato_ficha.all %}
+                                        {{envio.servicio.servicios_contrato_ficha.all.first.identificador}} - {{envio.servicio.servicios_contrato_ficha.all.first.nombre}} {{envio.servicio.servicios_contrato_ficha.all.first.ci}} 
+                                        {% else %}
+                                        {{envio.servicio.servicios_adicionales_ficha.all.first.identificador}} - {{envio.servicio.servicios_adicionales_ficha.all.first.nombre}} {{envio.servicio.servicios_adicionales_ficha.all.first.ci}} 
+                                        {% endif %})</p>
+                                    <p class="font-semibold text-xs">Fecha de entrega: {{envio.fecha_retorno}}</p>
+                                </label>
+                            </th>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="w-full flex">
+                <button data-modal-target="back-editadas-modal" data-modal-toggle="back-editadas-modal" onclick="" type="button" class="w-1/2 m-2 text-white bg-red-600 hover:bg-red-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center">
+                    Retroceder a edición
+                </button>
+                <button  type="button" data-modal-target="next-imp-modal" data-modal-toggle="next-imp-modal" onclick="document.getElementById('action-form-send-impresion').value='next-imp'" class="w-1/2 m-2 truncate text-white bg-green-600 hover:bg-green-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center">
+                    Pasar a lista para impresión
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="back-editadas-modal" tabindex="-1" data-modal-backdrop="static" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="back-editadas-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <div class="p-4 md:p-5 text-center">
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-12 text-xl font-normal text-gray-900 dark:text-gray-100">¿Seguro de retornar a edición las fotos seleccionadas?</h3>
+                <button data-modal-hide="back-editadas-modal" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                <button type="button" onclick="document.getElementById('form-back-editadas').submit()" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">
+                    Si, revertir
+                </button>
+            </div>
+        </div>
+    </div>
+</div> 
+
+
+<div id="editar-modal" tabindex="-1" data-modal-backdrop="static" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="editar-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <div class="p-4 md:p-5 text-center">
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-12 text-xl font-normal text-gray-900 dark:text-gray-100">¿Seguro de enviar a edición las fotos seleccionadas?</h3>
+                <button data-modal-hide="editar-modal" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                <button type="button" onclick="document.getElementById('form-send-edicion').submit()" class="text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">
+                    Si, enviar
+                </button>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<div id="back-modal" tabindex="-1" data-modal-backdrop="static" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="back-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <div class="p-4 md:p-5 text-center">
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-12 text-xl font-normal text-gray-900 dark:text-gray-100">¿Seguro de revertir envío a edición las fotos seleccionadas?</h3>
+                <button data-modal-hide="back-modal" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                <button type="button" onclick="document.getElementById('form-send-editadas').submit()" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">
+                    Si, revertir
+                </button>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<div id="next-modal" tabindex="-1" data-modal-backdrop="static" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="next-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <div class="p-4 md:p-5 text-center">
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-12 text-xl font-normal text-gray-900 dark:text-gray-100">¿Seguro de marcar como terminadas de editar las fotos seleccionadas?</h3>
+                <button data-modal-hide="next-modal" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                <button type="button" onclick="document.getElementById('form-send-editadas').submit()" class="text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">
+                    Si, terminadas
+                </button>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<div id="next-imp-modal" tabindex="-1" data-modal-backdrop="static" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="next-imp-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <div class="p-4 md:p-5 text-center">
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-12 text-xl font-normal text-gray-900 dark:text-gray-100">¿Seguro de pasar las fotos seleccionadas para la sección de impresión?</h3>
+                <button data-modal-hide="next-imp-modal" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                <button type="button" onclick="document.getElementById('form-back-editadas').submit()" class="text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">
+                    Si, pasar a impresión
+                </button>
+            </div>
+        </div>
+    </div>
+</div> 
+
+{% endblock content %}
+
+
+{% block scripts %}
+
+{% endblock scripts %}

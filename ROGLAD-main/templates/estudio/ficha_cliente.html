@@ -1,0 +1,361 @@
+{% extends 'estudio/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+<script src="{% static 'js/datepicker.min.js' %}"></script>
+{% endblock styles %}
+                
+{% block content %}
+<div class="w-full flex flex-col space-y-6 items-center p-6">
+    <div class="w-full max-w-4xl shadow border flex flex-col px-6 py-12">
+        <div class="flex justify-between">
+            <span class="w-16 text-xs font-light">Página 1</span>
+            <h1 class="font-bold text-black text-3xl">FICHA DEL CLIENTE DEL ESTUDIO</h1>
+            <div class="bg-gray-100 border border-black w-16 h-8"></div>
+        </div>
+
+        <div class="w-full flex justify-between mt-6">
+            <div class="">
+                <h1 class="font-bold text-black text-xl">CLIENTE No:</h1>
+                <h1 class="font-semibold text-black text-md">Aceptación de las condiciones del contrato</h1>
+            </div>
+
+            <div class="grid grid-cols-2 border border-black">
+                <h3 class="font-semibold text-black border border-black px-2 text-sm">No. de Contrato</h3>
+                <input type="text" class="px-2.5 py-0 text-sm text-gray-900 bg-transparent appearance-none border-black focus:border-black focus:outline-none focus:ring-0">
+                
+                <h3 class="font-semibold text-black border border-black px-2 text-sm">Responsable / Maquillista</h3>
+                <input type="text" class="px-2.5 py-0 text-sm text-gray-900 bg-transparent appearance-none border-black focus:border-black focus:outline-none focus:ring-0">
+                
+                <h3 class="font-semibold text-black border border-black px-2 text-sm">Tipo de Contrato</h3>
+                <input type="text" class="px-2.5 py-0 text-sm text-gray-900 bg-transparent appearance-none border-black focus:border-black focus:outline-none focus:ring-0">
+                
+                <h3 class="font-semibold text-black border border-black px-2 text-sm">Fotógrafo</h3>
+                <input type="text" class="px-2.5 py-0 text-sm text-gray-900 bg-transparent appearance-none border-black focus:border-black focus:outline-none focus:ring-0">
+                
+                <h3 class="font-semibold text-black border border-black px-2 text-sm">Editor</h3>
+                <input type="text" class="px-2.5 py-0 text-sm text-gray-900 bg-transparent appearance-none border-black focus:border-black focus:outline-none focus:ring-0">
+                
+                <h3 class="font-semibold text-black border border-black px-2 text-sm">Responsable de Revisión</h3>
+                <input type="text" class="px-2.5 py-0 text-sm text-gray-900 bg-transparent appearance-none border-black focus:border-black focus:outline-none focus:ring-0">
+            </div>
+
+        </div>
+
+        <div class="w-full flex justify-center mt-6">
+            <h2 class="font-bold text-black">I-</h2>
+            <h2 class="font-bold text-black underline">A LLENAR POR LA RECEPCIÓN</h2>
+        </div>
+
+        <div class="w-full flex justify-between mt-6">
+            <div class="flex">
+                <h1 class="font-bold text-black mr-2">(A)</h1>
+                <div>
+                    <div class="flex items-center">
+                        <h3 class="font-semibold text-black mr-1">Fecha de solicitud:</h3>
+                        <input type="text" class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                    </div>
+                    <div class="flex items-center">
+                        <h3 class="font-semibold text-black mr-1">Fecha del día acordado:</h3>
+                        <input type="text" class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                    </div>
+                    <div class="flex items-center">
+                        <h3 class="font-semibold text-black mr-1">Fecha de realización:</h3>
+                        <input type="text" class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="flex items-center">
+                    <h3 class="font-semibold text-black mr-1">Pago del editor:</h3>
+                    <input type="text" class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                </div>
+                <div class="flex items-center">
+                    <h3 class="font-semibold text-black mr-1">Pago del fotógrafo:</h3>
+                    <input type="text" class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full flex justify-center mt-6">
+            <h2 class="font-bold text-black">(B)</h2>
+            <h2 class="font-bold text-black underline">Datos Generales del Cliente</h2>
+        </div>
+        <h2 class="font-semibold text-black text-xs w-full text-center">(Carnet de Identidad)</h2>
+        
+        <div>
+            <div class="flex border-r border-black">
+                <h2 class="w-24"></h2>
+                <div class="flex-1 border-r border-black"></div>
+                <div class="w-20 text-center border-t border-black">Firma cliente</div>
+            </div>
+            <div class="flex border border-b-0 border-black">
+                <h2 class="w-24 border-r border-black px-1 font-bold">Nombre y apellidos</h2>
+                <input type="text" class="flex-1 px-2.5 py-0 border-0 border-r border-black text-sm text-gray-900 bg-transparent appearance-none focus:border-black focus:outline-none focus:ring-0">
+                <span class="w-20 h-full"> </span>
+            </div>
+            <div class="flex border border-b-0 border-black">
+                <h2 class="w-24 border-r border-black px-1 font-bold">Edad</h2>
+                <input type="text" class="flex-1 px-2.5 py-0 border-0 border-r border-black text-sm text-gray-900 bg-transparent appearance-none focus:border-black focus:outline-none focus:ring-0">
+                <span class="w-20 h-full"> </span>
+            </div>
+            <div class="flex border border-b-0 border-black">
+                <h2 class="w-24 border-r border-black px-1 font-bold">CI</h2>
+                <input type="text" class="flex-1 px-2.5 py-0 border-0 border-r border-black text-sm text-gray-900 bg-transparent appearance-none focus:border-black focus:outline-none focus:ring-0">
+                <span class="w-20 h-full"> </span>
+            </div>
+            <div class="flex border border-b-0 border-black">
+                <h2 class="w-24 border-r border-black px-1 font-bold">Dirección</h2>
+                <div class="flex flex-col border-r border-black flex-1 p-2">
+                    <div class="flex">
+                        <h2 class="font-semibold text-sm">Calle:</h2>
+                        <input type="text" class="flex-1 px-2.5 py-0 border-0 text-sm text-gray-900 bg-transparent appearance-none focus:border-0 focus:outline-none focus:ring-0">
+                        <h2 class="font-semibold text-sm">No:</h2>
+                        <input type="text" class="w-24 px-2.5 py-0 border-0 text-sm text-gray-900 bg-transparent appearance-none focus:border-0 focus:outline-none focus:ring-0">
+                    </div>
+                    <div class="flex mt-2">
+                        <h2 class="font-semibold text-sm">Entre:</h2>
+                        <input type="text" class="flex-1 px-2.5 py-0 border-0 text-sm text-gray-900 bg-transparent appearance-none focus:border-0 focus:outline-none focus:ring-0">
+                    </div>
+                    <div class="flex mt-2">
+                        <h2 class="font-semibold text-sm">Consejo Popular:</h2>
+                        <input type="text" class="flex-1 px-2.5 py-0 border-0 text-sm text-gray-900 bg-transparent appearance-none focus:border-0 focus:outline-none focus:ring-0">
+                        <h2 class="font-semibold text-sm">Muncp:</h2>
+                        <input type="text" class="w-32 px-2.5 py-0 border-0 text-sm text-gray-900 bg-transparent appearance-none focus:border-0 focus:outline-none focus:ring-0">
+                        <h2 class="font-semibold text-sm">Prov:</h2>
+                        <input type="text" class="w-32 px-2.5 py-0 border-0 text-sm text-gray-900 bg-transparent appearance-none focus:border-0 focus:outline-none focus:ring-0">
+                    </div>
+                    <div class="flex mt-2">
+                        <h2 class="font-semibold text-sm">País:</h2>
+                        <input type="text" class="flex-1 px-2.5 py-0 border-0 text-sm text-gray-900 bg-transparent appearance-none focus:border-0 focus:outline-none focus:ring-0">
+                    </div>
+                </div>
+                <span class="w-20 h-full"> </span>
+            </div>
+            <div class="flex border border-b-0 border-black">
+                <h2 class="w-24 border-r border-black px-1 font-bold">No. de Teléfono</h2>
+                <input type="text" class="flex-1 px-2.5 py-0 border-0 border-r border-black text-sm text-gray-900 bg-transparent appearance-none focus:border-black focus:outline-none focus:ring-0">
+                <span class="w-20 h-full"> </span>
+            </div>
+            <p class="w-full text-center border border-b-0 border-black font-bold">Redes sociales</p>
+            <div class="flex border border-b-0 border-black">
+                <h2 class="w-24 border-r border-black px-1 font-bold">Correo</h2>
+                <input type="text" class="flex-1 px-2.5 py-0 border-0 border-r border-black text-sm text-gray-900 bg-transparent appearance-none focus:border-black focus:outline-none focus:ring-0">
+                <span class="w-20 h-full"> </span>
+            </div>
+            <div class="flex border border-b-0 border-black">
+                <h2 class="w-24 border-r border-black px-1 font-bold">Facebook</h2>
+                <input type="text" class="flex-1 px-2.5 py-0 border-0 border-r border-black text-sm text-gray-900 bg-transparent appearance-none focus:border-black focus:outline-none focus:ring-0">
+                <span class="w-20 h-full"> </span>
+            </div>
+            <div class="flex border border-b-0 border-black">
+                <h2 class="w-24 border-r border-black px-1 font-bold">Instagram</h2>
+                <input type="text" class="flex-1 px-2.5 py-0 border-0 border-r border-black text-sm text-gray-900 bg-transparent appearance-none focus:border-black focus:outline-none focus:ring-0">
+                <span class="w-20 h-full"> </span>
+            </div>
+            <div class="flex border border-b-0 border-black">
+                <h2 class="w-24 border-r border-black px-1 font-bold">Twitter</h2>
+                <input type="text" class="flex-1 px-2.5 py-0 border-0 border-r border-black text-sm text-gray-900 bg-transparent appearance-none focus:border-black focus:outline-none focus:ring-0">
+                <span class="w-20 h-full"> </span>
+            </div>
+            <div class="flex border border-black">
+                <h2 class="w-24 border-r border-black px-1 font-bold">Telegram</h2>
+                <input type="text" class="flex-1 px-2.5 py-0 border-0 border-r border-black text-sm text-gray-900 bg-transparent appearance-none focus:border-black focus:outline-none focus:ring-0">
+                <span class="w-20 h-full"> </span>
+            </div>
+        </div>
+
+        <h2 class="font-bold text-black underline w-full text-center mt-6">Cliente que contrata nuestros servicios:</h2>
+        
+        <div class="flex">
+            <div class="flex-1 pr-6">
+                <div class="flex items-center">
+                    <h3 class="font-semibold text-black mr-1">Nombre y Apellidos:</h3>
+                    <input type="text" class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                </div>
+                <div class="flex items-center">
+                    <h3 class="font-semibold text-black mr-1">Número de carnet de identidad:</h3>
+                    <input type="text" class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                </div>
+            </div>
+            <div class="">
+                <input type="text" class="flex-1 h-12 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                <h3 class="font-semibold text-black w-full text-center">Firma</h3>
+            </div>
+        </div>
+        <div class="flex">
+            <div class="flex-1 pr-6">
+                <div class="flex items-center">
+                    <h3 class="font-semibold text-black mr-1">Nombre y Apellidos:</h3>
+                    <input type="text" class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                </div>
+                <div class="flex items-center">
+                    <h3 class="font-semibold text-black mr-1">Número de carnet de identidad:</h3>
+                    <input type="text" class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                </div>
+            </div>
+            <div class="">
+                <input type="text" class="flex-1 h-12 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                <h3 class="font-semibold text-black w-full text-center">Firma</h3>
+            </div>
+        </div>
+
+    </div>
+
+    
+    <div class="w-full max-w-4xl shadow border flex flex-col px-6 py-12">
+        <div class="flex justify-between">
+            <span class="w-16 text-xs font-light">Página 2</span>
+            <h1 class="font-bold text-black text-lg">Contrato</h1>
+            <div class="w-16"></div>
+        </div>
+        <table class="w-full text-sm text-left text-gray-900">
+            <thead class="text-xs text-black uppercase  border border-b-0 border-black">
+                <tr>
+                    <th scope="col" class="px-6 border-r border-black">No.</th>
+                    <th scope="col" class="px-6 border-r border-black">Fecha</th>
+                    <th scope="col" class="px-6 border-r border-black">Contenido y Descripción</th>
+                    <th scope="col" class="px-6 border-r border-black">Cumplimiento</th>
+                    <th scope="col" class="px-6 border-r border-black">Selección</th>
+                    <th scope="col" class="px-6">Entrega</th>
+                </tr>
+            </thead>
+            <tbody class="border-0 border-b border-black">
+                <tr class="bg-white border border-b-0 border-black">
+                    <td class="px-6 border-r border-black">1</td>
+                    <td class="px-6 border-r border-black">1</td>
+                    <td class="px-6 border-r border-black">1</td>
+                    <td class="px-6 border-r border-black">1</td>
+                    <td class="px-6 border-r border-black">1</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h1 class="font-bold text-black text-lg w-full text-center mt-10">Otros servicios y ventas</h1>
+        <table class="w-full text-sm text-left text-gray-900">
+            <thead class="text-xs text-black uppercase  border border-b-0 border-black">
+                <tr>
+                    <th scope="col" class="px-6 border-r border-black">No.</th>
+                    <th scope="col" class="px-6 border-r border-black">Fecha</th>
+                    <th scope="col" class="px-6 border-r border-black">Contenido y Descripción</th>
+                    <th scope="col" class="px-6 border-r border-black">Cumplimiento</th>
+                    <th scope="col" class="px-6 border-r border-black">Selección</th>
+                    <th scope="col" class="px-6">Entrega</th>
+                </tr>
+            </thead>
+            <tbody class="border-0 border-b border-black">
+                <tr class="bg-white border border-b-0 border-black">
+                    <td class="px-6 border-r border-black">1</td>
+                    <td class="px-6 border-r border-black">1</td>
+                    <td class="px-6 border-r border-black">1</td>
+                    <td class="px-6 border-r border-black">1</td>
+                    <td class="px-6 border-r border-black">1</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h2 class="font-bold text-black underline w-full text-center mt-12 mb-6">Anticipo para la garantía del cliente</h2>
+        
+        <div class="flex items-center">
+            <h3 class="font-semibold text-black mr-1">Anticipo de:</h3>
+            <input type="text" class="w-32 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+            
+            <h3 class="font-semibold text-black mr-1 ml-4">Fecha del convenio del anticipo:</h3>
+            <input type="text" class="w-32 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+        </div>
+        
+        <h2 class="font-bold text-black underline w-full text-center mt-12 mb-6">Referente al pago</h2>
+        
+        <div class="flex items-center">
+            <h3 class="font-semibold text-black mr-1">Valor total del contrato, Otros servicios y ventas:</h3>
+            <input type="text" class="w-32 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+            
+            <h3 class="font-semibold text-black mr-1 ml-4">Valor total de los servicios a cobrar:</h3>
+            <input type="text" class="w-32 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+        </div>
+        
+        <h2 class="font-bold text-black underline w-full text-center mt-12 mb-6">Referente al tipo de pago</h2>
+        
+        <div class="flex">
+            <div>
+                <h3 class="font-semibold text-black underline">Efectivo</h3>
+                <div class="flex-1 pr-6">
+                    <div class="flex items-center">
+                        <h3 class="font-semibold text-black mr-1">CUP:</h3>
+                        <input type="text" class="w-24 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                    </div>
+                    <div class="flex items-center">
+                        <h3 class="font-semibold text-black mr-1">USD:</h3>
+                        <input type="text" class="w-24 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                    </div>
+                    <div class="flex items-center hidden">
+                        <h3 class="font-semibold text-black mr-1">EUR:</h3>
+                        <input type="text" class="w-24 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                    </div>
+                </div>
+            </div>
+            <div class="flex-1">
+                <h3 class="font-semibold text-black underline">Tarjeta</h3>
+                <div class="pr-6">
+                    <div class="flex items-center">
+                        <h3 class="font-semibold text-black mr-1">CUP:</h3>
+                        <input type="text" class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                    </div>
+                    <div class="flex items-center">
+                        <h3 class="font-semibold text-black mr-1">MLC:</h3>
+                        <input type="text" class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex space-x-12">
+            <div class="w-1/3">
+                <input type="text" class="w-full h-12 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                <h3 class="font-semibold text-black w-full text-center">Firma del cliente</h3>
+            </div>
+            <div class="w-1/3">
+                <input type="text" class="w-full h-12 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                <h3 class="font-semibold text-black w-full text-center">Firma de recepción</h3>
+            </div>
+            <div class="w-1/3">
+                <input type="text" class="w-full h-12 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                <h3 class="font-semibold text-black w-full text-center">Firma administrativa</h3>
+            </div>
+        </div>
+        
+        <h2 class="font-bold text-black underline w-full text-center mt-12 mb-6">Autorizo para publicación de redes sociales</h2>
+
+
+        <ul class="flex">
+            <p class="mr-3">(Autorizo solo de los padres)</p>
+            <li class="mr-3">
+                <label for="autorizo-redes-sociales-si">Si</label>
+                <input type="radio" id="autorizo-redes-sociales-si" name="autorizo-redes-sociales" value="si" class="hidden peer" required>
+                <label for="autorizo-redes-sociales-si" class="text-white font-bold bg-white border-b-2 border-black px-3 cursor-pointer peer-checked:text-black hover:text-gray-600">X</label>
+            </li>
+            <li>
+                <label for="autorizo-redes-sociales-no">No</label>
+                <input type="radio" id="autorizo-redes-sociales-no" name="autorizo-redes-sociales" value="no" class="hidden peer">
+                <label for="autorizo-redes-sociales-no" class="text-white font-bold bg-white border-b-2 border-black px-3 cursor-pointer peer-checked:text-black hover:text-gray-600">X</label>
+            </li>
+            <div class="flex items-center ml-24">
+                <h3 class="font-semibold text-black mr-1">Firma del cliente:</h3>
+                <input type="text" class="w-48 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+            </div>
+        </ul>
+
+        
+        <label for="requisitos-publicacion" class="block mb-2 mt-6 text-sm font-medium text-black">Condiciones del cliente con referencia a la publicación</label>
+        <textarea id="requisitos-publicacion" rows="4" class="block p-2.5 w-full text-sm text-black border-0 border-b border-black focus:ring-0 focus:border-black" placeholder="Escriba las condicionespara la publicación..."></textarea>
+
+    </div>
+
+
+</div>
+{% endblock content %}
+
+
+{% block scripts %}
+
+{% endblock scripts %}

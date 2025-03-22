@@ -1,0 +1,39 @@
+
+<!-- Ejemplo en index.html -->
+{% extends 'resguardo/base.html' %}
+
+{% block content %}
+
+<div class="container">
+    <h1>Data Export Tool</h1>
+    <div class="header-actions">
+        <a href="{% url 'create_entry' %}" class="new-entry-btn">Nuevo Registro</a>
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search by name...">
+        <button onclick="loadResults()">Search</button>
+    </div>
+    
+    <div id="results">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody id="resultsBody">
+                <!-- Results will be populated here -->
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="export-options">
+        <button class="export-btn csv" onclick="exportData('csv')">Export to CSV</button>
+        <button class="export-btn excel" onclick="exportData('excel')">Export to Excel</button>
+    </div>
+</div>
+
+{% endblock %}

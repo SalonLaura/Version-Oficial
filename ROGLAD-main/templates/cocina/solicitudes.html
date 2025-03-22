@@ -1,0 +1,203 @@
+{% extends 'cocina/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+
+{% block content %}
+
+<div class="w-full h-full flex justify-center">
+    <div class="w-full h-full bg-white border overflow-y-auto">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="bg-white">
+                <tr class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400 z-30 sticky top-0">
+                    <th scope="col" class="px-6 py-3 text-center"> Producto </th>
+                    <th scope="col" class="px-6 py-3 text-center"> Solicitante </th>
+                    <th scope="col" class="px-6 py-3 text-center"> Cantidad Solicitada</th>
+                    <th scope="col" class="px-6 py-3 text-center"> Fecha/Hora</th>
+                    <th scope="col" class="px-6 py-3 text-center"></th>
+                </tr>
+            </thead>
+            <tbody id="body-productos-compuestos">
+                {% for solicitud in solicitudes %}
+                <tr class="bg-white {% if not solicitud.mensaje_cancelacion %} border-b {%endif%} dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <th scope="row" class="flex items-center pl-3 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                        
+                        {% if solicitud.venta.producto.img %}
+                        <img class="rounded-full w-10 h-10" src="{{solicitud.venta.producto.img}}" alt="" />
+                        {% else %}
+                        <p class="rounded-full w-10 h-10 flex items-center justify-center font-bold text-md text-gray-600 bg-gray-100">{{ solicitud.venta.producto.nombre.0 }}{{ solicitud.venta.producto.nombre.1 }}<p>
+                        {% endif %}
+
+                        <span class="ml-3 text-base font-semibold truncate">{{ solicitud.venta.producto.nombre }}</span> 
+                    </th>
+                    <td class="px-3 py-4 text-base font-semibold text-center">{{ solicitud.venta.cuenta.punto_venta.nombre }}</td>
+                    <td class="px-3 py-4 text-base font-semibold text-center">{{ solicitud.cantidad|parseFloat }} {{ solicitud.venta.producto.medida.abreviatura }}</td>
+                    <td class="px-3 py-4 text-base font-semibold text-center">{{ solicitud.venta.instante }}</td>
+                    <td class="px-3 py-4 text-base font-semibold text-center flex justify-center">
+                        {% with accion=solicitud.accion %}
+                        {% if accion == "T" %}
+                        <button class="truncate flex items-center justify-between px-3 py-1.5 text-sm font-medium leading-5 text-green-600 hover:text-green-800 shadow-sm hover:shadow-lg bg-green-100 hover:bg-green-300 border border-transparent rounded-full focus:outline-none focus:shadow-outline-gray"
+                            onclick="document.getElementById('id-solicitud').value={{solicitud.id}}"  data-modal-target="popup-modal" data-modal-toggle="popup-modal"> Transferir
+                        </button>
+                        {% else %}
+                        <a class="truncate flex items-center justify-between px-3 py-1.5 text-sm font-medium leading-5 text-purple-600 hover:text-purple-800 shadow-sm hover:shadow-lg bg-purple-100 hover:bg-purple-300 border border-transparent rounded-full focus:outline-none focus:shadow-outline-gray"
+                        href="/cocina/solicitudes?solic={{solicitud.id}}">Elaborar</a>
+                        {% endif %}
+                        {% endwith %}
+                    </td>
+                </tr>
+                {% if solicitud.mensaje_cancelacion %}
+                <tr class"">
+                    <td colspan="4" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        <span class="text-md text-black flex items-center p-1.5 mx-3 mb-1 border-2 border-red-100 bg-red-100 rounded-lg">
+                            <svg class="w-8 h-8 mr-2 text-red-600" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M8 9h8"></path>
+                                <path d="M8 13h6"></path>
+                                <path d="M14.5 18.5l-2.5 2.5l-3 -3h-3a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v4.5"></path>
+                                <path d="M19 22v.01"></path>
+                                <path d="M19 19a2.003 2.003 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483"></path>
+                            </svg>
+                            <div class="pl-3">
+                                <p class="text-sm text-red-600 font-bold">El trabajador de {{ solicitud.venta.cuenta.punto_venta.nombre }} canceló la transferencia por la siguiente razon:</p>
+                            {{ solicitud.mensaje_cancelacion }}
+                            </div>
+                        </span>
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<div id="popup-modal" tabindex="-1" data-modal-backdrop="static" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="popup-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <form class="p-4 md:p-5 text-center" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="id-solicitud" id="id-solicitud" value="">
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-12 text-xl font-normal text-gray-900 dark:text-gray-100">¿Seguro de realizar la transferencia del pedido?</h3>
+                <button data-modal-hide="popup-modal" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">Cancelar</button>
+                <button type="submit" class="text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">
+                    Transferir
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{% if solicitud_elaborar %}
+<button class="hidden" data-modal-target="elaboracion-modal" data-modal-toggle="elaboracion-modal"></button>
+<!-- Default Modal -->
+<div id="elaboracion-modal" tabindex="-1" data-modal-backdrop="static" class="flex items-center justify-center bg-black/40 fixed top-0 left-0 right-0 z-50 w-full p-4 overflow-auto md:inset-0 h-full max-h-full">
+    <div class="w-full max-w-lg max-h-full">
+        <!-- Modal content -->
+        <div class="bg-white rounded-lg shadow dark:bg-gray-700">
+            <!-- Modal header -->
+            <div class="flex flex-col items-center justify-start p-3 border-b rounded-t dark:border-gray-600">
+                <div class="flex items-center w-full justify-between">
+                    <h3 class="text-xl font-medium text-gray-900 dark:text-white">
+                        Elaborar producto compuesto
+                    </h3>
+                    <button type="button" onclick="closeElaborar()" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="elaboracion-modal" id="close-modal-products">
+                        <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                        <span class="sr-only">Close modal</span> 
+                    </button>
+                </div>
+            </div>
+            <!-- Modal body -->
+            <form method="POST" class="p-2 max-h-5/6 relative overflow-auto" id="body-productos">
+                <input type="hidden" name="solicitud-elaborar-id" value="{{solicitud_elaborar.id}}">
+                <p class="m-2 font-bold">Producto elaborado: <span class="">{{ solicitud_elaborar.venta.producto.nombre }}</span></p>
+                <p class="m-2 font-bold">Receta: <span class="font-normal">{{ solicitud_elaborar.venta.producto.productoCocinaFormula.all.first.descripcion|linebreaksbr }}</span></p>
+                <p class="m-2 font-bold">Proporciones: </p>
+                {% csrf_token %}
+                <div class="border">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead>
+                            <tr class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                                <th scope="col" class="px-6 py-3">
+                                    Subproducto
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Cantidad
+                                </th>
+                                <th scope="col" class="px-6 py-3">
+                                    Medida
+                                </th>
+                                <th scope="col" class="px-6 py-3"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-subproductos-elaborar">
+                            {% with solicitud_elaborar.formula.subproducto_order as subproductos%}
+                            {% for sub in subproductos %}
+                            {% with subproductos|next:forloop.counter0 as next_sub %}
+                            <tr class="text-xs text-gray-700 uppercase {% if sub.subgrupo != next_sub.subgrupo  %} border-b {% endif %} ">
+                                <th class="px-6 py-3">
+                                    {{sub.producto.nombre}} {{sub.subgrupo}}
+                                </th>
+                                <th class="px-6 py-3">
+                                    {{sub.cantidad|parseFloat|multiplica:solicitud_elaborar.cantidad|parseFloat}}
+                                </th>
+                                <th class="px-6 py-3">
+                                    {{sub.producto.medida.abreviatura}}
+                                </th>
+                                <td class="">
+                                    {% if sub.optional %}
+                                    <input id="subproducto-{{sub.id}}" type="radio" name="subproductos-usados-{{sub.subgrupo}}" value="{{sub.id}}" class="mb-1 w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 focus:ring-2" required>
+                                    <label for="subproducto-{{sub.id}}" class="text-orange-600 ml-1 font-bold">Usado</label>
+                                    {% else %}
+                                    <input name="subproductos-usados-{{forloop.counter}}" value="{{sub.id}}" class="hidden"/>
+                                    <span class="text-green-600 font-semibold">Requerido</span>
+                                    {% endif %}                                    
+                                </td>
+                            </tr>
+                            {% if next_sub.subgrupo != sub.subgrupo and next_sub.subgrupo != None %}
+                            <tr class="text-xs text-gray-700 uppercase">
+                                <th class="px-6 py-3 underline text-bold text-red-600 text-lg">¿Qué usarás?</th>
+                                <th class="px-6 py-3"></th>
+                                <th class="px-6 py-3"></th>
+                                <td class="">
+                                    <input id="subproducto-{{next_sub.subgrupo}}" type="radio" name="subproductos-usados-{{next_sub.subgrupo}}" class="mb-1 w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2" required>
+                                    <label for="subproducto-{{next_sub.subgrupo}}" class="text-red-600 ml-1 font-bold">No Usar</label>
+                                </td>
+                            </tr>
+                            {% endif %}
+
+                            {% endwith %}
+                            {% endfor %}
+                            {% endwith %}
+
+
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-gray-700 w-full text-center my-6">Cantidad a elaborar: <span class="text-black text-2xl font-bold ml-3">{{solicitud_elaborar.cantidad|parseFloat}} {{solicitud_elaborar.venta.producto.medida.abreviatura}}</span></p>
+                <div class="flex mt-2 px-2" id="content-options">
+                    <button type="button" onclick="closeElaborar()" class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600" id="btn-cancel" data-modal-hide="elaboracion-modal">Cancelar</button>
+                    <button type="submit" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2 " id="btn-accept" onclick="">Elaborar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock content %}
+
+
+{% block scripts %}
+{% endblock scripts %}

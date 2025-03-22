@@ -1,0 +1,306 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="{{language}}" translate="no" class="-dark">
+    <head id="head">
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" id="meta-viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ROGLAD</title>
+        
+        <link href="{% static 'css/icon.css' %}" rel="stylesheet">
+        <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.ico' %}"/>
+
+        <script src="{% static 'js/print.js' %}"></script>
+        <script src="{% static 'js/cdn.tailwindcss.js' %}"></script>
+        <link href="{% static 'css/flowbite.min.css' %}"  rel="stylesheet"/>
+
+        <script src="{% static 'js/jquery.min.js' %}"></script>
+        <script src="{% static 'js/flowbite.min.js' %}"></script>
+        
+        {% block styles %} {% endblock styles %}
+        
+        <style type="text/css" media="screen">
+            span.datepicker-cell.selected {background-color: #a8a8a8 !important;}
+            .scrollbar::-webkit-scrollbar {
+                -webkit-appearance: none;
+            }
+            
+            .scrollbar::-webkit-scrollbar:vertical {
+                width:10px;
+            }
+            
+            .scrollbar::-webkit-scrollbar-button:increment,.scrollbar::-webkit-scrollbar-button {
+                display: none;
+            } 
+            
+            .scrollbar::-webkit-scrollbar:horizontal {
+                height: 10px;
+            }
+            
+            .scrollbar-sm::-webkit-scrollbar:horizontal {
+                height: 0px;
+            }
+            
+            .scrollbar::-webkit-scrollbar-thumb {
+                background-color: #e5e6e7;
+                border-radius: 20px;
+                border: 2px solid #f1f2f3;
+            }
+            
+            .scrollbar::-webkit-scrollbar-track {
+                border-radius: 10px;  
+            }
+            
+            
+            input[type=number]::-webkit-inner-spin-button, 
+            input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+            }
+            
+            input[type=number] { -moz-appearance:textfield; }
+
+        </style>
+    </head>
+    
+
+    <body class="overflow-hidden">
+        <div id="root" class="">
+            <div class="flex h-screen bg-gray-50 dark:bg-gray-900 flex-col w-full">
+                <!-- MENU SUPERIOR -->
+                <header class="z-10 bg-white shadow dark:bg-gray-800">
+                    <div class="flex items-center justify-between h-full pr-12   mx-auto overflow-x-auto text-purple-600 dark:text-purple-300">
+                        
+                        <ul class="flex h-full items-center justify-between space-x-3 ml-3 text-gray-600 dark:text-gray-300">
+                            
+                            <a href="{% url 'logout' %}?for=PV-{{request.user.punto_venta.id}}"  class=" items-center justify-center px-4 cursor-pointer group focus:outline-none">
+                                <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-800/80 group-hover:bg-gray-100 dark:group-hover:bg-gray-800 group-focus:ring-4 group-focus:ring-white dark:group-focus:ring-gray-800/70 group-focus:outline-none">
+                                    <svg class="w-4 h-4 text-gray-900 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4"/>
+                                    </svg>
+                                    <span class="sr-only">Previous</span>
+                                </span>
+                            </a>
+
+                            <li class="relative {% if 'cuentas-punto-venta' in request.path %}bg-purple-600 rounded-lg mx-1.5 shadow-md{% endif %}">
+                                <a onclick="hablar('')" class="inline-flex px-4 py-3 items-center w-full text-sm font-semibold transition-colors duration-150  {% if 'cuentas-punto-venta' in request.path %}text-white{% else %}hover:text-gray-800 dark:hover:text-gray-200{% endif %}"
+                                    href="{% url 'CuentasPuntoVenta' %}">
+                                    <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z"></path>
+                                    </svg>
+                                    <span class="ml-2 truncate">Cuentas</span>
+                                </a>
+                            </li>
+
+                            {% if request.user.punto_venta.last_turno.user == request.user %}
+                            <li class="relative {% if 'venta-rapida' in request.path %}bg-purple-600 rounded-lg mx-1.5 shadow-md{% endif %}">
+                                <a onclick="hablar('')" class="inline-flex px-4 py-3 items-center w-full text-sm font-semibold transition-colors duration-150 {% if 'venta-rapida' in request.path %}text-white{% else %}hover:text-gray-800 dark:hover:text-gray-200{% endif %}"
+                                    href="{% url 'VentaRapida' %}">
+                                    <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"></path>
+                                    </svg>
+                                    <span class="ml-2 truncate">Venta rápida</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            <li class="relative {% if 'solicitudes-pv' in request.path %}bg-purple-600 rounded-lg mx-1.5 shadow-md{% endif %}">
+                                <a onclick="hablar('')" class="inline-flex px-4 py-3 items-center w-full text-sm font-semibold transition-colors duration-150  {% if 'solicitudes-pv' in request.path %}text-white{% else %}hover:text-gray-800 dark:hover:text-gray-200{% endif %}"
+                                    href="{% url 'SolicitudesPv' %}">
+                                    <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 01-1.44-4.282m3.102.069a18.03 18.03 0 01-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 018.835 2.535M10.34 6.66a23.847 23.847 0 008.835-2.535m0 0A23.74 23.74 0 0018.795 3m.38 1.125a23.91 23.91 0 011.014 5.395m-1.014 8.855c-.118.38-.245.754-.38 1.125m.38-1.125a23.91 23.91 0 001.014-5.395m0-3.46c.495.413.811 1.035.811 1.73 0 .695-.316 1.317-.811 1.73m0-3.46a24.347 24.347 0 010 3.46"></path>
+                                    </svg>
+                                    <span class="ml-2 truncate">Solicitudes</span>
+                                </a>
+                            </li>
+                            
+                            {% if request.user.punto_venta.last_turno.user == request.user %}
+                            <li class="relative {% if 'transferencia-pv' in request.path %}bg-purple-600 rounded-lg mx-1.5 shadow-md{% endif %}">
+                                <a onclick="hablar('')" class="inline-flex px-4 py-3 items-center w-full text-sm font-semibold transition-colors duration-150  {% if 'transferencia-pv' in request.path %}text-white{% else %}hover:text-gray-800 dark:hover:text-gray-200{% endif %}"
+                                    href="{% url 'TransferenciaPv' %}">
+                                    <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"></path>
+                                    </svg>
+                                    <span class="ml-2 truncate">Transferencias</span>
+                                </a>
+                            </li>
+                            
+                            <li class="relative {% if 'entregar' in request.path %}bg-purple-600 rounded-lg mx-1.5 shadow-md{% endif %}">
+                                <a onclick="hablar('')" class="inline-flex px-4 py-3 items-center w-full text-sm font-semibold transition-colors duration-150 {% if 'entregar' in request.path %}text-white{% else %}hover:text-gray-800 dark:hover:text-gray-200{% endif %}"
+                                    href="{% url 'EntregarTurno' %}">
+                                    <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0118 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75"></path>
+                                    </svg>
+                                    <span class="ml-2 truncate">Cerrar turno</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            <li class="relative {% if 'ventas' in request.path %}bg-purple-600 rounded-lg mx-1.5 shadow-md{% endif %}">
+                                <a onclick="hablar('')" class="inline-flex px-4 py-3 items-center w-full text-sm font-semibold transition-colors duration-150 {% if 'ventas' in request.path %}text-white{% else %}hover:text-gray-800 dark:hover:text-gray-200{% endif %}"
+                                    href="{% url 'RegistroVentas' %}">
+                                    <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span class="ml-2 truncate">Ventas</span>
+                                </a>
+                            </li>
+                        </ul>
+                        
+                        <div class="flex items-center space-x-3 bg-gray-50 p-2 rounded-full hidden">
+                            <button class="inline-flex items-center justify-center p-1 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+                            onclick="changeScale(0.1)" type="button">
+                                <span class="sr-only">Quantity button</span>
+                                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h16"></path>
+                                </svg>
+                            </button>
+                            <p>Zoom</p>
+                            <button class="inline-flex items-center justify-center h-6 w-6 p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="changeScale(-0.1)">
+                                <span class="sr-only">Quantity button</span>
+                                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center space-x-6 py-4">
+                            <div class="flex items-center px-6 text-gray-900 whitespace-nowrap dark:text-white">
+                                <img class="w-8 h-8 rounded-full" src="{{request.user.img}}" alt="">
+                                <div class="pl-3">
+                                    <div class="text-base font-semibold">Hola, {{ request.user }}</div>
+                                    <div class="font-normal text-gray-500 text-sm">{{ request.user.punto_venta.nombre }}</div>
+                                </div>  
+                            </div>
+                            
+                            <button class="relative align-middle rounded-md focus:outline-none focus:shadow-outline-purple">
+                                <svg class="h-6 w-6 xl:w-5 xl:h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" >
+                                    <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path>
+                                </svg>
+                                <!-- Notification badge -->
+                                <span id="alert-notification" class="hidden absolute top-0 right-0 flex h-3 w-3 items-center  transform translate-x-1 -translate-y-1">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-90"></span>
+                                    <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500 border-2 border-white"></span>
+                                </span>
+                            </button>
+
+                            <a class="relative align-middle rounded-md focus:outline-none focus:shadow-outline-purple" href="{% url 'NotasPv' %}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24">
+                                    <path fill="currentColor" d="M21 10V9l-6-6H5c-1.11 0-2 .89-2 2v14a2 2 0 0 0 2 2h6v-1.87l8.39-8.39c.44-.44 1-.68 1.61-.74m-7-5.5l5.5 5.5H14zm8.85 9.69l-.98.98l-2.04-2.04l.98-.98c.19-.2.52-.2.72 0l1.32 1.32c.2.2.2.53 0 .72m-3.72-.36l2.04 2.04L15.04 22H13v-2.04z"/>
+                                </svg>
+                            </a>
+                            
+                            {% if request.user.punto_venta.last_turno.user == request.user %}
+                            <a class="relative align-middle rounded-md focus:outline-none focus:shadow-outline-purple hidden" href="{% url 'AddTrabajadorPv' %}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                                    <g fill="none"><path d="M24 0v24H0V0zM12.594 23.258l-.012.002l-.071.035l-.02.004l-.014-.004l-.071-.036c-.01-.003-.019 0-.024.006l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427c-.002-.01-.009-.017-.016-.018m.264-.113l-.014.002l-.184.093l-.01.01l-.003.011l.018.43l.005.012l.008.008l.201.092c.012.004.023 0 .029-.008l.004-.014l-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014l-.034.614c0 .012.007.02.017.024l.015-.002l.201-.093l.01-.008l.003-.011l.018-.43l-.003-.012l-.01-.01z"/><path fill="currentColor" d="M6 7a5 5 0 1 1 10 0A5 5 0 0 1 6 7m-1.178 7.672C6.425 13.694 8.605 13 11 13c.447 0 .887.024 1.316.07a1 1 0 0 1 .72 1.557A5.968 5.968 0 0 0 12 18c0 .92.207 1.79.575 2.567a1 1 0 0 1-.89 1.428L11 22c-2.229 0-4.335-.14-5.913-.558c-.785-.208-1.524-.506-2.084-.956C2.41 20.01 2 19.345 2 18.5c0-.787.358-1.523.844-2.139c.494-.625 1.177-1.2 1.978-1.69ZM18 14a1 1 0 0 1 1 1v2h2a1 1 0 1 1 0 2h-2v2a1 1 0 1 1-2 0v-2h-2a1 1 0 1 1 0-2h2v-2a1 1 0 0 1 1-1"/></g>
+                                </svg>
+                            </a>
+                            {% endif %}
+
+                        </div>
+                        
+
+                    </div>
+                </header>
+
+                <main class="h-[calc(100%-5.5rem)] w-full overflow-auto">
+                    {% block content %} {% endblock content %}
+                </main>
+            </div>
+        </div>
+                
+        {% if messages %}
+            <div class="fixed end-6 bottom-6 group flex flex-col">
+                {% for message in messages %}
+                    {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+                    <div id="alert-{{forloop.counter}}" class="w-96 shadow border border-green-500 flex items-center p-4 mb-4 text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert">
+                        <svg class="flex-shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                        </svg>
+                        <span class="sr-only">Info</span>
+                        <div class="ms-3 text-sm font-medium">{{ message|safe }}</div>
+                        <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-green-50 text-green-500 rounded-lg focus:ring-2 focus:ring-green-400 p-1.5 hover:bg-green-200 inline-flex items-center justify-center h-8 w-8 dark:bg-gray-800 dark:text-green-400 dark:hover:bg-gray-700" data-dismiss-target="#alert-{{forloop.counter}}" aria-label="Close">
+                            <span class="sr-only">Close</span>
+                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                            </svg>
+                        </button>
+                    </div>
+                    {% elif message.level == DEFAULT_MESSAGE_LEVELS.ERROR  %}
+                    <div id="alert-{{forloop.counter}}" class="w-96 shadow border border-red-500 flex items-center p-4 mb-4 text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+                        <svg class="flex-shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                        </svg>
+                        <span class="sr-only">Info</span>
+                        <div class="ms-3 text-sm font-medium">{{ message|safe }}</div>
+                        <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-red-50 text-red-500 rounded-lg focus:ring-2 focus:ring-red-400 p-1.5 hover:bg-red-200 inline-flex items-center justify-center h-8 w-8 dark:bg-gray-800 dark:text-red-400 dark:hover:bg-gray-700" data-dismiss-target="#alert-{{forloop.counter}}" aria-label="Close">
+                            <span class="sr-only">Close</span>
+                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                            </svg>
+                        </button>
+                    </div>
+                    {% endif %}
+
+                {% endfor %}
+            </div>
+        {% endif %}
+    
+    </body>
+
+{% block scripts %}
+{% endblock scripts %}
+
+
+<script src="{% static 'js/textToSpeak.js' %}"></script>
+<script>
+
+    let scale = 1.0//localStorage.getItem("page-scale")?parseFloat(localStorage.getItem("page-scale")):1.0;
+    //document.getElementById('meta-viewport').content = `width=device-width, initial-scale=${scale}`
+
+    function changeScale(s){
+        scale = Math.round(parseFloat(scale + s)* 10) / 10;
+        document.getElementById('meta-viewport').content = `width=device-width, initial-scale=${scale}`
+        localStorage.setItem("page-scale", scale)
+    } 
+
+    document.addEventListener("DOMContentLoaded", function() {
+        
+        setInterval(function() {
+            {% if request.user.punto_venta %}
+            $.ajax({
+                url:"/get-notificacion-pv/",
+                type:"get",
+                data:{"pv_id":{{request.user.punto_venta.id}}},
+                dataType:"json",
+                success:function(response){
+                    if(response.success == "YES"){
+                        document.getElementById("alert-notification").classList.remove("hidden")
+                        hablar(response.message)
+                    }else{
+                        document.getElementById("alert-notification").classList.add("hidden")
+                    }
+                },
+                error:function(response){},
+            });
+            {% endif %}
+        }, 30000);
+    });  
+    
+    window.addEventListener('keydown',function(e){
+        if(e.keyIdentifier=='U+000A'||e.keyIdentifier=='Enter'||e.keyCode==13){
+            if(e.target.nodeName=='INPUT'&&e.target.type=='text'){
+                e.preventDefault();
+                return false;
+            }
+        }
+    },true);
+
+    
+    
+</script>
+</html>
+
+
+

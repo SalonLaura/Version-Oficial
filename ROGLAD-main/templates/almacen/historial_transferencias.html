@@ -1,0 +1,466 @@
+{% extends base %}
+{% load static custom_filters %}
+
+{% block styles %}
+<script src="{% static 'js/datepicker.min.js' %}"></script>
+{% endblock styles %}
+                
+{% block content %}
+<div class="flex px-6 pt-6 justify-center w-full items-center">
+    <form date-rangepicker  class="h-auto bg-white rounded-lg shadow-sm dark:bg-gray-800 w-full p-3 max-w-7xl space-y-3" method="GET">
+        <div class="flex space-x-3">
+            <select id="" name="almacen" class="w-1/5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500">
+                <option disabled>Seleccione el almacen</option>
+                {% for almacen_origen in almacenes_origenes %}
+                <option value="A-{{ almacen_origen.id }}" {% if almacen_origen.id == almacen %}selected{% endif %}>{{ almacen_origen.nombre }}</option>
+                {% endfor %}
+            </select>
+            <select id="" name="operacion" class="w-1/5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500">
+                <option value="get" {% if operacion == "get" %}selected{% endif %}>Transferencias recibidas</option>
+                <option value="post" {% if operacion == "post" %}selected{% endif %}>Transferencias realizadas</option>
+            </select>
+
+            <div class="relative w-1/5">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg aria-hidden="true" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>
+                </div>
+                <input name="inicio" value="{{inicio}}" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Desde">
+            </div>
+            <div class="relative w-1/5">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg aria-hidden="true" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>
+                </div>
+                <input name="fin" type="text" value="{{fin}}" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Hasta">
+            </div> 
+            <button class="w-1/5 flex items-center justify-center  p-2.5 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-200 hover:bg-gray-300 border border-transparent rounded-lg focus:outline-none focus:shadow-outline-gray" type="submit">
+                <svg class="w-5 h-5 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z"></path>
+                </svg>
+                Filtrar Transferencias
+            </button>
+        </div>
+    </form>
+</div>
+
+{% if transferencias|length == 0 %}    
+<p class="flex justify-center font-bold text-xl mt-24 text-gray-800 dark:text-gray-100">
+    <svg class="w-6 h-6 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.143 17.082a24.248 24.248 0 003.844.148m-3.844-.148a23.856 23.856 0 01-5.455-1.31 8.964 8.964 0 002.3-5.542m3.155 6.852a3 3 0 005.667 1.97m1.965-2.277L21 21m-4.225-4.225a23.81 23.81 0 003.536-1.003A8.967 8.967 0 0118 9.75V9A6 6 0 006.53 6.53m10.245 10.245L6.53 6.53M3 3l3.53 3.53"></path>
+    </svg>
+    No existen transferencias en este periodo
+</p>
+{% endif %}
+
+<div class="flex flex-col justify-center w-full items-center">
+    {% for transferencia in transferencias %}
+    
+    <div class="flex justify-between w-full max-w-5xl mt-3">
+        <div class="flex text-sm"></div>
+        <button class="undefined text-md leading-none flex items-center"
+            onclick="printTransf('transferencia-{{forloop.counter}}')">
+            <span class="material-icons mr-3">print </span> Imprimir
+        </button>
+    </div>
+
+    <form method="POST" class="flex flex-col w-full max-w-5xl mx-6 mb-6 bg-white">
+        <div class="flex text-sm items-center">Transferido por <span class="font-bold mx-3">{{transferencia.user_transfiere|nullToBlank}}</span>  Confirmado por <span class="font-bold mx-3">{{transferencia.user_confirmacion|nullToBlank}}</span>
+            <span class="text-xs">({{transferencia.alta}})</span>
+        </div>
+        {% csrf_token %}
+        <div class="flex flex-col bg-white shadow-md" id="transferencia-{{forloop.counter}}" add-class-print="mt-3 text-xs">
+            <div class="flex">
+                <span class="w-2/6 border h-18 text-md p-2">Entidad: </br>Casa Laura S.R.L.</span>
+                <span class="w-1/6 border h-18 text-md p-2">Codigo: </br>50004347244</span>
+                <span class="w-2/6 border h-18 text-center p-2 font-bold"  add-class-print="text-xs">SC-2-09 TRANSFERENCIA ENTRE </br> ALMACENES</span>
+                <div class="w-1/6 border flex">
+                    <div class="w-1/3 border flex flex-col">
+                        <span class="border-b h-full text-center font-bold">D</span>
+                        <span class="border-t h-full text-center">{{transferencia.alta|date:"d"}}</span>
+                    </div>
+                    <div class="w-1/3 border flex flex-col">
+                        <span class="border-b h-full text-center font-bold">M</span>
+                        <span class="border-t h-full text-center">{{transferencia.alta|date:"m"}}</span>
+                    </div>
+                    <div class="w-1/3 border flex flex-col">
+                        <span class="border-b h-full text-center font-bold">A</span>
+                        <span class="border-t h-full text-center">{{transferencia.alta|date:"y"}}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex">
+                {% if "C-" in transferencia.emisor%}
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Almacén que entrega </br>{{transferencia.emisor_cosina.nombre}} </span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Dirección </br>{{transferencia.emisor_cosina.direccion}}</span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Código </br>{{transferencia.emisor_cosina.codigo}}</span>
+                {% else %}
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Almacén que entrega </br>{{transferencia.emisor.nombre}} </span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Dirección </br>{{transferencia.emisor.direccion}}</span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Código </br>{{transferencia.emisor.codigo}}</span>
+                {% endif %}
+            </div>
+            <div class="flex">
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Almacén receptor </br>{{transferencia.receptor.nombre}} </span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Dirección </br>{{transferencia.receptor.direccion}}</span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Código </br>{{transferencia.receptor.codigo}}</span>
+            </div>
+            <div class="flex">
+                <div class="flex w-1/3">
+                    <span class="w-2/6 border h-full text-sm font-semibold text-center">Código</span>
+                    <span class="w-3/6 border h-full text-sm font-semibold text-center">Descripción</span>
+                    <span class="w-1/6 border h-full text-sm font-semibold text-center">U/M</span>
+                </div>
+                <div class="flex w-1/3">
+                    <div class="flex flex-col w-1/2 h-full">
+                        <span class="w-full border h-full text-sm font-semibold text-center">Cantidad</span>
+                        <div class="flex w-full h-full">
+                            <span class="w-1/2 border h-full text-sm font-semibold text-center">Remitida</span>
+                            <span class="w-1/2 border h-full text-sm font-semibold text-center">Recibida</span>
+                        </div>
+                    </div>
+                    <span class="w-1/2 border h-full text-sm font-semibold text-center">Precio Unitario </br> Total o Costo </br> Predeterminado</span>
+                </div>
+                <div class="flex w-1/3">
+                    <div class="flex flex-col w-2/3 h-full">
+                        <span class="w-full border h-full text-sm font-semibold text-center">Importe</span>
+                        <div class="flex w-full h-full">
+                            <span class="w-1/2 border h-full text-sm font-semibold text-center">Productos</br>Remitidos</span>
+                            <span class="w-1/2 border h-full text-sm font-semibold text-center">Productos</br>Recibidos</span>
+                        </div>
+                    </div>
+                    <span class="w-1/3 border h-full text-sm font-semibold text-center">Saldo en </br> Existencia</span>
+                </div>
+            </div>            
+            
+            <input type="number" step="0.01" step-my  name="transferencia-id" class="hidden" value="{{ transferencia.id }}" required>
+            <input type="text" name="url" class="hidden" value="{{ request.build_absolute_uri }}" required>
+
+
+            <div class="" id="content-products">
+                {% for prod in transferencia.stock %}
+                <div class="flex">
+                    <div class="flex w-1/3">
+                        <span class="w-2/6 border h-full flex items-center justify-center">{{ prod.producto.codigo }}</span>
+                        <span class="w-3/6 border h-full flex items-center justify-center text-center">{{ prod.producto.nombre }}</span>
+                        <span class="w-1/6 border h-full flex items-center justify-center">{{ prod.producto.medida.abreviatura }}</span>
+                    </div>
+                    
+                    {% if prod.importe_recibido != None %}
+                    <div class="flex w-1/3">
+                        <div class="flex w-1/2 h-full">
+                            <span class="w-1/2 border h-full flex items-center justify-center">{{ prod.cantidad_remitida|parseFloat }}</span>
+                            <span class="w-1/2 border h-full flex items-center justify-center">{{ prod.cantidad_recibida|parseFloat }}</span>
+                        </div>
+                        <div class="flex w-1/2 h-full">
+                            {% with prod.costo_cup|toMoneyList as costo_cup %}
+                            <span class="w-2/3 border h-full flex items-center justify-center">{{ costo_cup.0 }}</span>
+                            <span class="w-1/3 border h-full flex items-center justify-center">{{ costo_cup.1 }}</span>
+                            {% endwith %}
+                        </div>
+                    </div>
+                    <div class="flex w-1/3">
+                        <div class="flex w-2/3 h-full">
+                            <div class="flex w-1/2 h-full">
+                                {% with prod.importe_remitido|toMoneyList as importe_list %}
+                                <span class="w-2/3 border h-full flex items-center justify-center" id="">{{ importe_list.0  }}</span>
+                                <span class="w-1/3 border h-full flex items-center justify-center" id="">{{ importe_list.1 }}</span>
+                                {% endwith %}
+                            </div>
+                            <div class="flex w-1/2 h-full">
+                                {% with prod.importe_recibido|toMoneyList as importe_list %}
+                                <span class="w-2/3 border h-full flex items-center justify-center" id="">{{ importe_list.0  }}</span>
+                                <span class="w-1/3 border h-full text-sm  flex items-center justify-center" id="">{{ importe_list.1 }}</span>
+                                {% endwith %}
+                            </div>
+                        </div>
+                        <span class="w-1/3 border h-full flex items-center justify-center">-</span>
+                    </div>
+                    {% else %}
+                    <div class="flex w-1/3">
+                        <div class="flex w-1/2 h-full">
+                            
+                            {% if operacion == "get" %}
+                            <span name="cantidad-remitida" transferencia="{{transferencia.id}}" class="w-1/2 border h-full flex items-center justify-center">{{ prod.cantidad_remitida|parseFloat }}</span>                            
+                            <div class="flex w-1/2 border">
+                                <span class="text-red-500">*</span>
+                                <input type="number" step="0.01" step-my  id="" name="cantidad" step="0.01" class="h-full w-full border-0 flex items-center justify-center border-gray-100 p-0.5 focus:border-gray-100 focus:ring-0 appearance-none focus:outline-none focus:ring-0" 
+                                transferencia="{{transferencia.id}}" oninput="comprobarRecepcion({{transferencia.id}})" min=0  required />
+                            </div>
+                            {% elif "C-" in transferencia.receptor_id %}
+                            <span class="w-1/2 border h-full flex items-center justify-center">{{ prod.cantidad_remitida|parseFloat }}</span>
+                            <span class="w-1/2 border h-full flex items-center justify-center">-</span>
+                            {% else %}
+                            <input type="number" step="0.01" step-my  id="" name="productos-id" class="hidden" value={{prod.id}} />
+                            <div class="flex w-1/2 border">
+                                <span class="text-red-500">*</span>
+                                <input type="number" step="0.01" step-my  id="cantiad-{{prod.id}}" name="cantidad" step="0.01" class="h-full w-full border-0 text-sm flex items-center text-center justify-center border-gray-100 p-0.5 focus:border-gray-100 focus:ring-0 appearance-none focus:outline-none focus:ring-0" 
+                                oninput="changeCantRemitida({{prod.id}},{{prod.costo_cup|parseFloat}})" transferencia="{{transferencia.id}}" min=0 max={% with existencia=prod.existencia_almacen_emisor|add:prod.cantidad_remitida %}{{ existencia|parseFloat }}{% endwith %} 
+                                value={{ prod.cantidad_remitida|parseFloat }} value-previus={{ prod.cantidad_remitida|parseFloat }} required />
+                            </div>
+                            <span class="w-1/2 border h-full flex items-center justify-center">-</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex w-1/2 h-full">
+                            {% with prod.costo_cup|toMoneyList as costo_cup %}
+                            <span class="w-2/3 border h-full flex items-center justify-center">{{ costo_cup.0 }}</span>
+                            <span class="w-1/3 border h-full flex items-center justify-center">{{ costo_cup.1 }}</span>
+                            {% endwith %}
+                        </div>
+                    </div>
+                    <div class="flex w-1/3">
+                        <div class="flex w-2/3 h-full">
+                            <div class="flex w-1/2 h-full">
+                                {% with prod.importe_remitido|toMoneyList as importe_list %}
+                                <span class="w-2/3 border h-full flex items-center justify-center" id="precio-start-{{prod.id}}">{{ importe_list.0  }}</span>
+                                <span class="w-1/3 border h-full flex items-center justify-center" id="precio-end-{{prod.id}}">{{ importe_list.1 }}</span>
+                                {% endwith %}
+                            </div>
+                            <div class="flex w-1/2 h-full">
+                                <span class="w-2/3 border h-full flex items-center justify-center" id="">-</span>
+                                <span class="w-1/3 border h-full flex items-center justify-center" id="">-</span>
+                            </div>
+                        </div>
+                        {% if "A-" in transferencia.emisor_id %}<span class="w-1/3 border h-full flex items-center justify-center" id="existencia-{{prod.id}}">{{prod.existencia_almacen_emisor|parseFloat}}</span>
+                        {% else %}<span class="w-1/3 border h-full flex items-center justify-center" id="existencia-{{prod.id}}">-</span>{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="flex">
+                <span class="w-2/3 px-2.5 border">Importe total</span>
+                <div class="flex w-1/3 border">
+                    <div class="flex w-2/3 h-full">
+                        <div class="flex w-1/2 h-full">
+                            {% with transferencia.stock|sum_importe_remitido as sum_importe %}
+                            <span class="w-2/3 border h-full text-sm text-center" id="importe-total-start">{{ sum_importe.0  }}</span>
+                            <span class="w-1/3 border h-full text-sm text-center" id="importe-total-end">{{ sum_importe.1 }}</span>
+                            {% endwith %}
+                        </div>
+
+                        {% if prod.importe_recibido != None %}
+                        <div class="flex w-1/2 h-full">
+                            {% with transferencia.stock|sum_importe_recibido as sum_importe %}
+                            <span class="w-2/3 border h-full text-sm text-center" id="">{{ sum_importe.0  }}</span>
+                            <span class="w-1/3 border h-full text-sm text-center" id="">{{ sum_importe.1 }}</span>
+                            {% endwith %}
+                        </div>
+                        {% else %}
+                        <div class="flex w-1/2 h-full">
+                            <span class="w-2/3 border h-full text-sm text-center">-</span>
+                            <span class="w-1/3 border h-full text-sm text-center">-</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <span class="w-1/3 border h-full text-sm text-center">-</span>
+                </div>
+            </div>
+            
+            <div class="flex">
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Entrega</span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Recibe</span>
+                <span class="border-b h-full px-2 py-1 w-1/3 border">Autoriza</span>
+            </div>
+            
+            <div class="flex">
+                <div class="flex w-1/3 border h-full">
+                    <span class="h-full w-2/3 border text-sm px-3 pb-3 truncate">{{transferencia.user_transfiere}}</br>Firma:</span>
+                    <div class="flex w-1/3">
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">D</div>
+                            <div class="border-t h-full text-center">{{transferencia.alta|date:"d"}}</div>
+                        </div>
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">M</div>
+                            <div class="border-t h-full text-center">{{transferencia.alta|date:"m"}}</div>
+                        </div>
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">A</div>
+                            <div class="border-t h-full text-center">{{transferencia.alta|date:"y"}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex w-1/3 border h-full">
+                    <span class="h-full w-2/3 border text-sm px-3 pb-3 truncate">{{transferencia.user_confirmacion}}</br>Firma:</span>
+                    <div class="flex w-1/3">
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">D</div>
+                            <div class="border-t h-full text-center">{{transferencia.alta|date:"d"}}</div>
+                        </div>
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">M</div>
+                            <div class="border-t h-full text-center">{{transferencia.alta|date:"m"}}</div>
+                        </div>
+                        <div class="w-1/3 border flex flex-col">
+                            <div class="border-b h-full text-center">A</div>
+                            <div class="border-t h-full text-center">{{transferencia.alta|date:"y"}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex w-1/3 border h-full">
+                    <span class="h-full w-full border text-sm px-3 pb-3 truncate">{{transferencia.autoriza}}</br>Firma:</span>
+                </div>
+            </div>
+            
+            <div class="flex mt-3 justify-start">
+                <span class="text-black text-start p-2 flex-1">
+                    {% if transferencia.stock.0.objetivo %}Transferencia para elaborar {{transferencia.cant_elaborar|parseFloatOrNull}} {{transferencia.stock.0.objetivo}}{% endif %}
+                </span>
+            </div>
+            {% if operacion == "get" %}
+                {% if not transferencia.date_confirm %}
+                <div class="flex mt-3 justify-end">
+                    <button data-modal-target="cancel-modal" onclick="openModalCancel({{transferencia.id}})" data-modal-toggle="cancel-modal" class="focus:outline-none text-white bg-red-500 hover:bg-red-700 mr-3 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900" type="button">
+                        Rechazar Transferencia
+                    </button>
+                    <button type="submit" id="btn-confirmar-transferencia-{{transferencia.id}}" class="hidden focus:outline-none text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-900">Confirmar Transferencia</button>
+                </div>
+                {% endif %}
+            {% else %}
+                <!--transferencia.stock.0.importe_recibido-->
+                {% if not transferencia.date_confirm and not transferencia.mensaje_cancelacion %}
+                <div class="flex justify-between items-center">
+                    <span class="text-red-500 text-center p-2 font-bold">Transferencia pendiente a confirmación</span>
+                    <div class="flex mt-3 justify-end">
+                        <a href="{% url 'CancelarTransferenciaPv' id=transferencia.id rool='almac' %}" class="focus:outline-none text-white bg-red-500 hover:bg-red-700 mr-3 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">Cancelar Transferencia</a>
+                        {% if "C-" not in transferencia.receptor_id and "U-" not in transferencia.receptor_id and "bolsa-estudio" not in transferencia.receptor_id %}<button type="submit" class="focus:outline-none text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-900">Actualizar Transferencia</button>{% endif %}
+                    </div>
+                </div>
+                {% elif transferencia.mensaje_cancelacion %}
+                <div class="flex justify-between items-center">
+                    <span class="text-red-500 text-center p-2 font-bold">Transferencia rechazada por el trabajador de {{transferencia.receptor.nombre}}</span>
+                    <div class="flex mt-3 justify-end mr-3">
+                        {% if "bolsa-estudio" in transferencia.receptor_id %}
+                        <a href="{% url 'CancelarTransferenciaPv' id=transferencia.id rool='bolsa-estudio' %}?{{request.GET.urlencode}}" class="focus:outline-none text-white bg-red-500 hover:bg-red-700 mr-3 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">Eliminar Transferencia Cancelada</a>
+                        {% elif "C-" in transferencia.receptor_id %}
+                        <a href="{% url 'CancelarTransferenciaPv' id=transferencia.id rool='cocina' %}?{{request.GET.urlencode}}" class="focus:outline-none text-white bg-red-500 hover:bg-red-700 mr-3 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">Eliminar Transferencia Cancelada</a>
+                        {% elif "U-" in transferencia.receptor_id %}
+                        <a href="{% url 'CancelarTransferenciaPv' id=transferencia.id rool='user' %}?{{request.GET.urlencode}}" class="focus:outline-none text-white bg-red-500 hover:bg-red-700 mr-3 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">Eliminar Transferencia Cancelada</a>
+                        {% else %}
+                        <a href="{% url 'CancelarTransferenciaPv' id=transferencia.id rool='almac' %}?{{request.GET.urlencode}}" class="focus:outline-none text-white bg-red-500 hover:bg-red-700 mr-3 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">Eliminar Transferencia Cancelada</a>
+                        <button type="submit" class="focus:outline-none text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-900">Actualizar Transferencia</button>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <span class="text-md flex items-center p-2 m-3 border-2 border-red-300 rounded-lg">
+                    <svg class="w-8 h-8 mr-2 text-red-600" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M8 9h8"></path>
+                        <path d="M8 13h6"></path>
+                        <path d="M14.5 18.5l-2.5 2.5l-3 -3h-3a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v4.5"></path>
+                        <path d="M19 22v.01"></path>
+                        <path d="M19 19a2.003 2.003 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483"></path>
+                    </svg>
+                    {{ transferencia.mensaje_cancelacion }}
+                </span> 
+                {% endif %}
+            {% endif %}
+
+        </div>
+    </form>
+    {% endfor %}
+</div>
+
+<div id="cancel-modal" tabindex="-1" class="fixed top-0 left-0 right-0 z-50 hidden p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative w-full max-w-md max-h-full">
+        <div class="bg-white rounded-lg shadow dark:bg-gray-700">
+            <form class="p-6 space-y-3" method="POST" action="/cancel-transferencia/0/almac" id="cancel-transferencia-modal">
+                {% csrf_token %}
+                <label for="message-cancel" class="mb-5 text-lg font-bold text-black">Motivo por el cual rechaza la transferencia:</label>
+                <textarea id="message-cancel" name="message" rows="4" required class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Indique aquí el motivo por el cual rechaza la transferencia..."></textarea>
+
+                <div class="flex space-x-3">
+                    <button data-modal-hide="cancel-modal" type="button" class="w-1/2 text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700
+                    dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">Cancelar</button>
+                    <button type="submit" class="w-1/2 text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2">
+                        Rechazar transferencia
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{% endblock content %}
+
+
+{% block scripts %}
+<script>
+    function changeCantRemitida(id,precio){
+        let input = document.getElementById(`cantiad-${id}`);
+        input.value = parseInt(input.value);
+
+        if( input.value < parseFloat(input.getAttribute("min")) ){
+            input.value = input.getAttribute("min");
+        }
+        else if( input.value > parseFloat(input.getAttribute("max")) ){
+            input.value = input.getAttribute("max");
+        }
+        let precio_total = (input.value * precio).toString();
+        document.getElementById(`precio-start-${id}`).textContent = precio_total.split(".")[0];
+        var pte = precio_total.split(".")[1];
+        if( !pte ){ pte = "00";}
+        else if( pte.length == 1){pte += "0";}
+        document.getElementById(`precio-end-${id}`).textContent = pte;
+        var valorPrevio = input.getAttribute('value-previus');
+
+        let val_cant = input.value;
+        if(val_cant == ""){val_cant = 0;}
+
+        let existencia_element = document.getElementById(`existencia-${id}`)
+        var existencia = parseFloat(existencia_element.textContent) + parseFloat(valorPrevio) - parseFloat(val_cant);
+        
+        if( existencia.toString() == "NaN" ){
+            existencia = existencia_element.getAttribute("existencia-almacen");
+        }
+
+        existencia_element.textContent = existencia;
+
+        var importe_total = parseFloat(document.getElementById("importe-total-start").textContent + "." + document.getElementById("importe-total-end").textContent);
+        var importe_total_new = (importe_total - (valorPrevio * precio) + (val_cant * precio)).toString();
+        
+        
+        document.getElementById(`importe-total-start`).textContent = importe_total_new.split(".")[0];
+        
+        var ite = importe_total_new.split(".")[1];
+        if( !ite ){ ite = "00";}
+        else if( ite.length == 1){ite += "0";}
+        document.getElementById(`importe-total-end`).textContent = ite;
+        input.setAttribute('value-previus',val_cant);
+    }
+
+    function openModalCancel(id){
+        document.getElementById("cancel-transferencia-modal").setAttribute("action",`/cancel-transferencia/${id}/almac`);
+    }
+
+    function comprobarRecepcion(transferencia){
+        let spans = document.querySelectorAll('span[name="cantidad-remitida"]');
+        let inputs = document.querySelectorAll('input[name="cantidad"]');
+        for (let i = 0; i < spans.length; i++) {
+            if(transferencia == inputs[i].getAttribute("transferencia",transferencia)){
+                let spanText = spans[i].textContent;
+                let inputText = inputs[i].value;
+                
+                if (parseFloat(spanText) === parseFloat(inputText)) {
+                    document.getElementById(`btn-confirmar-transferencia-${transferencia}`).classList.remove("hidden");
+                } else {
+                    document.getElementById(`btn-confirmar-transferencia-${transferencia}`).classList.add("hidden");
+                    return;
+                }
+            }
+        }
+    }
+
+    
+    function printTransf(id){
+        const styles = document.head.querySelectorAll('style');
+        let styleContent = "";
+        styles.forEach( style => {
+            styleContent += `<style type="text/css">${style.innerHTML}</style>`
+        });
+        print(styleContent,document.getElementById(id).innerHTML)
+    }
+</script>
+{% endblock scripts %}

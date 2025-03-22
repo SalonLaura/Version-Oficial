@@ -1,0 +1,490 @@
+{% extends 'base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+                
+{% block content %}
+<div class="flex w-full h-full justify-center">
+    <div class="flex flex-col items-center w-screen h-full bg-white w-full">
+        <div class="border-b border-gray-200 w-full overflow-x-auto h-18 scrollbar scrollbar-xs" id="content-menu">
+            {% include "config/menu_select.html" %}
+        </div>
+
+        <div class="w-full h-[calc(100%-4rem)] overflow-auto" id="content-table">
+            <div class="rounded-lg w-full flex items-center justify-center">
+                <div class="w-full h-full">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead class="bg-white">
+                            <tr class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400  sticky top-0">
+                                <th scope="col" class="px-6 py-3"> Producto </th>
+                                <th scope="col" class="px-6 py-3"> Descripción </th>
+                                <th scope="col" class="px-6 py-3"> Precio de venta</th>
+                                <th scope="col" class="px-6 py-3"> Medida</th>
+                                <th scope="col" class="px-6 py-1.5 flex justify-center">
+                                    <button class="truncate flex items-center justify-between px-4 py-2 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-200 hover:bg-gray-300 border border-transparent rounded-lg focus:outline-none focus:shadow-outline-gray"
+                                        data-modal-target="popup-modal" data-modal-toggle="popup-modal" id="btn-add-producto" onclick="limpiarForm()">
+                                        <svg class="w-5 h-5 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 002.25-2.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v2.25A2.25 2.25 0 006 10.5zm0 9.75h2.25A2.25 2.25 0 0010.5 18v-2.25a2.25 2.25 0 00-2.25-2.25H6a2.25 2.25 0 00-2.25 2.25V18A2.25 2.25 0 006 20.25zm9.75-9.75H18a2.25 2.25 0 002.25-2.25V6A2.25 2.25 0 0018 3.75h-2.25A2.25 2.25 0 0013.5 6v2.25a2.25 2.25 0 002.25 2.25z"></path>
+                                        </svg>
+                                        Agregar Formula
+                                    </button>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="body-productos-compuestos"  data-accordion="collapse">
+                            {% for formula in formulas_pv %}
+                            <tr id="tr-content-{{formula.id}}" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"  aria-expanded="false" data-accordion-target="#accordion-collapse-body-{{formula.id}}" aria-expanded="true" aria-controls="accordion-collapse-body-{{formula.id}}">
+                                <th scope="row" class="flex items-center pl-3 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                                    <span class="ml-3 text-base font-semibold truncate">{{ formula.nombre }}</span> 
+                                </th>
+                                <td class="px-3 py-4 text-base font-semibold">{{ formula.descripcion }}</td>
+                                {% with formula.precio_venta|toMoneyList as precio_venta %}<td class="px-6 py-4 text-base font-semibold">${{precio_venta.0}}.{{precio_venta.1}}</td>{% endwith %}
+                                <td class="px-3 py-4 text-base font-semibold">{{ formula.medida|nullToBlank }}</td><td class="px-6 py-4 flex justify-center">
+                                    <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray mr-6" aria-label="Edit"
+                                    data-modal-target="popup-modal" data-modal-toggle="popup-modal"
+                                    onclick="limpiarForm(),document.getElementById('nombre').value='{{formula.nombre}}',
+                                    document.getElementById('descripcion').value='{{formula.descripcion}}',
+                                    document.getElementById('checked-checkbox-price-auto').checked=false,
+                                    document.getElementById('btn-accept').innerText='Actualizar',
+                                    document.getElementById('actualizar-id').setAttribute('name','actualizar-id'),
+                                    document.getElementById('actualizar-id').value='{{formula.id}}',
+                                    document.getElementById('precio-venta').classList.remove('hidden'),
+                                    document.getElementById('input-pago-elaboracion-monto').value='{{formula.pago|nullToBlank|parseFloat}}',
+                                    document.getElementById('precio-venta').value='{{formula.precio|nullToBlank|parseFloat}}'{% for s in formula.subproductos.all %},addToTable({{s.producto.id}},'','{{s.producto.nombre}}','{{s.producto.medida.nombre}}',true,{{s.cantidad|parseFloat}}){% endfor %}">
+                                        <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                                        </svg>
+                                    </button>
+                                    {% if formula.is_delete %}
+                                    <button data-modal-target="delete-modal" data-modal-toggle="delete-modal"  aria-label="Delete" onclick="document.getElementById('id-delete').value='{{formula.id}}'"
+                                    class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray">
+                                        <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </button>
+                                    {% else %}
+                                    <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 cursor-not-allowed text-gray-400 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray">
+                                        <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>                            
+                            <tr id="accordion-collapse-body-{{formula.id}}" class="hidden" aria-labelledby="accordion-collapse-heading-{{formula.id}}">
+                                <td colspan="6" class="p-5 border-b border-gray-200 dark:border-gray-700 dark:bg-gray-900">
+                                    <p class="mb-2 text-gray-900 dark:text-gray-200 font-bold text-md">Subproductos:</p>
+
+                                    <div class="relative overflow-x-auto">
+                                        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 border">
+                                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                                <tr>
+                                                    <th scope="col" class="px-6 py-3">
+                                                        Nombre
+                                                    </th>
+                                                    <th scope="col" class="px-6 py-3">
+                                                        Cantidad
+                                                    </th>
+                                                    <th scope="col" class="px-6 py-3">
+                                                        Medida
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for p in  formula.subproductos.all %}
+                                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                                    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                                        {{p.producto.nombre}}
+                                                    </th>
+                                                    <td class="px-6 py-4">
+                                                        {{p.cantidad}}
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        {{p.producto.medida}}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="popup-modal" tabindex="-1" data-modal-backdrop="static"  class="fixed top-0 left-0 right-0 z-50 hidden p-4 overflow-hidden md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="w-auto max-w-5xl max-h-full">
+        <form class="bg-white rounded-lg shadow dark:bg-gray-700 max-h-full min-w-[45rem] overflow-auto" method="POST" action="/config-formula/">
+            {% csrf_token %}
+            <input class="hidden" type="text" id="actualizar-id" name="agregar_id" value="">
+
+            <div class="p-6" id="content-modal">
+                <div class="flex w-full h-5/6 overflow-auto">
+                    <div class="flex flex-col w-3/5 space-y-2 flex-grow">
+                        <div class="h-full flex flex-col">
+                            <h1 class="mb-2 text-md font-semibold text-black dark:text-white">Subproductos:</h1>
+                            <div class="overflow-y-auto border flex-grow">
+                                <table class="w-full table-auto text-sm text-left text-gray-500 dark:text-gray-400" id="tabla-subproductos">
+                                    <thead class="">
+                                        <tr class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                                            <th scope="col" class="py-3">
+                                                <button type="button" class="ml-2 truncate flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-white shadow-sm hover:shadow-lg bg-green-600 hover:bg-green-700 rounded-lg" id="dropdownSearchButton"
+                                                data-modal-target="subproducto-modal" data-modal-toggle="subproducto-modal" >
+                                                    <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 002.25-2.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v2.25A2.25 2.25 0 006 10.5zm0 9.75h2.25A2.25 2.25 0 0010.5 18v-2.25a2.25 2.25 0 00-2.25-2.25H6a2.25 2.25 0 00-2.25 2.25V18A2.25 2.25 0 006 20.25zm9.75-9.75H18a2.25 2.25 0 002.25-2.25V6A2.25 2.25 0 0018 3.75h-2.25A2.25 2.25 0 0013.5 6v2.25a2.25 2.25 0 002.25 2.25z"></path>
+                                                    </svg>
+                                                </button>
+                                            </th>
+                                            <th scope="col" class="px-6 py-3">
+                                                Nombre
+                                            </th>
+                                            <th scope="col" class="px-6 py-3">
+                                                Medida
+                                            </th>
+                                            <th scope="col" class="px-6 py-3">
+                                                Cantidad
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="flex-grow" id="tbody-tabla-subproductos">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-3 w-2/5">
+                        <h1 class="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-200">Características:</h1>
+
+                        <div class="space-y-4">
+                            
+                            <div class="">
+                                <p class="text-gray-700 dark:text-gray-400 m-1.5">Nombre</p>
+                                <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="" type="text" maxlength="100" id="nombre" required="" name="nombre">
+                            </div>
+                            <div class="">
+                                <p class="text-gray-700 dark:text-gray-400 m-1.5">Descripción</p>
+                                <textarea class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="" rows="3" type="text" maxlength="300" id="descripcion" required="" name="descripcion"></textarea>
+                            </div>
+                            <div class="flex flex-col pb-1">
+                                <h1 class="my-1 text-md font-semibold text-black dark:text-white">Pago por elaboración:</h1>
+                                
+                                <input type="number" step="0.01" step-my  name="pago-elaboracion-monto" id="input-pago-elaboracion-monto" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5 py-2.5" placeholder="$0.00">
+                                
+                                <div class="flex items-center mt-3">
+                                    <input checked id="checked-checkbox-price-auto" name="precio-auto" type="checkbox"
+                                    onchange="if(!this.checked){document.getElementById('precio-venta').classList.remove('hidden')}else{document.getElementById('precio-venta').classList.add('hidden')}" value="true" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                    <label for="checked-checkbox-price-auto" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Precio de venta automático</label>
+                                </div>
+                                <input type="number" step="0.01" step-my  name="precio-venta" id="precio-venta" class="hidden mt-2 bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5 py-2.5" placeholder="$0.00">
+                            </div>   
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="flex justify-center font-bold text-md mt-2 text-red-700 dark:text-red-100 hidden" id="error-add"></p>
+            <div class="flex my-2 px-2" id="content-options">
+                <button type="button" class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600" id="btn-cancel" data-modal-hide="popup-modal">Cancelar</button>
+                <button type="submit" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2 " id="btn-accept" onclick="">Agregar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="delete-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <form class="relative bg-white rounded-lg shadow dark:bg-gray-700" method="POST" action="/config-formula/">
+            {% csrf_token %}
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="delete-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <input class="hidden" type="text" id="id-delete" name="delete-id">
+            <div class="p-4 md:p-5 text-center">
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">¿Estas seguro de eliminar la formula?</h3>
+                
+                <p class="flex justify-center font-bold text-md mt-2 text-red-700 dark:text-red-100 hidden" id="error-delete"></p>
+                <div class="flex mt-2 px-2 justify-center space-x-3" id="content-options-delete">
+                    <button data-modal-hide="delete-modal" id="btn-cancel-delete" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                    <button type="submit" onclick="" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">Si, eliminar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Small Modal -->
+<div id="subproducto-modal" tabindex="-1" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full bg-gray-900 bg-opacity-50 ">
+    <div class="relative w-full max-w-md max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow-xl dark:bg-gray-700">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-3 border-b rounded-t dark:border-gray-600">
+                <h3 class="text-xl font-medium text-gray-900 dark:text-white">
+                    Seleccione los subproductos
+                </h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="subproducto-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <div class="p-3 space-y-6">
+                <div class="px-2">
+                    <label for="input-group-search" class="sr-only">Search</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+                            </svg>
+                        </div>
+                        <input type="text" id="input-group-search" oninput="search()" class="block w-full p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Encontrar productos por nombre">
+                    </div>
+                </div>
+                <ul class="max-h-96 min-h-[18rem] px-3 pb-3 overflow-y-auto text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownSearchButton">            
+                    {% for producto in productos %}
+                    {% if producto.categoria.nombre != "SUBPRODUCTOS" and producto.categoria.nombre != "MEDIOS BASICOS" %}
+                    <li>
+                        <label id="subproducto-{{producto.id}}" for="producto-{{producto.id}}" class="item-subproducto flex items-center pl-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <input id="producto-{{producto.id}}" type="checkbox" onchange="addToTable({{producto.id}},'{{producto.imagen}}','{{producto.nombre}}','{{producto.medida}}',this.checked,1)" value="" class="select-subproducto w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                            <label for="producto-{{producto.id}}"  class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 ml-1">
+                                <img class="rounded-full w-11 h-11 hidden" src="{{producto.imagen}}" alt="Joseph image">
+                                <label for="producto-{{producto.id}}" class="w-full pl-3 flex flex-col">
+                                    <span class="text-gray-900 font-bold text-sm mb-1.5 dark:text-gray-100" id="name-subproducto-{{producto.id}}">{{producto.nombre}}</span>
+                                    <span class="text-xs text-blue-600 dark:text-blue-500">{{producto.categoria}}</span>
+                                </label>
+                            </label>            
+                        </label>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                </ul>                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+
+
+{% block scripts %}
+
+<script type = "text/JavaScript">
+    const contentMenu = document.getElementById('content-menu');
+    contentMenu.scrollLeft = parseInt(localStorage.getItem("scroll-menu-config"));
+    contentMenu.onscroll = (e)=>{ 
+        localStorage.setItem("scroll-menu-config", JSON.stringify(contentMenu.scrollLeft))
+    }
+    const contentTable = document.getElementById('content-table');
+    contentTable.scrollTop = parseInt(localStorage.getItem("scroll-table-config-form-venta"));
+    contentTable.onscroll = (e)=>{ 
+        localStorage.setItem("scroll-table-config-form-venta", JSON.stringify(contentTable.scrollTop))
+    }
+    
+    function agregarFormula(){
+        let csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        let nombre = document.getElementById('nombre').value;
+        let descripcion = document.getElementById('descripcion').value;
+        let medida = document.getElementById('medida').value;
+
+        if(nombre == "" || nombre == null){
+            let alert = document.getElementById("error-add");
+            alert.innerHTML = `
+            <svg class="w-6 h-6 mr-1" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+            </svg>
+            Proporcione el nombre del producto`;
+            alert.classList.remove("hidden");
+            return
+        }
+        if(medida == "" || medida == null){
+            let alert = document.getElementById("error-add");
+            alert.innerHTML = `
+            <svg class="w-6 h-6 mr-1" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+            </svg>
+            La unidad de medida del producto`;
+            alert.classList.remove("hidden");
+            return
+        }
+        
+        var formData = new FormData();
+        formData.append('nombre', nombre);
+        formData.append('descripcion', descripcion);
+        formData.append('medida', medida);
+        formData.append('csrfmiddlewaretoken', csrf);
+        
+        var subproducto_id = document.querySelectorAll('[name="subproducto-id"]');
+        for (var i = 0; i < subproducto_id.length; i++) {
+            formData.append('subproducto-id', subproducto_id[i].value);
+        }
+        
+        var cantidad_subproducto = document.querySelectorAll('[name="cantidad-subproducto"]');
+        for (var i = 0; i < cantidad_subproducto.length; i++) {
+            formData.append('cantidad-subproducto', cantidad_subproducto[i].value);
+        }
+        
+        if(subproducto_id.length == 0 || cantidad_subproducto.length == 0){
+            let alert = document.getElementById("error-add");
+            alert.innerHTML = `
+            <svg class="w-6 h-6 mr-1" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+            </svg>
+            Es necesario indicar los subproductos.`;
+            alert.classList.remove("hidden");
+            return
+        }
+
+        loading(true,"Creando Formula")
+
+        $.ajax({
+            url:"",
+            type:"post",
+            data:formData,
+            processData: false,
+            contentType: false,
+            success:function(response){
+                loading(false)
+                document.querySelector('[name=csrfmiddlewaretoken]').value = response.csrf;
+
+                if(response.register == "success"){
+                    document.getElementById("btn-cancel").click();
+                    window.location.reload();
+                }
+                else if(response.register == "exist"){
+                    let alert = document.getElementById("error-add");
+                    alert.innerHTML = `
+                    <svg class="w-6 h-6 mr-1" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+                    </svg>
+                    Ya existe una formula de igual nombre`;
+                    alert.classList.remove("hidden");
+                }
+                else if(response.register == "error"){
+                    let alert = document.getElementById("error-add");
+                    alert.innerHTML = `
+                    <svg class="w-6 h-6 mr-1" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+                    </svg>
+                    Error al agregar formula de puntos de venta`;
+                    alert.classList.remove("hidden");
+                }
+            },
+            error:function(response){
+                loading(false)
+                let alert = document.getElementById("error-add");
+                alert.innerHTML = `
+                <svg class="w-6 h-6 mr-1" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+                </svg>
+                Error al agregar producto compuesto`;
+                alert.classList.remove("hidden");
+            },
+        });
+    }
+
+    function addToTable(id,imagen,nombre,medida,checked,cant=1) {
+        if (checked) {
+            let table = document.getElementById("tbody-tabla-subproductos"); // Replace "your-table-id" with the actual ID of your table
+            let newRow = document.createElement("tr");
+            newRow.id = `subproducto-${id}`;
+            newRow.className = "bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600";
+        
+            let rowContent = `
+                <td class="py-4"><button type="button" class="text-red-500 px-1 material-icons text-md" onclick="addToTable(${id},'${imagen}','${nombre}','${medida}',false)">delete_outline</button></td>
+                <th scope="row" class="flex items-center px-6 py-4 text-gray-900 dark:text-white">
+                    <span class="font-semibold pl-3">${nombre}</span>
+                    <input type="number" step="0.01" step-my  name="subproducto-id" class="hidden" value=${id}>
+                </th>
+                <td class="px-6 py-4">${medida}</td>
+                <td class="px-6 py-4">
+                    <div class="flex items-center space-x-3">
+                        <button class="inline-flex items-center justify-center p-1 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+                        onclick="downInput('cant-subproducto-${id}')" type="button">
+                            <span class="sr-only">Quantity button</span>
+                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h16"/>
+                            </svg>
+                        </button>
+                        <div>
+                            <input type="number" step="0.01" step-my  id="cant-subproducto-${id}" name="cantidad-subproducto" class="bg-gray-50 w-14 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="1" min=0 value=${cant} required>
+                        </div>
+                        <button class="inline-flex items-center justify-center h-6 w-6 p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" 
+                        type="button" onclick="upInput('cant-subproducto-${id}')">
+                            <span class="sr-only">Quantity button</span>
+                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/>
+                            </svg>
+                        </button>
+                    </div>
+                </td>
+            `;
+        
+            newRow.innerHTML = rowContent;
+            table.appendChild(newRow);
+        } else {
+            let existingRow = document.getElementById(`subproducto-${id}`);
+            existingRow.remove();
+            document.getElementById(`producto-${id}`).checked = false;
+        }
+    }
+
+    function search(){
+        var elements = document.getElementsByClassName("item-subproducto");
+        for (var i = 0; i < elements.length; i++) {
+            var inputText = document.getElementById("input-group-search").value.toLowerCase();
+            var nameText = document.getElementById(`name-${elements[i].id}`).textContent.toLowerCase();
+
+            if (nameText.includes(inputText)) {
+                elements[i].classList.remove("hidden");
+            } else {
+                elements[i].classList.add("hidden");
+            }
+        }
+    }
+
+    function upInput(id){
+        document.getElementById(id).value = parseInt(document.getElementById(id).value) + 1;
+    }
+
+    function downInput(id){
+        let element = document.getElementById(id);
+        if(parseInt(element.value) > 0){
+            element.value = parseInt(element.value) - 1;
+        }
+    }
+
+    function limpiarForm(){
+        document.getElementById('nombre').value = "";
+        document.getElementById('descripcion').value = "";
+        document.getElementById('checked-checkbox-price-auto').checked=true
+        document.getElementById('precio-venta').classList.add('hidden')
+        document.getElementById('precio-venta').value=''
+        document.getElementById('input-pago-elaboracion-monto').value=''
+
+        document.getElementById("tbody-tabla-subproductos").innerHTML = "";
+        let checkboxs = document.querySelectorAll(".select-subproducto");
+        for (var i = 0; i < checkboxs.length; i++) {
+          checkboxs[i].checked = false;
+        }
+        document.getElementById('btn-accept').innerText='Agregar'
+        document.getElementById('actualizar-id').setAttribute('name','agregar-id')
+    }
+</script>
+
+{% endblock scripts %}

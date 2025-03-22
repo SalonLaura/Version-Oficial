@@ -1,0 +1,462 @@
+{% extends 'punto_venta/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+                
+{% block content %}
+
+<div class="flex flex-col justify-center p-12 w-full h-full">
+    <div class="container px-6 pt-6 mx-auto">
+        <div class="grid gap-3 mb-3 grid-cols-4">
+            <!-- Card -->
+            <div class="flex items-center p-2 bg-white rounded-lg shadow-sm dark:bg-gray-800 overflow-x-hidden" >
+                <div class="p-3 mr-4 text-orange-500 bg-orange-100 rounded-full dark:text-orange-100 dark:bg-orange-500" >
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" ></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400 truncate" > Cantidad de clientes </p>
+                    <p class="text-lg font-semibold text-gray-700 dark:text-gray-200" > {{cant_clientes}} </p>
+                </div>
+            </div>
+            <!-- Card -->
+            <div class="flex items-center p-2 bg-white rounded-lg shadow-sm dark:bg-gray-800 overflow-x-hidden" >
+                <div class="p-3 mr-4 text-green-500 bg-green-100 rounded-full dark:text-green-100 dark:bg-green-500" >
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" ></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400 truncate" > Monto vendido </p>
+                    <p class="text-lg font-semibold text-gray-700 dark:text-gray-200" > $ {{monto_vendido}} </p>
+                </div>
+            </div>
+            <!-- Card -->
+            <div class="flex items-center p-2 bg-white rounded-lg shadow-sm dark:bg-gray-800 overflow-x-hidden" >
+                <div class="p-3 mr-4 text-blue-500 bg-blue-100 rounded-full dark:text-blue-100 dark:bg-blue-500" >
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" ></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400 truncate" >Productos vendidos</p>
+                    <p class="text-lg font-semibold text-gray-700 dark:text-gray-200" > {{cant_ventas}} </p>
+                </div>
+            </div>
+            <!-- Card -->
+            <div class="flex items-center p-2 bg-white rounded-lg shadow-sm dark:bg-gray-800 overflow-x-hidden" >
+                <div class="p-3 mr-4 text-teal-500 bg-teal-100 rounded-full dark:text-teal-100 dark:bg-teal-500" >
+                    <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400 truncate" > Cuentas abiertas </p>
+                    <p class="text-lg font-semibold text-gray-700 dark:text-gray-200" > {{cuentas_abiertas}} </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% if message %}
+    <p class="flex justify-center font-bold text-md pb-2 text-red-700 dark:text-red-100">
+        <svg class="w-6 h-6 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+        </svg>
+        {{ message }}
+    </p>
+    {% endif %}
+
+    <div class="w-full bg-white dark:bg-gray-900 shadow-lg rounded-lg p-1 flex flex-col justify-between h-[calc(100%-3rem)]">
+        <div class="overflow-auto h-full">
+            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <thead class="">
+                    <tr class="text-xs text-gray-700 bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                        <th scope="col" class="px-6 py-3 truncate"> Producto </th>
+                        <th scope="col" class="px-6 py-3"> Medida</th>  
+                        <th scope="col" class="px-6 py-3"> IPV/Inicial</th> 
+                        <th scope="col" class="px-6 py-3"> Entradas</th>
+                        <th scope="col" class="px-6 py-3"> Salidas</th>
+                        <th scope="col" class="px-6 py-3 truncate"> Ventas</th>  
+                        <th scope="col" class="px-6 py-3 truncate"> IPV/Final</th>  
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in productos %}
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                            
+                            {% if producto.producto.img %}
+                            <img class="rounded-full w-10 h-10" src="{{producto.producto.img}}" alt="" />
+                            {% else %}
+                            <p class="rounded-full w-10 h-10 flex items-center justify-center font-bold text-md text-gray-600 bg-gray-100">{{ producto.producto.nombre.0 }}{{ producto.producto.nombre.1 }}<p>
+                            {% endif %}
+
+                            <div class="px-3">
+                                <div class="text-base font-semibold truncate">{{ producto.producto.nombre }}</div>
+                                <div class="font-normal text-gray-500 truncate">{{ producto.producto.categoria }}</div>
+                            </div>  
+                        </th>
+                        <td class="px-6 py-4 truncate">{{ producto.producto.medida }}</td>
+                        <td class="px-6 py-4 truncate">{{ producto.recibido|parseFloat }}</td>
+                        <td class="px-6 py-4 truncate">{{ producto.cantidad_insertada_producto|parseFloat }}</td>
+                        <td class="px-6 py-4 truncate">{{ producto.cantidad_retirada|parseFloat }}</td>
+                        <td class="px-6 py-4 truncate">{{ producto.cantidad_vendida|parseFloat }}</td>
+                        <td class="px-6 py-4 truncate">{{producto.existencia|parseFloat}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="flex justify-between items-center p-3">
+            <p class="font-bold text-xl">Monto total en caja: ${{monto_caja}}</p>
+            {% if not message %}
+                <button type="button"  data-modal-target="close-turno-modal" data-modal-toggle="close-turno-modal" class="w-auto text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center">Comprobar cuadre de turno</button>
+            {% endif %}
+        </div>
+    </div>  
+</div>  
+
+<!-- Cerrar cuenta modal -->
+<div id="close-turno-modal2" tabindex="-1" data-modal-backdrop="static" class="fixed top-0 left-0 right-0 z-50 hidden p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative w-max max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <form class="p-6 text-center  space-y-4" method="POST">
+                {% csrf_token %}
+                <span class="font-bold text-xl" id="monto-total-caja">Monto total en caja: ${{monto_caja}}</span>
+                <div class="flex space-x-3 border-b">
+                    <div class="w-1/2 my-4 space-y-3">
+                        <div class="flex items-center p-1.5 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white w-full space-x-3">
+                            <img aria-hidden="true" class="h-8 rounded-md" viewBox="0 0 40 38" fill="none" src="{% static 'images/billetes/1.jpg' %}" />
+                            <span class="flex-1 ml-3 whitespace-nowrap text-start">Bill. de $1</span>
+                            <div class="flex items-center space-x-3">
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="downInput('bill-1')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                                <div>
+                                    <input type="number" step="0.01" step-my  id="bill-1" name="bill-1" class="bg-gray-50 w-14 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" value=0 required onchange="calcularPago()">
+                                </div>
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="upInput('bill-1')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-1.5 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white w-full space-x-3">
+                            <img aria-hidden="true" class="h-8 rounded-md" viewBox="0 0 40 38" fill="none" src="{% static 'images/billetes/3.jpg' %}" />
+                            <span class="flex-1 ml-3 whitespace-nowrap text-start">Bill. de $3</span>
+                            <div class="flex items-center space-x-3">
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="downInput('bill-3')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                                <div>
+                                    <input type="number" step="0.01" step-my  id="bill-3" name="bill-3" class="bg-gray-50 w-14 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500dark:focus:border-blue-500" value=0 required onchange="calcularPago()">
+                                </div>
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="upInput('bill-3')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-1.5 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white w-full space-x-3">
+                            <img aria-hidden="true" class="h-8 rounded-md" viewBox="0 0 40 38" fill="none" src="{% static 'images/billetes/5.jpg' %}" />
+                            <span class="flex-1 ml-3 whitespace-nowrap text-start">Bill. de $5</span>
+                            <div class="flex items-center space-x-3">
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="downInput('bill-5')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                                <div>
+                                    <input type="number" step="0.01" step-my  id="bill-5" name="bill-5" class="bg-gray-50 w-14 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500dark:focus:border-blue-500" value=0 required onchange="calcularPago()">
+                                </div>
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="upInput('bill-5')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-1.5 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white w-full space-x-3">
+                            <img aria-hidden="true" class="h-8 rounded-md" viewBox="0 0 40 38" fill="none" src="{% static 'images/billetes/10.jpg' %}" />
+                            <span class="flex-1 ml-3 whitespace-nowrap text-start">Bill. de $10</span>
+                            <div class="flex items-center space-x-3">
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="downInput('bill-10')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                                <div>
+                                    <input type="number" step="0.01" step-my  id="bill-10" name="bill-10" class="bg-gray-50 w-14 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500dark:focus:border-blue-500" value=0 required onchange="calcularPago()">
+                                </div>
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="upInput('bill-10')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-1.5 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white w-full space-x-3">
+                            <img aria-hidden="true" class="h-8 rounded-md" viewBox="0 0 40 38" fill="none" src="{% static 'images/billetes/20.jpg' %}" />
+                            <span class="flex-1 ml-3 whitespace-nowrap text-start">Bill. de $20</span>
+                            <div class="flex items-center space-x-3">
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="downInput('bill-20')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                                <div>
+                                    <input type="number" step="0.01" step-my  id="bill-20" name="bill-20" class="bg-gray-50 w-14 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500dark:focus:border-blue-500" value=0 required onchange="calcularPago()">
+                                </div>
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="upInput('bill-20')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-1/2 my-4 space-y-3">
+                        <div class="flex items-center p-1.5 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white w-full space-x-3">
+                            <img aria-hidden="true" class="h-8 rounded-md" viewBox="0 0 40 38" fill="none" src="{% static 'images/billetes/50.jpg' %}" />
+                            <span class="flex-1 ml-3 whitespace-nowrap text-start">Bill. de $50</span>
+                            <div class="flex items-center space-x-3">
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="downInput('bill-50')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                                <div>
+                                    <input type="number" step="0.01" step-my  id="bill-50" name="bill-50" class="bg-gray-50 w-14 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500dark:focus:border-blue-500" value=0 required onchange="calcularPago()">
+                                </div>
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="upInput('bill-50')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-1.5 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white w-full space-x-3">
+                            <img aria-hidden="true" class="h-8 rounded-md" viewBox="0 0 40 38" fill="none" src="{% static 'images/billetes/100.jpg' %}" />
+                            <span class="flex-1 ml-3 whitespace-nowrap text-start">Bill. de $100</span>
+                            <div class="flex items-center space-x-3">
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="downInput('bill-100')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                                <div>
+                                    <input type="number" step="0.01" step-my  id="bill-100" name="bill-100" class="bg-gray-50 w-14 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500dark:focus:border-blue-500" value=0 required onchange="calcularPago()">
+                                </div>
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="upInput('bill-100')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-1.5 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white w-full space-x-3">
+                            <img aria-hidden="true" class="h-8 rounded-md" viewBox="0 0 40 38" fill="none" src="{% static 'images/billetes/200.jpg' %}" />
+                            <span class="flex-1 ml-3 whitespace-nowrap text-start">Bill. de $200</span>
+                            <div class="flex items-center space-x-3">
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="downInput('bill-200')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                                <input type="number" step="0.01" step-my  id="bill-200" name="bill-200" class="bg-gray-50 w-14 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500dark:focus:border-blue-500" value=0 required onchange="calcularPago()">
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="upInput('bill-200')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-1.5 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white w-full space-x-3">
+                            <img aria-hidden="true" class="h-8 rounded-md" viewBox="0 0 40 38" fill="none" src="{% static 'images/billetes/500.jpg' %}" />
+                            <span class="flex-1 ml-3 whitespace-nowrap text-start">Bill. de $500</span>
+                            <div class="flex items-center space-x-3">
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="downInput('bill-500')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                                <div>
+                                    <input type="number" step="0.01" step-my  id="bill-500" name="bill-500" class="bg-gray-50 w-14 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500dark:focus:border-blue-500" value=0 required onchange="calcularPago()">
+                                </div>
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="upInput('bill-500')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-1.5 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white w-max space-x-3">
+                            <img aria-hidden="true" class="h-8 rounded-md" viewBox="0 0 40 38" fill="none" src="{% static 'images/billetes/1000.jpg' %}" />
+                            <span class="flex-1 ml-3 whitespace-nowrap text-start">Bill. de $1000</span>
+                            <div class="flex items-center space-x-3">
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="downInput('bill-1000')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                                <div>
+                                    <input type="number" step="0.01" step-my  id="bill-1000" name="bill-1000" class="bg-gray-50 w-14 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500dark:focus:border-blue-500" value=0 required onchange="calcularPago()">
+                                </div>
+                                <button class="inline-flex items-center p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="upInput('bill-1000')">
+                                    <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex">
+                    <button type="button" class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600" data-modal-hide="close-turno-modal">Cancelar</button>
+                    {% if monto_caja > 0.0 %}
+                    <button type="button" class="w-full text-gray-600 bg-purple-300 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2" id="btn-cuadrar-turno" onclick="">Cuadrar turno</button>
+                    {% else %}
+                    <button type="submit" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2" onclick="">Cuadrar turno</button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Main modal -->
+<div id="close-turno-modal" data-modal-backdrop="static" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative w-full max-w-5xl max-h-full">
+        <!-- Modal body -->
+        <form class="flex flex-col bg-white shadow rounded-lg p-2" method="POST" id="form-recibo-efectivo">
+            {% csrf_token %}
+            <div class="flex flex-col border-2 border-gray-400">
+                <div class="flex">
+                    <div class="flex w-full">
+                        <span class="border border-b h-full w-1/3 px-2 text-md flex items-center">Entidad: Casa Laura S.R.L. </br>Codigo: 50004347244</span>
+                        <div class="w-1/3 border h-full font-bold flex flex-col items-center justify-center">
+                            <span> Recibo de Efectivo</span>
+                            <span>SC-3-01</span>
+                        </div>
+                        <div class="w-1/3 border flex">
+                            <div class="w-1/3 flex flex-col">
+                                <div class="border-b h-full text-center font-bold">D</div>
+                                <div class="h-full text-center" id="dia"></div>
+                            </div>
+                            <div class="w-1/3 border-l flex flex-col">
+                                <div class="border-b h-full text-center font-bold">M</div>
+                                <div class="h-full text-center" id="mes"></div>
+                            </div>
+                            <div class="w-1/3 border-l flex flex-col">
+                                <div class="border-b h-full text-center font-bold">A</div>
+                                <div class="h-full text-center" id="anno"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <span class="flex w-full border h-full px-2 py-1">Recibido de: {{ request.user }}</span>
+                <div class="flex w-full border h-full items-center px-2">
+                    <span class="truncate">Cantidad en letras:</span>
+                    <input type="text" name="monto-letras" required class="flex-grow border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer  py-1" placeholder="Coloque aquí la cantidad en letras" />
+                    <span class="text-red-500">*</span>
+                </div>
+
+                <div class="flex w-full border h-full">
+                    <span class="truncate w-4/5 border-r-2 px-2 py-1 border-l-1">Concepto</span>
+                    <span class="truncate w-1/5 px-2 py-1  border-r-1 text-center">Importe</span>
+                </div>
+                <div class="flex w-full border h-full">
+                    <input type="number" step="0.01" step-my  required name="monto-maquina" class="hidden" value={{monto_caja}}>
+                    <span class="truncate w-4/5 border-r-2 px-2 py-1 border-l-1">Venta en máquina</span>
+                    <span class="truncate w-1/5 px-2 py-1  border-r-1 text-center">${{monto_caja}}</span>
+                </div>
+                <div class="flex w-full border h-full">
+                    <span class="truncate w-4/5 border-r-2 px-2 py-1 border-l-1">Venta en caja</span>
+                    <input type="number" step="0.01" step-my  required step="any" name="monto-caja" id="monto-caja" oninput="calcTotal()" class="w-1/5 text-center border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer p-0" placeholder="0.00" />
+                </div>
+                <div class="flex w-full border h-full">
+                    <span class="truncate w-4/5 border-r-2 px-2 py-1 border-l-1">Recaudación en puerta</span>
+                    <input type="number" step="0.01" step-my  step="any" name="monto-puerta" id="monto-puerta" oninput="calcTotal()" class="w-1/5 text-center border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer p-0" placeholder="0.00" />
+                </div>
+                <div class="flex w-full border h-full">
+                    <span class="truncate w-4/5 border-r-2 px-2 py-1 border-l-1">Total</span>
+                    <span class="truncate w-1/5 px-2 py-1 border-r-1 text-center" id="monto-total">-</span>
+                </div>
+                <div class="flex w-full border h-full">
+                    <textarea name="motivo-diferencia" id="motivo-diferencia" rows="2" class="hidden p-2.5 w-full text-sm text-black border-0 focus:ring-0 focus:border-black placeholder:text-red-500" placeholder="Escriba el motivo por el cual el monto en máquina no coincide con el monto en caja..."></textarea>
+                </div>
+
+                <div class="flex w-full border h-full">
+                    <div class="w-4/5 flex">
+                        
+                        <div class="flex flex-col w-2/3 h-full justify-between">
+                            <div class="w-full border-b flex-grow px-2 flex items-center">
+                                Recibido
+                                <input type="text" name="recibido" required class="flex-grow border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer  py-1" placeholder="Nombre de la persona al que se le entrega el dinero" />
+                            </div>
+                            <div class="w-full h-10 px-2 flex items-center">Entregado: {{ request.user }}</div>
+                        </div>
+
+                        <div class="w-1/3 flex flex-col border-l-2 border-r-2">
+                            <span class="truncate w-full py-1.5 text-center text-xs font-bold">Fecha del cobro</span>
+                            <div class="border-t flex">
+                                <div class="w-1/3 flex flex-col">
+                                    <span class="border-b h-7 text-center font-bold text-sm">D</span>
+                                    <span class="h-10 text-center" id="dia-cobro"></span>
+                                </div>
+                                <div class="w-1/3 border-l flex flex-col">
+                                    <span class="h-7 border-b text-center font-bold text-sm">M</span>
+                                    <span class="h-10 text-center" id="mes-cobro"></span>
+                                </div>
+                                <div class="w-1/3 border-l flex flex-col">
+                                    <span class="h-7 border-b text-center font-bold text-sm">A</span>
+                                    <span class="h-10 text-center" id="anno-cobro"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <span class="w-1/5 p-2 border-r-1 text-center">No.</span>
+                </div>
+    
+            </div>
+            <div class="flex mt-3 justify-end">
+                <button type="button" data-modal-hide="close-turno-modal" class="focus:outline-none font-bold text-gray-800 hover:text-gray-900 bg-gray-200 hover:bg-gray-300 mr-3 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2">Cancelar</button>
+                <button type="submit" class="focus:outline-none text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900">Cerrar turno</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}
+
+
+
+{% block scripts %}
+<script>
+    let fecha = new Date();
+    document.getElementById("dia").innerHTML = fecha.getDate();
+    document.getElementById("mes").innerHTML = fecha.getMonth() + 1;
+    document.getElementById("anno").innerHTML = fecha.getFullYear();
+    document.getElementById("dia-cobro").innerHTML = fecha.getDate();
+    document.getElementById("mes-cobro").innerHTML = fecha.getMonth() + 1;
+    document.getElementById("anno-cobro").innerHTML = fecha.getFullYear();
+    var monto_caja = {{monto_caja}};
+
+    function toMoney(m) {
+        var monto_list = m.toString().split(".");
+        if (monto_list.length == 2){
+            if(monto_list[1].length > 1){
+                return `$${monto_list[0]}.${monto_list[1]}`;
+            }
+            else{
+                return `$${monto_list[0]}.${monto_list[1]}0`;
+            }
+    
+        }
+        else{
+            return `$${monto_list[0]}.00`;
+        }
+    }
+
+    function calcTotal(){
+        let caja = parseFloat(document.getElementById("monto-caja").value);
+        if(isNaN(caja)){caja = 0.0}
+        let puerta = parseFloat(document.getElementById("monto-puerta").value);
+        if(isNaN(puerta)){puerta = 0.0}
+
+        document.getElementById("monto-total").innerText = toMoney(caja + puerta);
+    }
+    
+    document.getElementById("form-recibo-efectivo").addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const monto_maq = parseFloat(document.getElementById("monto-caja").value);
+        const monto_caja = parseFloat("{{monto_caja}}");
+
+        const textArea = document.getElementById("motivo-diferencia");
+
+        if (monto_maq != monto_caja && textArea.value == "") {
+          textArea.classList.remove("hidden");
+          textArea.setAttribute("required","true");
+          
+          return false;
+        }
+        else{
+            textArea.classList.add("hidden");
+            textArea.removeAttribute("required");
+        }
+        
+        this.submit();
+    });
+
+</script>
+<script src="{% static 'js/entregar_turno.js' %}"></script>
+{% endblock scripts %}

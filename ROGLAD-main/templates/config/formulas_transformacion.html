@@ -1,0 +1,421 @@
+{% extends 'base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+                
+{% block content %}
+<div class="flex w-full h-full justify-center">
+    <div class="flex flex-col items-center w-screen h-full bg-white w-full">
+        <div class="border-b border-gray-200 w-full overflow-x-auto h-18 scrollbar scrollbar-xs" id="content-menu">
+            {% include "config/menu_select.html" %}
+        </div>
+
+        <div class="w-full h-[calc(100%-4rem)] overflow-auto" id="content-table">
+            <div class="rounded-lg w-full flex items-center justify-center">
+                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead>
+                        <tr class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                            <th scope="col" class="px-6 py-3"> Producto Inicial </th>
+                            <th scope="col" class="px-6 py-3"> Producto Final </th>
+                            <th scope="col" class="px-6 py-1.5 flex justify-center">
+                                <button class="flex items-center justify-between px-4 py-1.5 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-200 hover:bg-gray-300 border border-transparent rounded-lg focus:outline-none focus:shadow-outline-gray"
+                                    data-modal-target="popup-modal" data-modal-toggle="popup-modal" id="btn-add-medida" 
+                                    onclick="document.getElementById('btn-accept').innerText = 'Agregar',document.getElementById('edit_id').value =''">
+                                   
+                                    <svg class="w-5 h-5 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 2h-4a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2z" stroke-width="0" fill="currentColor" /><path d="M20 14h-4a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2z" stroke-width="0" fill="currentColor" /><path d="M16.707 2.293a1 1 0 0 1 .083 1.32l-.083 .094l-1.293 1.293h3.586a3 3 0 0 1 2.995 2.824l.005 .176v3a1 1 0 0 1 -1.993 .117l-.007 -.117v-3a1 1 0 0 0 -.883 -.993l-.117 -.007h-3.585l1.292 1.293a1 1 0 0 1 -1.32 1.497l-.094 -.083l-3 -3a.98 .98 0 0 1 -.28 -.872l.036 -.146l.04 -.104c.058 -.126 .14 -.24 .245 -.334l2.959 -2.958a1 1 0 0 1 1.414 0z" stroke-width="0" fill="currentColor" /><path d="M3 12a1 1 0 0 1 .993 .883l.007 .117v3a1 1 0 0 0 .883 .993l.117 .007h3.585l-1.292 -1.293a1 1 0 0 1 -.083 -1.32l.083 -.094a1 1 0 0 1 1.32 -.083l.094 .083l3 3a.98 .98 0 0 1 .28 .872l-.036 .146l-.04 .104a1.02 1.02 0 0 1 -.245 .334l-2.959 2.958a1 1 0 0 1 -1.497 -1.32l.083 -.094l1.291 -1.293h-3.584a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-3a1 1 0 0 1 1 -1z" stroke-width="0" fill="currentColor" />
+                                    </svg>
+                                    Agregar formula
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="body-formulas">
+                        {% for formula in formulas_transformacion %}
+                        <tr id="tr-content-{{formula.id}}" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <td class="px-6 py-4 text-base font-semibold">{{ formula.cantidad_inicial|parseFloat }} {{ formula.producto_inicial.medida.abreviatura }} - {{ formula.producto_inicial.nombre }}</td>
+                            <td class="px-6 py-4 text-base font-semibold">{% if not formula.cantidad_final %}( LIBRE) {% else %}{{ formula.cantidad_final|parseFloat }}{{ formula.producto_final.medida.abreviatura }}{% endif %} - {{ formula.producto_final.nombre }}</td>
+                            <td class="px-6 py-4 flex justify-center">
+                                <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray mr-6" aria-label="Edit"
+                                data-modal-target="popup-modal" data-modal-toggle="popup-modal"
+                                onclick="editForm(
+                                    '{{ formula.id }}',
+                                    '{{ formula.cantidad_inicial|parseFloat }}',
+                                    '{{ formula.producto_inicial.medida.abreviatura }}',
+                                    '{{ formula.producto_inicial.nombre }}',
+                                    '{{ formula.producto_inicial.id }}',
+                                    {% if formula.cantidad_final %}{{ formula.cantidad_final|parseFloat }}{% else %}''{% endif %},
+                                    '{{ formula.producto_final.medida.abreviatura }}',
+                                    '{{ formula.producto_final.nombre }}',
+                                    '{{ formula.producto_final.id }}'
+                                    )">
+                                    <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                                    </svg>
+                                </button>
+                                {% if formula.is_delete %}
+                                <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray" aria-label="Delete"
+                                data-modal-target="delete-modal" data-modal-toggle="delete-modal"  onclick="document.getElementById('id-delete').value='{{formula.id}}'">
+                                    <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                                {% else %}
+                                <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 cursor-not-allowed text-gray-400 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray">
+                                    <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="popup-modal" tabindex="-1" data-modal-backdrop="static"  class="fixed top-0 left-0 right-0 z-50 hidden p-4 overflow-hidden md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="w-auto max-w-5xl max-h-full">
+        <form class="p-2 bg-white rounded-lg shadow dark:bg-gray-700 max-h-full overflow-auto min-w-[33rem]" method="POST" action="/config-transformacion/">
+            {% csrf_token %}
+            <input type="text" id="edit_id" name="edit_id" class="hidden">
+
+            <div class="p-6" id="content-modal">
+                <div class="flex pb-6">
+                    <div class="w-2/3">
+                        <h5 class="mb-4 font-bold text-lg">Producto a ser convertido:</h5>
+                        <button id="dropdownProductoInicialButton" data-dropdown-toggle="dropdownProductoInicial" data-dropdown-placement="bottom" class="w-2/3 text-gray-900 bg-transparent focus:ring-none focus:outline-none font-medium text-sm pl-1 pr-5 text-center inline-flex items-center" type="button">
+                            <span id="select-inicial">{{productos.0.nombre}}</span>
+                            <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+                            </svg>
+                        </button>
+                            
+                        <!-- Dropdown menu -->
+                        <div id="dropdownProductoInicial" class="z-10 hidden bg-white rounded-lg shadow dark:bg-gray-700">
+                            <div class="p-3">
+                                <label for="input-search-inicial" class="sr-only">Search</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 rtl:inset-r-0 start-0 flex items-center ps-3 pointer-events-none">
+                                        <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+                                        </svg>
+                                    </div>
+                                    <input type="text" id="input-search-inicial" oninput="search('inicial')" class="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Buscar producto">
+                                </div>
+                            </div>
+                            <ul class="max-h-[20rem] px-3 pb-3 overflow-y-auto text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownProductoInicialButton">
+                                {% for producto in productos %}
+                                <li class="item-producto-inicial" id="inicial-{{producto.id}}">
+                                    <label for="producto-inicial-{{producto.id}}" class="flex items-center ps-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+                                        <input 
+                                        onchange=" document.getElementById('medida-inicial').innerText = '{{producto.medida.abreviatura}}',
+                                        document.getElementById('select-inicial').innerText = '{{producto.nombre}}'"
+
+                                        id="producto-inicial-{{producto.id}}" {% if forloop.counter == 1 %}checked{% endif %}
+                                        type="radio" name="producto_inicial" value="{{producto.id}}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-full focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                                        <label for="producto-inicial-{{producto.id}}" id="name-inicial-{{producto.id}}" class="w-full py-2 ms-2 text-sm font-medium text-gray-900 rounded dark:text-gray-300">{{producto.nombre}}</label>
+                                    </label>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+    
+                    <div class="w-1/3">
+                        <h5 class="mb-4 font-bold text-lg">Cantidad:</h5>
+                        <div class="w-1/3 flex items-center space-x-3">
+                            <button class="inline-flex items-center justify-center p-1 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" onclick="downInput('cant-inicial')" type="button">
+                                <span class="sr-only">Quantity button</span>
+                                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h16"></path>
+                                </svg>
+                            </button>
+                            <div class="flex items-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg px-1">
+                                <input type="number" step="0.01" step-my  id="cant-inicial" name="cantidad_inicial" class="w-14 focus:ring-0 border-0 bg-transparent block px-2.5 py-1 text-center" placeholder="1" min="0" value="1" required="">
+                                <h5 class="font-bold mx-2" id="medida-inicial">{{productos.0.medida.abreviatura}}</h5>
+                            </div>
+                            <button class="inline-flex items-center justify-center h-6 w-6 p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="upInput('cant-inicial')">
+                                <span class="sr-only">Quantity button</span>
+                                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex pt-6 border-t">
+                    <div class="w-2/3">
+                        <h5 class="mb-4 font-bold text-lg">Producto resultante:</h5>
+                        <button id="dropdownProductoFinalButton" data-dropdown-toggle="dropdownProductoFinal" data-dropdown-placement="bottom" class="w-2/3 text-gray-900 bg-transparent focus:ring-none focus:outline-none font-medium text-sm pl-1 pr-5 text-center inline-flex items-center" type="button"> 
+                            <span id="select-final">{{ productos.0.nombre }}</span>
+                            <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+                            </svg>
+                        </button>
+                            
+                        <!-- Dropdown menu -->
+                        <div id="dropdownProductoFinal" class="z-10 hidden bg-white rounded-lg shadow dark:bg-gray-700">
+                            <div class="p-3">
+                                <label for="input-search-final" class="sr-only">Search</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 rtl:inset-r-0 start-0 flex items-center ps-3 pointer-events-none">
+                                        <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+                                        </svg>
+                                    </div>
+                                    <input type="text" id="input-search-final" oninput="search('final')" class="block w-full p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Buscar producto">
+                                </div>
+                            </div>
+                            <ul class="max-h-[20rem] px-3 pb-3 overflow-y-auto text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownProductoFinalButton">
+                                {% for producto in productos %}
+                                <li class="item-producto-final" id="final-{{producto.id}}">
+                                    <label for="producto-final-{{producto.id}}" class="flex items-center ps-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+                                        <input
+                                        onchange=" document.getElementById('medida-final').innerText = '{{producto.medida.abreviatura}}',
+                                        document.getElementById('select-final').innerText = '{{producto.nombre}}'"
+
+                                        id="producto-final-{{producto.id}}" {% if forloop.counter == 1 %}checked{% endif %} 
+                                        type="radio" name="producto_final" value="{{producto.id}}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-full focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                                        <label for="producto-final-{{producto.id}}" id="name-final-{{producto.id}}" class="w-full py-2 ms-2 text-sm font-medium text-gray-900 rounded dark:text-gray-300">{{producto.nombre}}</label>
+                                    </label>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+    
+                    <div class="w-1/3">
+                        <div class="flex items-center mb-4">
+                            <input id="default-checkbox" type="checkbox" onchange="freeToControl(this.checked)" name="free_transform" checked value="False" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                            <label for="default-checkbox" class="ms-2 font-bold text-lg">Cantidad:</label>
+                        </div>
+                        <p id="text-admin-free" class="text-sm text-red-500 hidden">El administrador podrá indicar la cantidad resultante</p>
+                        <div id="div-admin-free" class="w-1/3 flex items-center space-x-3">
+                            <button class="inline-flex items-center justify-center p-1 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" onclick="downInput('cant-final')" type="button">
+                                <span class="sr-only">Quantity button</span>
+                                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h16"></path>
+                                </svg>
+                            </button>
+                            <div class="flex items-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg px-1">
+                                <input type="number" step="0.01" step-my  id="cant-final" name="cantidad_final" class="w-14 focus:ring-0 border-0 bg-transparent block px-2.5 py-1 text-center" placeholder="1" min="0" value="1" required="">
+                                <h5 class="font-bold mx-2" id="medida-final">{{productos.0.medida.abreviatura}}</h5>
+                            </div>
+                            <button class="inline-flex items-center justify-center h-6 w-6 p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="upInput('cant-final')">
+                                <span class="sr-only">Quantity button</span>
+                                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex mt-2 px-2" id="content-options">
+                <button type="button" class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600" id="btn-cancel" data-modal-hide="popup-modal">Cancelar</button>
+                <button type="submit" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2 " id="btn-accept">Agregar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<div id="delete-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <form class="relative bg-white rounded-lg shadow dark:bg-gray-700" method="POST" action="/config-transformacion/">
+            {% csrf_token %}
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="delete-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <input class="hidden" type="text" id="id-delete" name="delete-id">
+            <div class="p-4 md:p-5 text-center">
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">¿Estas seguro de eliminar la formula de transformación?</h3>
+                
+                <div class="flex mt-2 px-2 justify-center space-x-3" id="content-options-delete">
+                    <button data-modal-hide="delete-modal" id="btn-cancel-delete" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                    <button type="submit" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">Si, eliminar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock content %}
+
+
+{% block scripts %}
+
+<script type = "text/JavaScript">
+    const contentMenu = document.getElementById('content-menu');
+    contentMenu.scrollLeft = parseInt(localStorage.getItem("scroll-menu-config"));
+    contentMenu.onscroll = (e)=>{ 
+        localStorage.setItem("scroll-menu-config", JSON.stringify(contentMenu.scrollLeft))
+    }
+    const contentTable = document.getElementById('content-table');
+    contentTable.scrollTop = parseInt(localStorage.getItem("scroll-table-config-form-transf"));
+    contentTable.onscroll = (e)=>{ 
+        localStorage.setItem("scroll-table-config-form-transf", JSON.stringify(contentTable.scrollTop))
+    }
+
+    function editForm(id,cantidad_inicial,producto_inicial_abreviatura,producto_inicial_nombre,
+    producto_inicial_id,cantidad_final,producto_final_abreviatura,
+    producto_final_nombre,producto_final_id){
+        document.getElementById("edit_id").value = id
+        document.getElementById(`producto-inicial-${producto_inicial_id}`).value = producto_inicial_id
+        document.getElementById("select-inicial").innerText = producto_inicial_nombre
+        document.getElementById("cant-inicial").value = cantidad_inicial
+        document.getElementById("medida-inicial").innerText = producto_inicial_abreviatura
+
+        document.getElementById(`producto-final-${producto_final_id}`).value = producto_final_id
+        document.getElementById("select-final").innerText = producto_final_nombre
+        document.getElementById("cant-final").value = cantidad_final
+        document.getElementById("medida-final").innerText = producto_final_abreviatura
+
+        freeToControl(cantidad_final?true:false)
+        document.getElementById('default-checkbox').checked = cantidad_final?true:false;
+        document.getElementById("btn-accept").innerText = "Actualizar"
+    }
+    
+    function freeToControl(checked){
+        if(checked){
+            document.getElementById('text-admin-free').classList.add('hidden');
+            document.getElementById('div-admin-free').classList.remove('hidden');
+            document.getElementById('cant-final').required= true;
+        }
+        else{
+            document.getElementById('div-admin-free').classList.add('hidden');
+            document.getElementById('text-admin-free').classList.remove('hidden');
+            document.getElementById('cant-final').required= false;
+        }
+    }
+    
+    
+    function agregarFormulaTransformacion(){
+        let csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        let producto_inicial,producto_final;
+        
+        var productos_iniciales = document.getElementsByName('producto_inicial');
+        for (var i = 0; i < productos_iniciales.length; i++) {
+            if (productos_iniciales[i].checked) {
+                producto_inicial = productos_iniciales[i].value;
+                break;
+            }
+        }
+        
+        var productos_finales = document.getElementsByName('producto_final');
+        for (var i = 0; i < productos_finales.length; i++) {
+            if (productos_finales[i].checked) {
+                producto_final = productos_finales[i].value;
+                break;
+            }
+        }
+
+        let cantidad_inicial = document.getElementById('cant-inicial').value;
+        let cantidad_final = document.getElementById('cant-final').value;
+
+        loading(true,"Creando formula")
+
+        $.ajax({
+            url:"/config-transformacion/",
+            type:"post",
+            data:{
+                "producto_inicial" : producto_inicial,
+                "producto_final" : producto_final,
+                "cantidad_inicial" : cantidad_inicial,
+                "cantidad_final" : cantidad_final,
+                "csrfmiddlewaretoken" : csrf
+            },
+            dataType:"json",
+            success:function(response){
+                loading(false)
+                document.querySelector('[name=csrfmiddlewaretoken]').value = response.csrf;
+
+                if(response.register == "success"){
+                    document.getElementById("btn-cancel").click();
+                    window.location.reload();
+                }
+                else if(response.register == "exist"){
+                    let alert = document.getElementById("error-add");
+                    alert.innerHTML = `
+                    <svg class="w-6 h-6 mr-1" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+                    </svg>
+                    Ya existe esta formula de transformación`;
+                    alert.classList.remove("hidden");
+                }
+                else if(response.register == "error"){
+                    let alert = document.getElementById("error-add");
+                    alert.innerHTML = `
+                    <svg class="w-6 h-6 mr-1" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+                    </svg>
+                    Error al al crear formula de transformación`;
+                    alert.classList.remove("hidden");
+                }
+            },
+            error:function(response){
+                loading(false)
+                let alert = document.getElementById("error-add");
+                alert.innerHTML = `
+                <svg class="w-6 h-6 mr-1" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+                </svg>
+                Error al al crear formula de transformación`;
+                alert.classList.remove("hidden");
+            },
+        });
+    }
+
+    function upInput(id){
+        document.getElementById(id).value = parseInt(document.getElementById(id).value) + 1;
+    }
+
+    function downInput(id){
+        let element = document.getElementById(id);
+        if(parseInt(element.value) > 0){
+            element.value = parseInt(element.value) - 1;
+        }
+    }
+    
+    function search(p){
+        var elements = document.getElementsByClassName(`item-producto-${p}`);
+        for (var i = 0; i < elements.length; i++) {
+            var inputText = document.getElementById(`input-search-${p}`).value.toLowerCase();
+            var nameText = document.getElementById(`name-${elements[i].id}`).textContent.toLowerCase();
+
+            if (nameText.includes(inputText)) {
+                elements[i].classList.remove("hidden");
+            } else {
+                elements[i].classList.add("hidden");
+            }
+        }
+    }
+
+    function loading(v,t=""){
+        if(v){
+            document.getElementById("loading").classList.remove("hidden");
+            document.getElementById("content-options").classList.add("hidden");
+            document.getElementById("text-loadding").innerText = t;
+        }
+        else{
+            document.getElementById("loading").classList.add("hidden");
+            document.getElementById("content-options").classList.remove("hidden");
+    
+        }
+    }
+</script>
+
+{% endblock scripts %}

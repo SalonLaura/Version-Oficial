@@ -1,0 +1,675 @@
+{% extends 'estudio/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+                
+{% block content %}
+<div class="w-full flex justify-center p-12">
+    <div class="w-full">
+
+        <div class="w-full h-72 bg-white  border  overflow-y-auto rounded-t-xl">
+            <p class="text-xs text-gray-700 uppercase bg-gray-100 text-center p-2 border-b font-bold">Servicios vinculados a contratos</p>
+            <table class="w-full text-sm text-left text-gray-500">
+                <thead class="bg-white">
+                    <tr class="text-xs text-gray-700 uppercase bg-gray-50 z-30 sticky top-0">
+                        <th scope="col" class="px-6 py-3"> Nombre del servicio </th>
+                        <th scope="col" class="px-6 py-3 text-center"> Detalles </th>
+                        <th scope="col" class="px-6 py-3 text-center"> Estados </th>
+
+                        <th scope="col" class="px-6 py-3 text-center"> Costo </th>
+                        <th scope="col" class="px-3 py-1 flex justify-center">
+                            <button class="flex items-center justify-between border border-gray-300 px-3 py-1.5 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-200 hover:bg-gray-300 rounded-lg focus:outline-none focus:shadow-outline-gray"
+                            onclick="document.getElementById('btn-accept-servicio').innerText='Agregar',
+                            document.getElementById('content-pagos-servicios').classList.add('hidden'),
+                            document.getElementById('id-edit-servicio').value='',
+                            document.getElementById('nombre-servicio').value='',
+                            document.getElementById('servicio-contrato').value='true',
+                            document.getElementById('costo-servicio').value='',
+                            document.getElementById('precio-servicio').value='',
+                            document.getElementById('moneda_precio-servicio').value='USD',
+                            document.getElementById('descripcion-servicio').value='',
+                            document.getElementById('div-agregar-servicio').classList.add('hidden'),
+                            document.getElementById('precio-servicio').removeAttribute('required'),
+                            document.getElementById('estado-servicio').value=''"
+                             data-modal-target="servicio-modal" data-modal-toggle="servicio-modal">
+                                Agregar servicio
+                            </button>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="">
+                    {% for servicio in servicios %}
+                    {% if servicio.contrato %}
+                    <tr>
+                        <td class="px-6 py-1 text-base font-semibold">{{ servicio.nombre }}</td>
+                        <td class="px-3 py-1 text-base font-semibold text-center">{{ servicio.descripcion }}</td>
+                        <td class="px-3 py-1 text-base font-semibold text-center">{{ servicio.estados_str }}</td>
+                        <td class="px-3 py-1 text-base font-semibold text-center">${{ servicio.costo|toMoney }} {{servicio.moneda_costo}}</td>
+                        
+                        <td class="px-6 py-1 flex justify-center">
+                            <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray mr-6" aria-label="Edit"
+                            data-modal-target="servicio-modal" data-modal-toggle="servicio-modal" 
+                            onclick="document.getElementById('btn-accept-servicio').innerText='Actualizar',
+                            document.getElementById('id-edit-servicio').value='{{servicio.id}}',
+                            document.getElementById('nombre-servicio').value='{{servicio.nombre}}',
+                            document.getElementById('content-pagos-servicios').classList.add('hidden'),
+                            document.getElementById('servicio-contrato').value='true',
+                            document.getElementById('costo-servicio').value='{{servicio.costo|parseFloat}}',
+                            document.getElementById('precio-servicio').value='{{servicio.precio|parseFloat}}',
+                            document.getElementById('moneda_precio-servicio').value='{{servicio.moneda_precio}}',
+                            document.getElementById('div-agregar-servicio').classList.add('hidden'),
+                            document.getElementById('precio-servicio').removeAttribute('required'),
+                            document.getElementById('descripcion-servicio').value='{{servicio.descripcion}}',
+                            document.getElementById('estado-servicio').value='{{servicio.estado.id}}'">
+                                <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                                </svg>
+                            </button>
+                            <button data-modal-target="delete-modal" data-modal-toggle="delete-modal"  aria-label="Delete" 
+                            onclick="document.getElementById('id-delete').value='{{servicio.id}}',document.getElementById('delete-form').setAttribute('action','/estudio/add-servicio/')"
+                            class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray">
+                                <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="w-full h-72 bg-white  border  overflow-y-auto mt-1">
+            <p class="text-xs text-gray-700 uppercase bg-gray-100 text-center p-2 border-b font-bold">Servicios no vinculados a contratos</p>
+            <table class="w-full text-sm text-left text-gray-500">
+                <thead class="bg-white">
+                    <tr class="text-xs text-gray-700 uppercase bg-gray-50 z-30 sticky top-0">
+                        <th scope="col" class="px-6 py-3"> Nombre del servicio </th>
+                        <th scope="col" class="px-6 py-3 text-center"> Detalles </th>
+                        <th scope="col" class="px-6 py-3 text-center"> Estados </th>
+
+                        <th scope="col" class="px-6 py-3 text-center"> Costo </th>
+                        <th scope="col" class="px-6 py-3 text-center"> Precio </th>
+                        <th scope="col" class="px-3 py-1 flex justify-center">
+                            <button class="flex items-center justify-between border border-gray-300 px-3 py-1.5 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-200 hover:bg-gray-300 rounded-lg focus:outline-none focus:shadow-outline-gray"
+                            onclick="document.getElementById('btn-accept-servicio').innerText='Agregar',
+                            document.getElementById('content-pagos-servicios').classList.remove('hidden'),
+                            document.getElementById('id-edit-servicio').value='',
+                            document.getElementById('nombre-servicio').value='',
+                            document.getElementById('pago_fotografo_servicio').value='',
+                            document.getElementById('pago_responsable_servicio').value='',
+                            document.getElementById('costo-servicio').value='',
+                            document.getElementById('servicio-contrato').value='',
+                            document.getElementById('precio-servicio').value='',
+                            document.getElementById('moneda_precio-servicio').value='USD',
+                            document.getElementById('descripcion-servicio').value='',
+                            document.getElementById('div-agregar-servicio').classList.remove('hidden'),
+                            document.getElementById('precio-servicio').setAttribute('required',true),
+                            document.getElementById('estado-servicio').value=''"
+                             data-modal-target="servicio-modal" data-modal-toggle="servicio-modal">
+                                Agregar servicio
+                            </button>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="">
+                    {% for servicio in servicios %}
+                    {% if not servicio.contrato %}
+                    <tr>
+                        <td class="px-6 py-1 text-base font-semibold">{{ servicio.nombre }}</td>
+                        <td class="px-3 py-1 text-base font-semibold text-center">{{ servicio.descripcion }}</td>
+                        <td class="px-3 py-1 text-base font-semibold text-center">{{ servicio.estados_str }}</td>
+                        <td class="px-3 py-1 text-base font-semibold text-center">${{ servicio.costo|toMoney }} {{servicio.moneda_costo}}</td>
+                        <td class="px-3 py-1 text-base font-semibold text-center truncate">${{ servicio.precio|toMoney }} {{servicio.moneda_precio}}</td>
+                        
+                        <td class="px-6 py-1 flex justify-center">
+                            <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray mr-6" aria-label="Edit"
+                            data-modal-target="servicio-modal" data-modal-toggle="servicio-modal" 
+                            onclick="document.getElementById('btn-accept-servicio').innerText='Actualizar',
+                            document.getElementById('id-edit-servicio').value='{{servicio.id}}',
+                            document.getElementById('nombre-servicio').value='{{servicio.nombre}}',
+                            document.getElementById('content-pagos-servicios').classList.remove('hidden'),
+                            document.getElementById('pago_fotografo_servicio').value='{{servicio.pago_fotografo|parseFloat}}',
+                            document.getElementById('pago_responsable_servicio').value='{{servicio.pago_responsable|parseFloat}}',
+                            document.getElementById('servicio-contrato').value='',
+                            document.getElementById('costo-servicio').value='{{servicio.costo|parseFloat}}',
+                            document.getElementById('precio-servicio').value='{{servicio.precio|parseFloat}}',
+                            document.getElementById('div-agregar-servicio').classList.remove('hidden'),
+                            document.getElementById('precio-servicio').setAttribute('required',true),
+                            document.getElementById('moneda_precio-servicio').value='{{servicio.moneda_precio}}',
+                            document.getElementById('descripcion-servicio').value='{{servicio.descripcion}}',
+                            document.getElementById('estado-servicio').value='{{servicio.estado.id}}'">
+                                <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                                </svg>
+                            </button>
+                            <button data-modal-target="delete-modal" data-modal-toggle="delete-modal"  aria-label="Delete" 
+                            onclick="document.getElementById('id-delete').value='{{servicio.id}}',document.getElementById('delete-form').setAttribute('action','/estudio/add-servicio/')"
+                            class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray">
+                                <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="w-full h-72 bg-white  border  overflow-y-auto mt-1">
+            <table class="w-full text-sm text-left text-gray-500">
+                <thead class="bg-white">
+                    <tr class="text-xs text-gray-700 uppercase bg-gray-50 z-30 sticky top-0">
+                        <th scope="col" class="px-6 py-3"> Nombre del contrato </th>
+                        <th scope="col" class="px-6 py-3"> Tipo </th>
+                        <th scope="col" class="px-6 py-3"> Servicios </th>
+                        <th scope="col" class="px-6 py-3 text-center"> Precio </th>
+                        <th scope="col" class="px-6 py-3 text-center"> Anticipo </th>
+                        <th scope="col" class="px-3 py-1 flex justify-center">
+                            <button class="flex items-center justify-between border border-gray-300 px-3 py-1.5 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-200 hover:bg-gray-300 rounded-lg focus:outline-none focus:shadow-outline-gray"
+                                onclick="" data-modal-target="contrato-modal" data-modal-toggle="contrato-modal">
+                                Agregar contrato
+                            </button>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="">
+                    {% for contrato in contratos %}
+                    <tr>
+                        <td class="px-6 py-1 text-base font-semibold">{{ contrato.nombre }}</td>
+                        <td class="px-6 py-1 text-base font-semibold">{{ contrato.tipo.nombre }}</td>
+                        <td class="px-6 py-1 text-base font-semibold">{{ contrato.servicios_str }}</td>
+                        <td class="px-3 py-1 text-base font-semibold text-center truncate">${{ contrato.precio|toMoney }} {{contrato.moneda_precio}}</td>
+                        <td class="px-3 py-1 text-base font-semibold text-center truncate">${{ contrato.anticipo|toMoney }} {{contrato.moneda_anticipo}}</td>
+                        <td class="px-6 py-4 flex justify-center">
+                            <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray mr-6" aria-label="Edit"
+                            data-modal-target="contrato-modal" data-modal-toggle="contrato-modal" 
+                            onclick="openEditContrato('{{contrato.id}}','{{contrato.nombre}}','{{contrato.tipo.id}}','{{contrato.precio|parseFloat}}','{{contrato.moneda_precio}}','{{contrato.anticipo|parseFloat}}','{{contrato.moneda_anticipo}}',
+                            [{% for servicio in contrato.servicios.all %}{'id':{{servicio.servicio.id}},'c':{{servicio.cantidad|parseFloat}}},{% endfor %}],'{{contrato.pago_fotografo|parseFloat}}','{{contrato.pago_responsable|parseFloat}}','{{contrato.pago_gestor|parseFloat}}','{{contrato.monto_bolsa|parseFloat}}')">
+                                <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                                </svg>
+                            </button>
+                            <button data-modal-target="delete-modal" data-modal-toggle="delete-modal"  aria-label="Delete" 
+                            onclick="document.getElementById('id-delete').value='{{contrato.id}}',document.getElementById('delete-form').setAttribute('action','/estudio/add-contrato/')"
+                            class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray">
+                                <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="flex space-x-1 mt-1">
+            <div class="w-1/2 h-72 bg-white  border  overflow-y-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="bg-white">
+                        <tr class="text-xs text-gray-700 uppercase bg-gray-50 z-30 sticky top-0">
+                            <th scope="col" class="px-6 py-3"> Tipo de contrato </th>
+                            <th scope="col" class="px-3 py-1 flex justify-center">
+                                {% include 'estudio/config/btn_add.html' with titulo='Agregar tipo de contrato' tag='tipo-contrato' %}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="">
+                        {% for t in tipos %}
+                        {% include 'estudio/config/row.html' with titulo='Agregar tipo de contrato' id=t.id nombre=t.nombre tag='tipo-contrato' %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="w-1/2 h-72 bg-white  border  overflow-y-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="bg-white">
+                        <tr class="text-xs text-gray-700 uppercase bg-gray-50 z-30 sticky top-0">
+                            <th scope="col" class="px-6 py-3"> Nombre del grupo </th>
+                            <th scope="col" class="px-6 py-3"> Estados de los servicios </th>
+                            <th scope="col" class="px-3 py-1 flex justify-center">
+                                <button class="flex items-center justify-between border border-gray-300 px-3 py-1.5 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-200 hover:bg-gray-300 rounded-lg focus:outline-none focus:shadow-outline-gray"
+                                onclick="limpiarEstados()" data-modal-target="estados-modal" data-modal-toggle="estados-modal">
+                                    Agregar estados
+                                </button>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="">
+                        {% for e in estados %}
+                        <tr>
+                            <td class="px-6 py-1 text-base font-semibold">{{ e.nombre }}</td>
+                            <td class="px-6 py-1 text-base font-semibold">{{ e.estados_str }}</td>
+                            <td class="px-6 py-1 flex justify-center">
+                                <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray mr-6" aria-label="Edit"
+                                data-modal-target="estados-modal" data-modal-toggle="estados-modal" 
+                                onclick="limpiarEstados(),document.getElementById('btn-accept-estados').innerText='Actualizar',document.getElementById('id-edit-estado').value='{{e.id}}',document.getElementById('nombre-estado').value='{{e.nombre}}',{% for est in e.estados.all %}addEstadoServicio('{{est.nombre}}','{{est.duracion|parseFloat}}','{{est.id}}'),{% endfor %}console.log('ok')">
+                                    <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                                    </svg>
+                                </button>
+                                <button data-modal-target="delete-modal" data-modal-toggle="delete-modal"  aria-label="Delete" 
+                                onclick="document.getElementById('id-delete').value='{{e.id}}',document.getElementById('delete-form').setAttribute('action','/estudio/add-estados/')"
+                                class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray">
+                                    <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="flex space-x-1 mt-1">
+            <div class="w-1/3 h-72 bg-white  border  overflow-y-auto rounded-bl-xl">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="bg-white">
+                        <tr class="text-xs text-gray-700 uppercase bg-gray-50 z-30 sticky top-0">
+                            <th scope="col" class="px-6 py-3"> Nombre del fotógrafo </th>
+                            <th scope="col" class="px-3 py-1 flex justify-center">
+                                {% include 'estudio/config/btn_add.html' with titulo='Agregar fotógrafo' tag='fotografo' %}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="">
+                        {% for f in fotografos %}
+                        {% include 'estudio/config/row.html' with titulo='Actualizar fotógrafo' id=f.id nombre=f.nombre tag='fotografo' %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="w-1/3 h-72 bg-white  border  overflow-y-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="bg-white">
+                        <tr class="text-xs text-gray-700 uppercase bg-gray-50 z-30 sticky top-0">
+                            <th scope="col" class="px-6 py-3"> Casa de impresión </th>
+                            <th scope="col" class="px-3 py-1 flex justify-center">
+                                {% include 'estudio/config/btn_add.html' with titulo='Agregar casa de impresión' tag='casa-impresion' %}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="">
+                        {% for r in casas_impresion %}
+                        {% include 'estudio/config/row.html' with titulo='Editar casa de impresión' id=r.id nombre=r.nombre tag='casa-impresion' %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="w-1/3 h-72 bg-white border  overflow-y-auto rounded-br-xl">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="bg-white">
+                        <tr class="text-xs text-gray-700 uppercase bg-gray-50 z-30 sticky top-0">
+                            <th scope="col" class="px-6 py-3"> Nombre del editor </th>
+                            <th class="px-6 py-3"> Pago </th>
+                            <th scope="col" class="px-3 py-1 flex justify-center">
+                                {% include 'estudio/config/btn_add.html' with titulo='Agregar editor' pago=1 tag='editor' %}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="">
+                        {% for e in editores %}
+                        {% include 'estudio/config/row.html' with titulo='Actualizar editor' pago=e.pago|parseFloat id=e.id nombre=e.nombre tag='editor' %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="trabajador-modal" tabindex="-1" data-modal-backdrop="static"  class="fixed top-0 left-0 right-0 z-50 hidden p-4 overflow-hidden md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="w-auto max-w-5xl max-h-full">
+        <form id="form-add-trabajador" class="p-2 bg-white rounded-lg shadow dark:bg-gray-700 max-h-full overflow-auto min-w-[25rem]" method="POST" action="">
+            {% csrf_token %}
+            <input class="hidden" type="text" id="id-edit" name="id-edit">
+            <div class="p-6">
+                <h1 class="mb-4 text-xl font-bold text-gray-700 dark:text-gray-200" id="label-header">Agregar fotógrafo</h1>
+                <div class="">
+                    <p class="text-gray-700 m-1.5 font-semibold">Nombre:</p>
+                    <input class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5" placeholder="" type="text" maxlength="100" name="nombre" id="nombre_trabajador" required>
+                </div>
+                
+                <div class="mt-2" id="div_pago_trabajador">
+                    <p class="text-gray-700 mx-1.5 mt-2 mb-2 font-semibold w-full">Pago: </p>
+                    <input class="bg-gray-50 border border-gray-300 text-gray-900 w-full text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5" placeholder="$0.00" type="number" step="0.01" step-my  id="pago_trabajador" name="pago_trabajador" required>
+                </div>
+            </div>
+            <div class="flex mt-2 px-2" id="content-options">
+                <button type="button" class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600" data-modal-hide="trabajador-modal">Cancelar</button>
+                <button type="submit" id="btn-accept-trabajador" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2 ">Agregar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="estados-modal" tabindex="-1" data-modal-backdrop="static"  class="fixed top-0 left-0 right-0 z-50 hidden p-4 overflow-hidden md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="w-auto max-w-5xl max-h-full">
+        <form class="p-2 bg-white rounded-lg shadow dark:bg-gray-700 max-h-full overflow-auto min-w-[25rem]" method="POST" action="/estudio/add-estados/">
+            {% csrf_token %}
+            <input class="hidden" type="text" id="id-edit-estado" name="id-edit" value="">
+            <div class="p-6">
+                <h1 class="mb-4 text-xl font-bold text-gray-700 dark:text-gray-200">Agregar estados para servicios</h1>
+                <div class="">
+                    <p class="text-gray-700 m-1.5 font-semibold">Nombre identificativo:</p>
+                    <input class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5" placeholder="" type="text" maxlength="100" name="nombre" id="nombre-estado" required>
+                </div>
+                <div class="flex flex-col">
+                    <div class="flex w-full justify-between">
+                        <h1 class="my-1 text-md font-semibold text-black dark:text-white">Estados del proceso:</h1>                            
+                        <button class="flex focus:outline-none text-sm font-bold text-green-600 items-center" onclick="addEstadoServicio()" type="button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" class="mr-1">
+                                <path fill="currentColor" d="M11 17h2v-4h4v-2h-4V7h-2v4H7v2h4zm1 5q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22"/>
+                            </svg>
+                            Agregar
+                        </button>
+                    </div>
+                
+                    <div class="w-full h-48 border overflow-auto">
+                        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                            <thead class="bg-white">
+                                <tr class="text-xs text-gray-700 bg-gray-50 dark:bg-gray-700 dark:text-gray-400  sticky top-0">
+                                    <th scope="col" class="px-6 py-3"> Estado </th>
+                                    <th scope="col" class="px-6 py-3"> Duración (Días) </th>
+                                </tr>
+                            </thead>
+                            <tbody id="body-gastos-asociados">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="flex mt-2 px-2" id="content-options">
+                <button type="button" class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600" data-modal-hide="estados-modal">Cancelar</button>
+                <button type="submit" id="btn-accept-estados" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2 ">Agregar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="servicio-modal" tabindex="-1" data-modal-backdrop="static"  class="fixed top-0 left-0 right-0 z-50 hidden p-4 overflow-hidden md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="w-auto max-w-5xl max-h-full">
+        <form class="p-2 bg-white rounded-lg shadow dark:bg-gray-700 max-h-full overflow-auto min-w-[25rem]" method="POST" action="/estudio/add-servicio/">
+            {% csrf_token %}
+            <input class="hidden" name="id-edit" id="id-edit-servicio">
+            <input class="hidden" name="servicio-contrato" id="servicio-contrato">
+            <div class="p-6">
+                <h1 class="mb-4 text-xl font-bold text-gray-700 dark:text-gray-200">Agregar servicio</h1>
+                <div class="">
+                    <p class="text-gray-700 m-1.5 font-semibold">Nombre:</p>
+                    <input class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="" type="text" maxlength="100" name="nombre" id="nombre-servicio" required>
+
+                    <div class="flex w-full justify-between space-x-3 m-1.5">            
+                        <div class="w-1/3">                  
+                            <p class="text-gray-700 font-semibold">Costo:</p>
+                            <input step="0.001" class="bg-gray-50 w-full border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block px-2.5" placeholder="" type="number" step="0.01" step-my  name="costo" id="costo-servicio" required>
+                        </div>
+
+                        <div class="w-1/3">  
+                            <div class="w-full" id="div-agregar-servicio">  
+                                <p class="text-gray-700 font-semibold">Precio:</p>
+                                <input step="0.001" class="bg-gray-50 w-full border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block px-2.5" placeholder="" type="number" step="0.01" step-my  name="precio" id="precio-servicio" required>
+                            </div>
+                        </div>
+                        <div class="w-1/3">  
+                            <p class="text-gray-700 font-semibold">Moneda:</p>
+                            <select class="bg-gray-50 w-full h-10 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block px-2.5" name="moneda_precio" id="moneda_precio-servicio">
+                                <option value="USD">USD</option>
+                                <option value="CUP">CUP</option>
+                            </select>
+                        </div>
+                    </div>
+                
+                    <p class="text-gray-700 m-1.5 font-semibold">Descripción:</p>
+                    <textarea name="descripcion" rows="4" class="block mt-2 p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500" id="descripcion-servicio" 
+                    placeholder="Ofresca una descripción del servicio..."></textarea>
+
+                    <p class="text-gray-700 m-1.5 font-semibold">Asignar estados:</p>
+                    <select class="bg-gray-50 w-full border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block mt-2 p-2.5" name="estado" required id="estado-servicio" >
+                        <option disabled selected value="">Seleccionar estados</option>
+                        {% for e in estados %}
+                        <option value="{{e.id}}">{{e.nombre}}</option>
+                        {% endfor %}
+                    </select>
+
+                    <div class="flex w-full space-x-2" id="content-pagos-servicios">
+                        <div class="w-1/2 mt-2 pt-2">
+                            <p class="text-gray-700 mx-1.5 mt-2 font-semibold w-full">Pago a fotógrafo: </p>
+                            <input class="bg-gray-50 mt-2 border border-gray-300 text-gray-900 w-full text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5" placeholder="$0.00" type="number" step="0.01" step-my  id="pago_fotografo_servicio" name="pago_fotografo">
+                        </div>
+                        <div class="w-1/2 mt-2 pt-2">
+                            <p class="text-gray-700 mx-1.5 mt-2 font-semibold w-full truncate">Pago a responsable/maquillista: </p>
+                            <input class="bg-gray-50 mt-2 border border-gray-300 text-gray-900 w-full text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5" placeholder="$0.00" type="number" step="0.01" step-my  id="pago_responsable_servicio" name="pago_responsable">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex mt-2 px-2" id="content-options">
+                <button type="button" class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600" id="btn-cancel" data-modal-hide="servicio-modal">Cancelar</button>
+                <button type="submit" id="btn-accept-servicio" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2 ">Agregar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="contrato-modal" tabindex="-1" data-modal-backdrop="static"  class="fixed top-0 left-0 right-0 z-50 hidden p-4 overflow-hidden md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="w-auto max-w-5xl max-h-full">
+        <form class="p-2 bg-white rounded-lg shadow dark:bg-gray-700 max-h-full overflow-auto min-w-[25rem]" method="POST" action="/estudio/add-contrato/">
+            {% csrf_token %}
+            <div class="p-6">
+                <h1 class="mb-4 text-xl font-bold text-gray-700 dark:text-gray-200">Agregar contrato</h1>
+                <p class="text-gray-700 m-1.5 font-semibold">Nombre:</p>
+                <input class="hidden" name="id-edit" id="edit-contrato-id">
+                <input class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5" placeholder="" type="text" maxlength="100" name="nombre" id="nombre-contrato" required>
+            
+                <p class="text-gray-700 m-1.5 font-semibold">Tipo de contrato:</p>
+                <select name="tipo" id="tipo-contrato" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5">
+                    {% for t in tipos %}
+                    <option value="{{ t.id }}">{{ t.nombre }}</option>
+                    {% endfor %}
+                </select>
+                
+                <div class="flex space-x-3 mt-6">
+                    <div class="w-1/3">  
+                        <p class="text-gray-700 font-semibold">Precio:</p>
+                        <div class="w-full flex">
+                            <input class="bg-gray-50 w-1/2 border border-gray-300 text-gray-900 text-sm rounded-l-lg focus:ring-purple-500 focus:border-purple-500 block px-2.5" placeholder="" type="number" step="0.01" step-my  name="precio" id="precio-contrato" required>
+                            <select class="bg-gray-50 w-1/2 border border-gray-300 text-gray-900 text-sm rounded-r-lg focus:ring-purple-500 focus:border-purple-500 block pl-2.5" name="moneda_precio" id="moneda_precio-contrato">
+                                <option value="USD">USD</option>
+                                <option value="CUP">CUP</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="w-1/3">  
+                        <p class="text-gray-700 font-semibold">Anticipo:</p>
+                        <div class="w-full flex">
+                            <input class="bg-gray-50 w-1/2 border border-gray-300 text-gray-900 text-sm rounded-l-lg focus:ring-purple-500 focus:border-purple-500 block px-2.5" placeholder="" type="number" step="0.01" step-my  id="anticipo-contrato" name="anticipo" required>
+                            <select class="bg-gray-50 w-1/2 border border-gray-300 text-gray-900 text-sm rounded-r-lg focus:ring-purple-500 focus:border-purple-500 block pl-2.5" name="moneda_anticipo" id="moneda_anticipo-contrato">
+                                <option value="USD">USD</option>
+                                <option value="CUP">CUP</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="w-1/3">
+                        <p class="text-gray-700 font-semibold">Descontar de bolsa:</p>
+                        <input class="bg-gray-50 border border-gray-300 text-gray-900 w-full text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5" placeholder="$0.00" type="number" step="0.01" step-my  id="monto_bolsa" name="monto_bolsa" required>
+                    </div>
+                </div>
+                
+                <div class="flex w-full mt-2 space-x-2">
+                    <div class="w-1/3 mt-2 pt-2">
+                        <p class="text-gray-700 mx-1.5 mt-2 font-semibold w-full">Pago a fotógrafo: </p>
+                        <p class="text-gray-700 mx-1.5 font-light w-full text-xs mb-1">(Después de realizado el contrato)</p>
+                        <input class="bg-gray-50 border border-gray-300 text-gray-900 w-full text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5" placeholder="$0.00" type="number" step="0.01" step-my  id="pago_fotografo" name="pago_fotografo" required>
+                    </div>
+                    <div class="w-1/3 mt-2 pt-2">
+                        <p class="text-gray-700 mx-1.5 mt-2 font-semibold w-full">Pago a responsable: </p>
+                        <p class="text-gray-700 mx-1.5 font-light w-full text-xs mb-1">(Después de realizado el contrato)</p>
+                        <input class="bg-gray-50 border border-gray-300 text-gray-900 w-full text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5" placeholder="$0.00" type="number" step="0.01" step-my  id="pago_responsable" name="pago_responsable" required>
+                    </div>
+                    <div class="w-1/3 mt-2 pt-2">
+                        <p class="text-gray-700 mx-1.5 mt-2 font-semibold w-full">Pago a gestor: </p>
+                        <p class="text-gray-700 mx-1.5 font-light w-full text-xs mb-1">(Después de terminado el contrato)</p>
+                        <input class="bg-gray-50 border border-gray-300 text-gray-900 w-full text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5" placeholder="$0.00" type="number" step="0.01" step-my  id="pago_gestor" name="pago_gestor" required>
+                    </div>
+                </div>
+            
+
+                <div class="flex flex-col space-y-2 max-h-72 overflow-auto">
+                    <p class="text-gray-700 mx-1.5 mt-2 font-semibold">Servicios:</p>
+                    {% for servicio in servicios %}
+                    {% if servicio.contrato %}
+                    <div class="rounded-lg border border-gray-300 flex items-center py-1 px-2">
+                        <div class="flex items-center w-2/3">
+                            <input id="servicio-{{ servicio.id }}" type="checkbox" value="{{ servicio.id }}" name="servicio" class="all-servicios w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                            onchange="disabledInput('{{ servicio.id }}',this.checked)">
+                            <label for="servicio-{{ servicio.id }}" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{ servicio.nombre }}</label>
+                        </div>
+                        <input type="number" step="0.01" step-my  id="cantidad-{{ servicio.id }}" name="cantidad" disabled class="bg-white w-1/3 text-gray-900 text-sm border-0 border-l border-gray-300 focus:ring-0 focus:border-0 focus:border-l focus:border-gray-300 block px-2.5 py-1" value="0" required="">
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                
+            </div>
+            <div class="flex mt-2 px-2" id="content-options">
+                <button type="button" class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700" id="btn-cancel" data-modal-hide="contrato-modal">Cancelar</button>
+                <button id="btn-add-contrato" type="submit" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2 ">Agregar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="delete-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <form class="relative bg-white rounded-lg shadow dark:bg-gray-700" method="POST" id="delete-form" action="">
+            {% csrf_token %}
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="delete-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <input class="hidden" type="text" id="id-delete" name="id-delete">
+            <div class="p-4 md:p-5 text-center">
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">¿Estas seguro de ejecutar la acción?</h3>
+                <div class="flex mt-2 px-2 justify-center space-x-3" id="content-options-delete">
+                    <button data-modal-hide="delete-modal" id="btn-cancel-delete" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                    <button type="submit" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">Si, eliminar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block scripts %}
+
+<script >
+    function disabledInput(id,checked){
+        document.getElementById('cantidad-'+id).disabled = !checked; 
+        if(!checked){
+            document.getElementById('cantidad-'+id).value=0;
+        }
+        else{
+            document.getElementById('cantidad-'+id).value=1;
+        }
+    }
+    function openEditContrato(id,n,tc,p,mp,a,ma,servicios,pf,pr,pg,mb){
+        limpiarContrato()
+
+        document.getElementById("nombre-contrato").value=n;
+        document.getElementById("tipo-contrato").value=tc;
+        document.getElementById("precio-contrato").value=p;
+        document.getElementById("moneda_precio-contrato").value=mp;
+        document.getElementById("anticipo-contrato").value=a;
+        document.getElementById("moneda_anticipo-contrato").value=ma;
+        document.getElementById("edit-contrato-id").value=id;
+        document.getElementById("pago_fotografo").value=pf;
+        document.getElementById("pago_responsable").value=pr;
+        document.getElementById("pago_gestor").value=pg;
+        document.getElementById("monto_bolsa").value=mb;
+        document.getElementById("btn-add-contrato").innerText="Actualizar";
+        
+        servicios.forEach(s => {
+            disabledInput(s.id,true)
+            document.getElementById(`servicio-${s.id}`).checked = true;
+            document.getElementById(`cantidad-${s.id}`).value=s.c;
+        })
+    }
+    
+    function limpiarContrato(){
+        document.getElementById("nombre-contrato").value="";
+        document.getElementById("tipo-contrato").value="";
+        document.getElementById("precio-contrato").value="";
+        document.getElementById("moneda_precio-contrato").value="";
+        document.getElementById("anticipo-contrato").value="";
+        document.getElementById("moneda_anticipo-contrato").value="";
+        document.getElementById("edit-contrato-id").value="";
+        document.getElementById("pago_fotografo").value=0.0;
+        document.getElementById("pago_responsable").value=0.0;
+        document.getElementById("pago_gestor").value=0.0;
+        document.getElementById("monto_bolsa").value=0.0;
+        document.getElementById("btn-add-contrato").innerText="Agregar";
+        
+        var servicios = document.querySelectorAll('.all-servicios');
+        servicios.forEach(s => {
+            disabledInput(s.id.replace("servicio-",""),false)
+            s.checked = false;
+        })
+    }
+    
+    function limpiarEstados(){
+        document.getElementById('id-edit-estado').value='';
+        document.getElementById('btn-accept-estados').innerText='Agregar';
+        document.getElementById("nombre-estado").value="";
+        const tbody = document.getElementById('body-gastos-asociados');
+        while (tbody.firstChild) {
+            tbody.removeChild(tbody.firstChild);
+        }
+    }
+
+
+    function addEstadoServicio(n='',d='',id=''){
+        const date = new Date();
+        const miliseconds = date.getMilliseconds();
+
+        let content = document.getElementById("body-gastos-asociados");
+
+        const newGasto = document.createElement('tr');
+        newGasto.id = `gasto-${miliseconds}`;
+        newGasto.innerHTML = `
+        <th scope="col" class="py-1">
+            <div class="bg-transparent flex">
+                <button type="button" class="text-red-500 px-1 material-icons text-md" onclick="document.getElementById('gasto-${miliseconds}').remove()">delete_outline</button>
+                <input type="text" value="${n}" name="estado-nombre" class="font-normal bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="" required>
+            </div>
+        </th>
+        <th scope="col" class="py-1 flex justify-center">
+            <input type="number" step="0.01" step-my  value="${d}" name="estado-duracion" class="font-normal bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-24 p-1.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" min="1" placeholder="" required>
+        </th>
+        <input type="number" step="0.01" step-my  class="hidden" value="${id}" name="id-estado">
+        `;
+
+        content.appendChild(newGasto);
+
+    }
+</script >
+    
+{% endblock scripts %}

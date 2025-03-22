@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+<script src="{% static 'js/datepicker.min.js' %}"></script>
+{% endblock styles %}
+                
+{% block content %}
+
+<div class="flex flex-col items-center p-6 w-full h-full">
+    <div class="w-full flex flex-col mb-3 rounded-lg shadow p-0.5 bg-white">
+        <ul class="items-center text-sm font-medium text-center text-gray-500 flex-1 flex space-x-1 dark:text-gray-400">
+            <li class="w-full">
+                <a href="{% url 'OperacionesCaja' %}" 
+                class="{% if "caja/operaciones" in request.path %}inline-block w-full p-4 text-gray-900 bg-purple-200 rounded-lg focus:ring-0 active focus:outline-none dark:bg-gray-700 dark:text-white
+                {% else %}inline-block w-full p-4 hover:text-gray-700 rounded-lg hover:bg-gray-100 focus:ring-0 focus:outline-none dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700
+                {% endif %}" aria-current="page">
+                Operaciones en caja</a>
+            </li>
+            <li class="w-full">
+                <a href="{% url 'ReciboEfectivoCaja' %}" 
+                class="{% if "caja/recibo-efectivo" in request.path %}inline-block w-full p-4 text-gray-900 bg-purple-200 rounded-lg focus:ring-0 active focus:outline-none dark:bg-gray-700 dark:text-white
+                {% else %}inline-block w-full p-4 hover:text-gray-700 rounded-lg hover:bg-gray-100 focus:ring-0 focus:outline-none dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700
+                {% endif %}" aria-current="page">
+                Recibo de efectivo</a>
+            </li>
+            <li class="w-full">
+                <a href="{% url 'HistorialRecepcionCaja' %}" 
+                class="{% if "caja/historial-recibo" in request.path %}inline-block w-full p-4 text-gray-900 bg-purple-200 rounded-lg focus:ring-0 active focus:outline-none dark:bg-gray-700 dark:text-white
+                {% else %}inline-block w-full p-4 hover:text-gray-700 rounded-lg hover:bg-gray-100 focus:ring-0 focus:outline-none dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700
+                {% endif %}" aria-current="page">
+                Historial de recibo</a>
+            </li>
+            <li class="w-full">
+                <a href="{% url 'SalariosCaja' %}" 
+                class="{% if "caja/salarios" in request.path %}inline-block w-full p-4 text-gray-900 bg-purple-200 rounded-lg focus:ring-0 active focus:outline-none dark:bg-gray-700 dark:text-white
+                {% else %}inline-block w-full p-4 hover:text-gray-700 rounded-lg hover:bg-gray-100 focus:ring-0 focus:outline-none dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700
+                {% endif %}" aria-current="page">
+                Salarios</a>
+            </li>
+            {% if request.user.super_permission %}
+            <li class="w-full">
+                <a href="{% url 'EstadoLiquides' %}" 
+                class="{% if "caja/estado-liquides" in request.path %}inline-block w-full p-4 text-gray-900 bg-purple-200 rounded-lg focus:ring-0 active focus:outline-none dark:bg-gray-700 dark:text-white
+                {% else %}inline-block w-full p-4 hover:text-gray-700 rounded-lg hover:bg-gray-100 focus:ring-0 focus:outline-none dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700
+                {% endif %}" aria-current="page">
+                Estado de liquides</a>
+            </li>
+            <li class="w-full">
+                <a href="{% url 'EstadoCapital' %}" 
+                class="{% if "caja/estado-capital" in request.path %}inline-block w-full p-4 text-gray-900 bg-purple-200 rounded-lg focus:ring-0 active focus:outline-none dark:bg-gray-700 dark:text-white
+                {% else %}inline-block w-full p-4 hover:text-gray-700 rounded-lg hover:bg-gray-100 focus:ring-0 focus:outline-none dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700
+                {% endif %}" aria-current="page">
+                Estado del capital</a>
+            </li>
+            {% endif %}
+        </ul>
+        {% block contentFilter %}        
+        {% endblock contentFilter %}
+    </div>
+    {% block contentCaja %}
+    {% endblock contentCaja %}
+
+</div>
+
+{% endblock content %}
+
+
+{% block scripts %}
+{% endblock scripts %}

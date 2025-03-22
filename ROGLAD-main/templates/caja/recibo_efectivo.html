@@ -1,0 +1,167 @@
+{% extends 'caja/base.html' %}
+{% load static custom_filters %}
+
+
+{% block contentCaja %}
+
+<div class="w-full flex flex-col items-center pb-24">
+{% if recibos|length == 0 %}    
+<p class="flex justify-center font-bold text-xl mt-24 text-gray-800 dark:text-gray-100">
+    <svg class="w-6 h-6 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.143 17.082a24.248 24.248 0 003.844.148m-3.844-.148a23.856 23.856 0 01-5.455-1.31 8.964 8.964 0 002.3-5.542m3.155 6.852a3 3 0 005.667 1.97m1.965-2.277L21 21m-4.225-4.225a23.81 23.81 0 003.536-1.003A8.967 8.967 0 0118 9.75V9A6 6 0 006.53 6.53m10.245 10.245L6.53 6.53M3 3l3.53 3.53"></path>
+    </svg>
+    No existen recibos de efectivo pendientes.
+</p>
+{% endif %}
+{% for recibo in recibos %}
+{% with recibo.turno as turno %}
+{% if turno %}
+<div class="flex flex-col border border-gray-400 w-full max-w-6xl bg-white mb-6">
+    <div class="flex">
+        <div class="flex w-full">
+            <span class="border border-b h-full w-1/3 px-2 text-md flex items-center">Entidad: Casa Laura S.R.L. </br>Codigo: 50004347244</span>
+            <div class="w-1/3 border h-full font-bold flex flex-col items-center justify-center">
+                <span> Recibo de Efectivo</span>
+                <span>SC-3-01</span>
+            </div>
+            <div class="w-1/3 border flex">
+                <div class="w-1/3 flex flex-col">
+                    <div class="border-b h-full text-center font-bold">D</div>
+                    <div class="h-full text-center" id="dia">{{turno.fin|date:"d"}}</div>
+                </div>
+                <div class="w-1/3 border-l flex flex-col">
+                    <div class="border-b h-full text-center font-bold">M</div>
+                    <div class="h-full text-center" id="mes">{{turno.fin|date:"m"}}</div>
+                </div>
+                <div class="w-1/3 border-l flex flex-col">
+                    <div class="border-b h-full text-center font-bold">A</div>
+                    <div class="h-full text-center" id="anno">{{turno.fin|date:"y"}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="flex w-full border h-full px-2 py-1">Recibido de: {{ turno.user|nullToBlank }} ({{ recibo.centro_costo_origen|nullToBlank }})</span>
+    <div class="flex w-full border h-full items-center px-2">
+        <span class="truncate">Cantidad en letras:</span>
+        <span class="px-6 flex-grow border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer py-1">
+            {{ turno.monto_letra|nullToBlank }}
+        </span>
+    </div>
+
+    <div class="flex w-full border h-full">
+        <span class="truncate w-4/5 border-r-2 px-2 py-1 border-l-1">Concepto</span>
+        <span class="truncate w-1/5 px-2 py-1  border-r-1 text-center">Importe</span>
+    </div>
+    <div class="flex w-full border h-full">
+        <span class="truncate w-4/5 border-r-2 px-2 py-1 border-l-1">Venta en máquina</span>
+        <span class="truncate w-1/5 px-2 py-1  border-r-1 text-center">${{ turno.monto_maquina|toMoney }}</span>
+    </div>
+    <div class="flex w-full border h-full">
+        <span class="truncate w-4/5 border-r-2 px-2 py-1 border-l-1">Venta en caja</span>
+        <span class="w-1/5 text-center border-0 text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer p-0">
+            ${{ turno.monto_caja|toMoney }}
+        </span>
+    </div>
+    <div class="flex w-full border h-full">
+        <span class="truncate w-4/5 border-r-2 px-2 py-1 border-l-1">Recaudación en puerta</span>
+        <span class="w-1/5 text-center border-0 text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer p-0">
+            ${{ turno.monto_puerta|toMoney }}
+        </span>
+    </div>
+    <div class="flex w-full border h-full">
+        <span class="truncate w-4/5 border-r-2 px-2 py-1 border-l-1">Total</span>
+        <span class="truncate w-1/5 px-2 py-1 border-r-1 text-center">${{turno.monto_total|toMoney}}</span>
+    </div>
+    {% if turno.recibo_efectivo.motivo_diferencia %}
+    <div class="flex w-full border">
+        <p class="w-full text-start px-2 py-1">MOTIVO DE LA DIFERENCIA ENTRE SALDO EN CAJA Y SALDO EN MAQUINA: </br>{{turno.recibo_efectivo.motivo_diferencia}}</p>
+    </div>
+    {% endif %}
+
+    <div class="flex w-full border h-full">
+        <div class="w-4/5 flex">
+            
+            <div class="flex flex-col w-2/3 h-full justify-between">
+                <div class="w-full border-b flex-grow px-2 flex items-center">Recibido: {{ turno.recibido|nullToBlank }}</div>
+                <div class="w-full h-10 px-2 flex items-center">
+                    Entregado
+                    <span class="px-3 flex-grow border-0 text-sm text-gray-900 bg-transparent appearance-none focus:outline-none focus:ring-0 peer  py-1">
+                        {{ turno.user|nullToBlank }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="w-1/3 flex flex-col border-l-2 border-r-2 justify-start">
+                <span class="truncate w-full py-1 text-center text-xs font-bold">Fecha del cobro</span>
+                <div class="border-t flex justify-center">
+                    {% if recibo.fecha_confirmacion %}
+                    <div class="w-1/3 flex flex-col">
+                        <span class="border-b h-7 text-center font-bold text-sm">D</span>
+                        <span class="h-10 text-center" id="dia-cobro">{{recibo.fecha_confirmacion|date:"d"}}</span>
+                    </div>
+                    <div class="w-1/3 border-l flex flex-col">
+                        <span class="h-7 border-b text-center font-bold text-sm">M</span>
+                        <span class="h-10 text-center" id="mes-cobro">{{recibo.fecha_confirmacion|date:"m"}}</span>
+                    </div>
+                    <div class="w-1/3 border-l flex flex-col">
+                        <span class="h-7 border-b text-center font-bold text-sm">A</span>
+                        <span class="h-10 text-center" id="anno-cobro">{{recibo.fecha_confirmacion|date:"y"}}</span>
+                    </div>
+                    {% else %}
+                    <button class="m-1 flex items-center justify-between px-2 py-1.5 text-sm font-medium text-white rounded-lg bg-green-500"
+                    data-modal-target="recpcionar-efectivo-modal" data-modal-toggle="recpcionar-efectivo-modal"  aria-label="Delete"  
+                    onclick="document.getElementById('text-recepcion').innerText = '¿Estas seguro de recepcionar ${{turno.monto_total|toMoney}}?',
+                    document.getElementById('monto-recibir').value={{turno.monto_total|parseFloat}},document.getElementById('id-recibo').value={{recibo.id}}">
+                    Recepcionar efectivo
+                    </button>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+
+        <span class="w-1/5 p-2 border-r-1 text-center">No.</span>
+    </div>            
+</div>
+{% endif %}
+{% endwith %}
+{% endfor %}
+</div>
+
+
+<div id="recpcionar-efectivo-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="recpcionar-efectivo-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <form class="p-4 md:p-5 text-center" method="post">
+                {% csrf_token %}
+                <input class="hidden" type="text" id="id-recibo" name="id-recibo">
+                <input class="hidden" type="text" id="monto-recibir" name="monto-recibir">
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400" id="text-recepcion"></h3>
+                
+                <p class="flex justify-center font-bold text-md mt-2 text-red-700 dark:text-red-100 hidden" id="error-delete"></p>
+                <div class="flex mt-2 px-2 justify-center space-x-3" id="content-options-delete">
+                    <button data-modal-hide="recpcionar-efectivo-modal" id="btn-cancel-delete" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                    <button type="submit" class="text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">Si, recepcionar</button>
+                </div>
+                <div id="loading-delete" class="w-full flex justify-center mt-2 py-4 hidden">
+                    <svg id="loading-btn-add-product" aria-hidden="true" role="status" class="inline mr-3 w-6 h-6 text-purple-600 animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"></path>
+                        <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"></path>
+                    </svg>
+                    <span class="font-bold text-purple-600" id="text-loadding"></span>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock contentCaja %}

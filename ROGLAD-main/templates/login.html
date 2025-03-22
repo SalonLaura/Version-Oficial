@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+{% load static custom_filters %}
+<html :class="{ 'theme-dark': dark }" x-data="data()" lang="en">
+    <head id="head">
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" id="meta-viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ROGLAD</title>
+
+        <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.ico' %}"/>
+
+        <script src="{% static 'js/cdn.tailwindcss.js' %}"></script>
+
+        <script src="{% static 'js/jquery.min.js' %}"></script>
+        <script src="{% static 'js/flowbite.min.js' %}"></script>
+    </head>
+
+    <body class="bg-gray-50 dark:bg-gray-900 bg-cover bg-center" style="background-image: url('{% static 'images/bg_large_login.jpg' %}');">
+        <div class="flex items-center min-h-screen p-6 bg-white/50">
+            <div class="flex h-full md:max-w-3xl mx-auto overflow-hidden bg-white rounded-lg shadow-xl">
+                <div class="hidden h-32 md:h-auto md:block md:w-1/2">
+                    <img
+                    aria-hidden="true"
+                    class="object-cover w-full h-full dark:hidden"
+                    src="{% static 'images/bg_login.jpg' %}"
+                    />
+                </div>
+                <div class="flex items-center justify-center p-6 sm:p-6 w-96 md:w-1/2">
+                    <form class="w-full" method="POST" id="form-login">
+                        {% csrf_token %}
+                        <input class="hidden" type="text"  name="for" value="{{for_url}}" required/>
+                        <button id="dropdownInformationButton" data-dropdown-toggle="dropdownInformation" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white px-5 py-2.5 inline-flex items-center" type="button">
+                            
+                            <div class="flex-1 flex flex-col">
+                                <span class="flex-1 text-start text-xl">Entrar en</span>
+                                <span class="flex-1 text-start font-bold text-md">{{for_select}}</span>
+                            </div>
+
+                            <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+                            </svg>
+                        </button>
+                        
+                        <!-- Dropdown menu -->
+                        <div id="dropdownInformation" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-auto dark:bg-gray-700 dark:divide-gray-600 max-h-72 overflow-auto">
+                            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownInformationButton">
+                                <li>
+                                    <a href="/" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><span class="font-bold">Administración/Balance/Almacenes</span></a>
+                                </li>
+                                <li>
+                                    <a href="/?for=estudio" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><span class="font-bold">Estudio</span></a>
+                                </li>
+                                <li>
+                                    <a href="/?for=salon" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><span class="font-bold">Salón</span></a>
+                                </li>
+                                <!-- TSOK relacionado a los servicios
+                                <li>
+                                    <a href="/?for=servicio" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><span class="font-bold">Trabajador de servicio</span></a>
+                                </li>
+                                -->
+                                {% for pv in puntos_ventas %}
+                                <li>
+                                    <a href="/?for=PV-{{pv.id}}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Punto de venta <span class="font-bold">{{pv.nombre}}</span></a>
+                                </li>
+                                {% endfor %}
+                                {% for c in cocinas %}
+                                <li>
+                                    <a href="/?for=C-{{c.id}}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Cocina <span class="font-bold">{{c.nombre}}</span></a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <p class="text-gray-700 dark:text-gray-400 m-1.5">Usuario</p>
+
+                        <select class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                        name="user" id="user" required>
+                        {% for u in users %}
+                        <option value="{{u.user}}">{{u.user}}</option>
+                        {% endfor %}
+                        </select>
+
+                        <p class="text-gray-700 dark:text-gray-400 m-1.5">Contraseña</p>
+                        <input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                            placeholder="***************" type="password"  name="password" id="password" required/>
+
+                        {% if message %}
+                        <p class="flex justify-center font-bold text-md mt-2 text-red-700 dark:text-red-100" id="error-add">
+                            <svg class="w-6 h-6 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+                            </svg>
+                            {{message}}
+                        </p>
+                        {% endif %}
+                        <button class="block w-full px-4 py-2 mt-4 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-lg active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple"
+                        type="submit" > Entrar </button>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        {% if messages %}
+            <div class="fixed end-6 bottom-6 group flex flex-col">
+                {% for message in messages %}
+                    {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+                    <div id="alert-{{forloop.counter}}" class="w-96 shadow border border-green-500 flex items-center p-4 mb-4 text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert">
+                        <svg class="flex-shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                        </svg>
+                        <span class="sr-only">Info</span>
+                        <div class="ms-3 text-sm font-medium">{{ message|safe }}</div>
+                        <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-green-50 text-green-500 rounded-lg focus:ring-2 focus:ring-green-400 p-1.5 hover:bg-green-200 inline-flex items-center justify-center h-8 w-8 dark:bg-gray-800 dark:text-green-400 dark:hover:bg-gray-700" data-dismiss-target="#alert-{{forloop.counter}}" aria-label="Close">
+                            <span class="sr-only">Close</span>
+                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                            </svg>
+                        </button>
+                    </div>
+                    {% elif message.level == DEFAULT_MESSAGE_LEVELS.ERROR  %}
+                    <div id="alert-{{forloop.counter}}" class="w-96 shadow border border-red-500 flex items-center p-4 mb-4 text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+                        <svg class="flex-shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                        </svg>
+                        <span class="sr-only">Info</span>
+                        <div class="ms-3 text-sm font-medium">{{ message|safe }}</div>
+                        <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-red-50 text-red-500 rounded-lg focus:ring-2 focus:ring-red-400 p-1.5 hover:bg-red-200 inline-flex items-center justify-center h-8 w-8 dark:bg-gray-800 dark:text-red-400 dark:hover:bg-gray-700" data-dismiss-target="#alert-{{forloop.counter}}" aria-label="Close">
+                            <span class="sr-only">Close</span>
+                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                            </svg>
+                        </button>
+                    </div>
+                    {% endif %}
+
+                {% endfor %}
+            </div>
+        {% endif %}
+    </body>
+
+
+
+    <script>
+    const for_url = "{{for_url}}";
+    document.getElementById("form-login").addEventListener("submit", function(event) {
+        event.preventDefault();
+        const user = document.getElementById("user").value;
+        
+        sessionStorage.setItem('user', user);
+        sessionStorage.setItem('for_url', for_url);
+        this.submit();
+    });
+    if(for_url === sessionStorage.getItem('for_url')){
+        document.getElementById("user").value = sessionStorage.getItem('user');
+    }
+    </script>
+</html>

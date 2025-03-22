@@ -1,0 +1,911 @@
+{% extends base %}
+{% load static custom_filters %}
+
+{% block styles %}
+<script src="{% static 'js/apexcharts.js' %}"></script>
+{% endblock styles %}
+
+{% block content %}
+
+<div class="flex flex-col p-6 w-full justify-center h-[calc(100%-1rem)]">
+
+    <div class="flex space-x-6 pb-3">
+        <form id="form-filter"  class="mb-0 flex h-auto bg-white rounded-lg shadow-sm flex-1 space-x-0.5 items-center" method="GET">
+            
+            <div class="relative w-1/2">
+                <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                    <svg class="w-4 h-4 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+                    </svg>
+                </div>
+                <input type="text" id="input-search" oninput="search()" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-l-lg focus:ring-0 focus:border-gray-300 block w-full ps-10 p-4" placeholder="Encontrar productos por su nombre...">
+            </div>
+
+            <div class="w-1/2 flex items-center bg-white border border-gray-300 text-gray-900 text-sm rounded-r-lg  px-2.5 space-x-2">
+                <h5 class="text-end font-bold py-4">
+                  {% if textIndicadorStock == "A" %}Almacén:
+                  {% elif textIndicadorStock == "PV" %}Punto de Venta:
+                  {% elif textIndicadorStock == "C" %}Cocina:
+                  {% endif %}</h5>
+                <select id="" name="almacen" class="py-4 flex-1 focus:ring-0 border-0 bg-transparent block" onchange="document.getElementById('form-filter').submit()">
+                    
+                  {% if almacenes|length > 0 %}<option disabled="disabled">Almacenes:</option>{% endif %}
+                  {% for alm in almacenes %}
+                    <option value="A-{{ alm.id }}" {% if alm == almacen_select %}selected{% endif %}>{{ alm.nombre }}</option>
+                  {% endfor %}
+                  {% if puntos_venta|length > 0 %}<option disabled="disabled">Puntos de Venta:</option>{% endif %}
+                  {% for pv in puntos_venta %}
+                    <option value="PV-{{ pv.id }}" {% if pv == almacen_select %}selected{% endif %}>{{ pv.nombre }}</option>
+                  {% endfor %}
+                  {% if cocinas|length > 0 %}<option disabled="disabled">Cocinas:</option>{% endif %}
+                  {% for c in cocinas %}
+                    <option value="C-{{ c.id }}" {% if c == almacen_select %}selected{% endif %}>{{ c.nombre }}</option>
+                  {% endfor %}
+                </select>
+            </div>
+        </form>
+        {% if request.user.super_permission and textIndicadorStock == "A"%}
+        <div data-popover-target="popover-description" data-popover-placement="left"  class="flex flex-col justify-center items-start bg-white border border-gray-300 text-gray-900 text-xs rounded-lg  px-2.5">
+            <h5 class="font-semibold flex justify-between w-full">Margen de beneficio: <span class="font-bold ml-3"> ${{margen|toMoney}}</span> </h5>
+            <h5 class="font-semibold flex justify-between w-full">Monto Total Invertido: <span class="font-bold ml-3"> ${{monto_total_almacen|toMoney}}</span> </h5>
+        </div>
+        <div data-popover id="popover-description" role="tooltip" class="absolute z-10 invisible inline-block text-gray-900 text-sm transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
+            <div class="p-3 space-y-2">
+                <h3 class="font-bold text-black text-lg underline">Contabilidad en Almacén:</h3>
+
+                <h3 class="font-semibold text-black text-md">Productos para la venta:</h3>
+                <h5 class="font-normal flex justify-between w-full">Monto invertido: <span class="font-bold ml-3"> ${{monto_base_almacen|toMoney}}</span> </h5>
+                <h5 class="font-normal flex justify-between w-full border-b">Margen de beneficio: <span class="font-bold ml-3"> ${{margen|toMoney}}</span> </h5>
+
+                <h5 class="font-semibold flex justify-between w-full border-b">Subproductos: <span class="font-bold ml-3"> ${{monto_total_subproductos|toMoney}}</span> </h5>
+                <h5 class="font-semibold flex justify-between w-full border-b border-black">Medios básicos: <span class="font-bold ml-3"> ${{monto_total_mb|toMoney}}</span> </h5>
+                <h5 class="font-bold flex justify-between w-full">Monto Total: <span class="font-bold ml-3"> ${{monto_total_almacen|toMoney}}</span> </h5>
+                
+                <h3 class="font-bold text-black text-md pt-6">Representación gráfica del margen de beneficio de los productos para la venta:</h3>
+                <div class="pb-6" id="donut-chart"></div>
+                
+            </div>
+            <div data-popper-arrow></div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="w-full flex justify-center h-[calc(100%-4rem)]">
+        <div class="w-full bg-white dark:bg-gray-900 shadow-md rounded-lg overflow-x-auto">
+            
+            {% if textIndicadorStock == "A" %}
+            <ul class="flex w-full -mb-px text-sm font-medium text-center" id="default-tab" data-tabs-toggle="#default-tab-content" role="tablist">
+                <li class=" w-full" role="presentation">
+                    <button class="inline-block p-4 border-b-2 w-full rounded-t-lg" id="profile-tab" data-tabs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">Productos para la venta</button>
+                </li>
+                <li class=" w-full" role="presentation">
+                    <button class="inline-block p-4 border-b-2 w-full rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="dashboard-tab" data-tabs-target="#dashboard" type="button" role="tab" aria-controls="dashboard" aria-selected="false">Subproductos</button>
+                </li>
+                <li class=" w-full" role="presentation">
+                    <button class="inline-block p-4 border-b-2 w-full rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="settings-tab" data-tabs-target="#settings" type="button" role="tab" aria-controls="settings" aria-selected="false">Medios basicos</button>
+                </li>
+            </ul>
+            {% endif %}
+
+            <div id="default-tab-content">
+                <div class="" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                    <table class="min-w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead>
+                            <tr class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400 sticky top-0 ">
+                                <th scope="col" class="px-6 py-3 truncate"> Producto </th>
+                                <th scope="col" class="px-6 py-3 truncate"> Existencia</th>
+
+                                {% if request.user.super_permission %}
+                                <th scope="col" class="px-6 py-3 truncate">Precio de venta</th>
+                                {% if "C-" not in almacen_select_get %} <th scope="col" class="px-6 py-3 truncate">Margen</th> {% endif %}
+                                {% endif %}
+
+                                <th scope="col" class="px-6 py-3 truncate"></th>
+                                
+                            </tr>
+                        </thead>
+                        <tbody id=""  data-accordion="collapse">
+                            {% for item in almacen %}
+                            {% if textIndicadorStock == "A" and item.producto.categoria.nombre != "SUBPRODUCTOS" and item.producto.categoria.nombre != "MEDIOS BASICOS" or textIndicadorStock != "A" %}
+                            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 item-product" id="{{item.producto.id}}"
+                            aria-expanded="false" data-accordion-target="#accordion-collapse-body-{{item.producto.id}}" aria-expanded="true" aria-controls="accordion-collapse-body-{{item.producto.id}}">
+                                <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">                                    
+                                    <div class="text-base font-semibold truncate enumerate-products mr-2"></div>
+                                    {% if item.producto.img %}
+                                    <img class="rounded-full w-8 h-8 mr-3" src="{{item.producto.img}}" alt="" />
+                                    {% else %}
+                                    <p class="rounded-full w-8 h-8 flex items-center justify-center font-bold text-md text-gray-600 bg-gray-100 mr-3">{{ item.producto.nombre.0 }}{{ item.producto.nombre.1 }}<p>
+                                    {% endif %}
+
+                                    <div class="text-base font-semibold truncate" id="name-{{item.producto.id}}">{{ item.producto.nombre }}</div>
+                                </th>
+                                <td class="px-6 py-4 truncate">{{item.existencia|parseFloat}}  {{ item.producto.medida }}</td>
+                                
+                                {% if request.user.super_permission %}
+                                {% if item.producto.precio_venta %} {% with item.producto.precio_venta|toMoneyList as precio %}<td class="px-6 py-4">${{ precio.0 }}.{{ precio.1 }}</td>{% endwith %} 
+                                {% else %} <td class="px-6 py-4">-</td>{% endif %} 
+                                {% if "C-" not in almacen_select_get %} 
+
+                                {% with item.margen_ganancia as ganancia %}
+                                {% if ganancia <= 10 %}
+                                <td class="px-6 py-4"><span class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full dark:text-red-100 dark:bg-red-700 truncate">{{ ganancia }}</span></td>
+                                {% elif ganancia < 20 %}
+                                <td class="px-6 py-4"><span class="px-2 py-1 font-semibold leading-tight text-orange-700 bg-orange-100 rounded-full dark:text-white dark:bg-orange-600 truncate">{{ ganancia }}</span></td>
+                                {% else %}
+                                <td class="px-6 py-4"><span class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100 truncate">{{ ganancia }}</span></td>
+                                {% endif %}
+                                {% endwith %}
+
+                                {% endif %}   
+                                {% endif %}
+
+                                <td class="px-6 py-4 truncate flex">
+                                    {% if textIndicadorStock == "A" %}
+                                    <a href="/informe/entradas-salidas/?operacion=es&producto={{item.producto.id}}&almacen={{almacen_select.id}}" class="text-purple-800 hover:bg-purple-200 focus:ring-0 focus:outline-none font-medium rounded-lg text-sm px-3 py-1.5 text-center inline-flex items-center">
+                                        Ver entradas y salidas
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 icon icon-tabler icon-tabler-external-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"></path>
+                                            <path d="M11 13l9 -9"></path>
+                                            <path d="M15 4h5v5"></path>
+                                        </svg>
+                                    </a>
+                                    <a href="" class="hidden mx-3 text-green-800 hover:bg-green-200 focus:ring-0 focus:outline-none font-medium rounded-lg text-sm px-3 py-1.5 text-center inline-flex items-center">
+                                        Ajustar stock
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 icon icon-tabler icon-tabler-external-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path fill="#000000" d="M7.5 5.41Q5.74 6.625 4.87 8.343Q4 10.062 4 12q0 2.76 1.654 4.907q1.654 2.147 4.386 2.849q.202.061.331.235t.129.382t-.16.339q-.16.13-.336.075q-3.096-.727-5.05-3.148T3 12q0-2.16.932-4.017q.931-1.858 2.795-3.252H4.25q-.213 0-.357-.143q-.143-.144-.143-.357q0-.214.143-.357q.144-.143.357-.143h3.442q.348 0 .578.23q.23.23.23.577v3.443q0 .213-.143.357q-.144.143-.357.143t-.357-.144Q7.5 8.194 7.5 7.982V5.41Zm3.075 9.077l5.321-5.322q.146-.146.344-.152q.198-.007.364.158q.16.166.162.354q.003.188-.162.354l-5.464 5.463q-.242.243-.565.243q-.323 0-.565-.243l-2.614-2.619q-.14-.14-.153-.341q-.012-.201.153-.367q.16-.16.354-.16t.354.16l2.471 2.472Zm6.698 4.801h2.477q.213 0 .357.144q.143.143.143.356q0 .214-.143.357q-.144.143-.357.143h-3.442q-.348 0-.578-.23q-.23-.23-.23-.577v-3.443q0-.213.143-.356q.144-.144.357-.144t.357.144q.143.143.143.356v2.572q1.74-1.24 2.62-2.956Q20 13.938 20 12q0-2.76-1.654-4.907q-1.654-2.147-4.386-2.849q-.202-.061-.331-.226t-.129-.372q0-.208.16-.348q.16-.14.336-.085q3.096.708 5.05 3.138Q21 8.781 21 12q0 2.16-.932 4.027t-2.795 3.261Z"/>
+                                        </svg>
+                                    </a>
+                                    {% endif %}
+
+                                    {% if request.user.almacen_permission or request.user.super_permission %}
+                                    {% if item.transform.exists %}
+                                    <button data-modal-target="transformacion-modal" data-modal-toggle="transformacion-modal" onclick="openTransform('{{ item.producto.nombre }}',
+                                    [{% for transform in item.transform %}
+                                    {
+                                    'name':'{{transform.producto_final.nombre}}',
+                                    'id':{{transform.id}},
+                                    'consumir':{{transform.cantidad_inicial|parseFloat}},
+                                    'crear':{% if transform.cantidad_final %}{{transform.cantidad_final|parseFloat}}{% else %}null{% endif %},
+                                    'medida_consumir':'{{transform.producto_inicial.medida.abreviatura}}',
+                                    'medida_crear':'{{transform.producto_final.medida.abreviatura}}',
+                                    'max':{{item.existencia|parseFloat}},
+                                    },
+                                    {% endfor %}
+                                    ])"
+                                    class="text-red-800 hover:bg-red-200 focus:ring-0 focus:outline-none font-medium rounded-lg text-sm px-3 py-1.5 text-center inline-flex items-center">
+                                        Transformar producto
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 icon icon-tabler icon-tabler-external-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M8 2h-4a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2z" stroke-width="0" fill="currentColor"></path><path d="M20 14h-4a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2z" stroke-width="0" fill="currentColor"></path><path d="M16.707 2.293a1 1 0 0 1 .083 1.32l-.083 .094l-1.293 1.293h3.586a3 3 0 0 1 2.995 2.824l.005 .176v3a1 1 0 0 1 -1.993 .117l-.007 -.117v-3a1 1 0 0 0 -.883 -.993l-.117 -.007h-3.585l1.292 1.293a1 1 0 0 1 -1.32 1.497l-.094 -.083l-3 -3a.98 .98 0 0 1 -.28 -.872l.036 -.146l.04 -.104c.058 -.126 .14 -.24 .245 -.334l2.959 -2.958a1 1 0 0 1 1.414 0z" stroke-width="0" fill="currentColor"></path><path d="M3 12a1 1 0 0 1 .993 .883l.007 .117v3a1 1 0 0 0 .883 .993l.117 .007h3.585l-1.292 -1.293a1 1 0 0 1 -.083 -1.32l.083 -.094a1 1 0 0 1 1.32 -.083l.094 .083l3 3a.98 .98 0 0 1 .28 .872l-.036 .146l-.04 .104a1.02 1.02 0 0 1 -.245 .334l-2.959 2.958a1 1 0 0 1 -1.497 -1.32l.083 -.094l1.291 -1.293h-3.584a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-3a1 1 0 0 1 1 -1z" stroke-width="0" fill="currentColor"></path>
+                                        </svg>
+                                    </button>
+                                    {% else %}
+                                    <div class="text-gray-400 cursor-not-allowed focus:ring-0 focus:outline-none font-medium rounded-lg text-sm px-3 py-1.5 text-center inline-flex items-center">
+                                        Transformar producto
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 icon icon-tabler icon-tabler-external-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M8 2h-4a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2z" stroke-width="0" fill="currentColor"></path><path d="M20 14h-4a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2z" stroke-width="0" fill="currentColor"></path><path d="M16.707 2.293a1 1 0 0 1 .083 1.32l-.083 .094l-1.293 1.293h3.586a3 3 0 0 1 2.995 2.824l.005 .176v3a1 1 0 0 1 -1.993 .117l-.007 -.117v-3a1 1 0 0 0 -.883 -.993l-.117 -.007h-3.585l1.292 1.293a1 1 0 0 1 -1.32 1.497l-.094 -.083l-3 -3a.98 .98 0 0 1 -.28 -.872l.036 -.146l.04 -.104c.058 -.126 .14 -.24 .245 -.334l2.959 -2.958a1 1 0 0 1 1.414 0z" stroke-width="0" fill="currentColor"></path><path d="M3 12a1 1 0 0 1 .993 .883l.007 .117v3a1 1 0 0 0 .883 .993l.117 .007h3.585l-1.292 -1.293a1 1 0 0 1 -.083 -1.32l.083 -.094a1 1 0 0 1 1.32 -.083l.094 .083l3 3a.98 .98 0 0 1 .28 .872l-.036 .146l-.04 .104a1.02 1.02 0 0 1 -.245 .334l-2.959 2.958a1 1 0 0 1 -1.497 -1.32l.083 -.094l1.291 -1.293h-3.584a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-3a1 1 0 0 1 1 -1z" stroke-width="0" fill="currentColor"></path>
+                                        </svg>
+                                    </div>
+                                    {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            
+                            {% if textIndicadorStock == "A" %}
+                            <tr id="accordion-collapse-body-{{item.producto.id}}" class="hidden" aria-labelledby="accordion-collapse-heading-{{item.producto.id}}">
+                                <td colspan="{% if request.user.super_permission %}5{% else %}3{% endif %}" class="p-0.5 border-b border-gray-200 dark:border-gray-700 dark:bg-gray-900 max-w-[60rem]">
+                                    
+                                    <div class="max-w-full relative overflow-x-auto">
+                                        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 border">
+                                            <thead>
+                                                <tr class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                                                    <th scope="col" class="px-6 py-3 truncate"> Lote</th>
+                                                    <th scope="col" class="px-6 py-3 truncate"> Cantidad inicial</th>
+                                                    <th scope="col" class="px-6 py-3 truncate"> Cantidad actual</th>
+
+                                                    {% if request.user.super_permission %}
+                                                    <th scope="col" class="px-6 py-3 truncate"> Costo de compra</th>
+                                                    <th scope="col" class="px-6 py-3 truncate"> Margen de beneficio ($)</th>
+                                                    <th scope="col" class="px-6 py-3 truncate"> Margen de beneficio (%)</th>
+                                                    {% endif %}
+
+                                                    <th scope="col" class="px-6 py-3 truncate"> Fecha de alta</th>
+                                                    <th scope="col" class="px-6 py-3 truncate"> Fecha de vencimiento</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tbody-subproductos-{{item.producto.id}}">
+                                                {% for lote in  item.lotes %}                                        
+                                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                                    <td class="px-6 py-4 truncate">{{ lote.lote }}</th>
+                                                    <td class="px-6 py-4 truncate">{{ lote.cantidad_inicial}}</td>
+                                                    <td class="px-6 py-4 truncate">{% if lote.cantidad_actual %}{{ lote.cantidad_actual}} {% else %} - {% endif %}</td>                        
+                                                    
+                                                    {% if request.user.super_permission %}
+
+                                                    {% with lote.costo_cup|toMoneyList as precio %}<td class="px-6 py-4">${{ precio.0 }}.{{ precio.1 }}</td>{% endwith %}
+                                                    
+                                                    {% with lote.ganancia_dinero|toMoneyList as ganancia %}<td class="px-6 py-4">${{ ganancia.0 }}.{{ ganancia.1 }}</td>{% endwith %}
+                                                    
+                                                    {% with lote.ganancia_porciento as ganancia %}
+                                                    {% if ganancia <= 10 %}
+                                                    <td class="px-6 py-4"><span class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full dark:text-red-100 dark:bg-red-700 truncate">{{ ganancia }}</span></td>
+                                                    {% elif ganancia < 20 %}
+                                                    <td class="px-6 py-4"><span class="px-2 py-1 font-semibold leading-tight text-orange-700 bg-orange-100 rounded-full dark:text-white dark:bg-orange-600 truncate">{{ ganancia }}</span></td>
+                                                    {% else %}
+                                                    <td class="px-6 py-4"><span class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100 truncate">{{ ganancia }}</span></td>
+                                                    {% endif %}
+                                                    {% endwith %}
+
+                                                    {% endif %}
+
+                                                    <td class="px-6 py-4 truncate">{% if lote.alta %}{{ lote.alta}} {% else %} - {% endif %}</td>
+                                                    <td class="px-6 py-4 truncate">{% if lote.vencimiento %}{{ lote.vencimiento}} {% else %} - {% endif %}</td>
+                                                    
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>   
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if "A-" in almacen_select_get %}
+                <div class="" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
+                    <table class="min-w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead>
+                            <tr class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400 sticky top-0 ">
+                                <th scope="col" class="px-6 py-3 truncate"> Producto </th>
+                                <th scope="col" class="px-6 py-3 truncate"> Existencia</th>
+
+                                {% if request.user.super_permission %}
+                                <th scope="col" class="px-6 py-3 truncate">Precio de venta</th>
+                                {% endif %}
+
+                                <th scope="col" class="px-6 py-3 truncate"></th>
+                                
+                            </tr>
+                        </thead>
+                        <tbody id=""  data-accordion="collapse">
+                            {% for item in almacen %}
+                            {% if textIndicadorStock == "A" and item.producto.categoria.nombre == "SUBPRODUCTOS" %}
+                            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 item-product" id="{{item.producto.id}}"
+                            aria-expanded="false" data-accordion-target="#accordion-collapse-body-{{item.producto.id}}" aria-expanded="true" aria-controls="accordion-collapse-body-{{item.producto.id}}">
+                                <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                                    <div class="text-base font-semibold truncate enumerate-subproducts mr-2"></div>
+                                    {% if item.producto.img %}
+                                    <img class="rounded-full w-8 h-8 mr-3" src="{{item.producto.img}}" alt="" />
+                                    {% else %}
+                                    <p class="rounded-full w-8 h-8 flex items-center justify-center font-bold text-md text-gray-600 bg-gray-100 mr-3">{{ item.producto.nombre.0 }}{{ item.producto.nombre.1 }}<p>
+                                    {% endif %}
+
+                                    <div class="text-base font-semibold truncate" id="name-{{item.producto.id}}">{{ item.producto.nombre }}</div>
+                                </th>
+                                <td class="px-6 py-4 truncate">{{item.existencia|parseFloat}}  {{ item.producto.medida }}</td>
+                                
+                                {% if request.user.super_permission %}
+                                {% if item.producto.precio_venta %} {% with item.producto.precio_venta|toMoneyList as precio %}<td class="px-6 py-4">${{ precio.0 }}.{{ precio.1 }}</td>{% endwith %} 
+                                {% else %} <td class="px-6 py-4">-</td>{% endif %}
+                                {% endif %}
+
+                                <td class="px-6 py-4 truncate flex">
+                                    {% if textIndicadorStock == "A" %}
+                                    <a href="/informe/entradas-salidas/?operacion=es&producto={{item.producto.id}}&almacen={{almacen_select.id}}" class="text-purple-800 hover:bg-purple-200 focus:ring-0 focus:outline-none font-medium rounded-lg text-sm px-3 py-1.5 text-center inline-flex items-center">
+                                        Ver entradas y salidas
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 icon icon-tabler icon-tabler-external-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"></path>
+                                            <path d="M11 13l9 -9"></path>
+                                            <path d="M15 4h5v5"></path>
+                                        </svg>
+                                    </a>
+                                    <a href="" class="hidden mx-3 text-green-800 hover:bg-green-200 focus:ring-0 focus:outline-none font-medium rounded-lg text-sm px-3 py-1.5 text-center inline-flex items-center">
+                                        Ajustar stock
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 icon icon-tabler icon-tabler-external-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path fill="#000000" d="M7.5 5.41Q5.74 6.625 4.87 8.343Q4 10.062 4 12q0 2.76 1.654 4.907q1.654 2.147 4.386 2.849q.202.061.331.235t.129.382t-.16.339q-.16.13-.336.075q-3.096-.727-5.05-3.148T3 12q0-2.16.932-4.017q.931-1.858 2.795-3.252H4.25q-.213 0-.357-.143q-.143-.144-.143-.357q0-.214.143-.357q.144-.143.357-.143h3.442q.348 0 .578.23q.23.23.23.577v3.443q0 .213-.143.357q-.144.143-.357.143t-.357-.144Q7.5 8.194 7.5 7.982V5.41Zm3.075 9.077l5.321-5.322q.146-.146.344-.152q.198-.007.364.158q.16.166.162.354q.003.188-.162.354l-5.464 5.463q-.242.243-.565.243q-.323 0-.565-.243l-2.614-2.619q-.14-.14-.153-.341q-.012-.201.153-.367q.16-.16.354-.16t.354.16l2.471 2.472Zm6.698 4.801h2.477q.213 0 .357.144q.143.143.143.356q0 .214-.143.357q-.144.143-.357.143h-3.442q-.348 0-.578-.23q-.23-.23-.23-.577v-3.443q0-.213.143-.356q.144-.144.357-.144t.357.144q.143.143.143.356v2.572q1.74-1.24 2.62-2.956Q20 13.938 20 12q0-2.76-1.654-4.907q-1.654-2.147-4.386-2.849q-.202-.061-.331-.226t-.129-.372q0-.208.16-.348q.16-.14.336-.085q3.096.708 5.05 3.138Q21 8.781 21 12q0 2.16-.932 4.027t-2.795 3.261Z"/>
+                                        </svg>
+                                    </a>
+                                    {% endif %}
+
+                                    {% if not request.user.balanc_permission %}
+                                    {% if item.transform.exists %}
+                                    <button data-modal-target="transformacion-modal" data-modal-toggle="transformacion-modal" onclick="openTransform('{{ item.producto.nombre }}',
+                                    [{% for transform in item.transform %}
+                                    {
+                                    'name':'{{transform.producto_final.nombre}}',
+                                    'id':{{transform.id}},
+                                    'consumir':{{transform.cantidad_inicial|parseFloat}},
+                                    'crear':{% if transform.cantidad_final %}{{transform.cantidad_final|parseFloat}}{% else %}null{% endif %},
+                                    'medida_consumir':'{{transform.producto_inicial.medida.abreviatura}}',
+                                    'medida_crear':'{{transform.producto_final.medida.abreviatura}}',
+                                    'max':{{item.existencia|parseFloat}},
+                                    },
+                                    {% endfor %}
+                                    ])"
+                                    class="text-red-800 hover:bg-red-200 focus:ring-0 focus:outline-none font-medium rounded-lg text-sm px-3 py-1.5 text-center inline-flex items-center">
+                                        Transformar producto
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 icon icon-tabler icon-tabler-external-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M8 2h-4a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2z" stroke-width="0" fill="currentColor"></path><path d="M20 14h-4a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2z" stroke-width="0" fill="currentColor"></path><path d="M16.707 2.293a1 1 0 0 1 .083 1.32l-.083 .094l-1.293 1.293h3.586a3 3 0 0 1 2.995 2.824l.005 .176v3a1 1 0 0 1 -1.993 .117l-.007 -.117v-3a1 1 0 0 0 -.883 -.993l-.117 -.007h-3.585l1.292 1.293a1 1 0 0 1 -1.32 1.497l-.094 -.083l-3 -3a.98 .98 0 0 1 -.28 -.872l.036 -.146l.04 -.104c.058 -.126 .14 -.24 .245 -.334l2.959 -2.958a1 1 0 0 1 1.414 0z" stroke-width="0" fill="currentColor"></path><path d="M3 12a1 1 0 0 1 .993 .883l.007 .117v3a1 1 0 0 0 .883 .993l.117 .007h3.585l-1.292 -1.293a1 1 0 0 1 -.083 -1.32l.083 -.094a1 1 0 0 1 1.32 -.083l.094 .083l3 3a.98 .98 0 0 1 .28 .872l-.036 .146l-.04 .104a1.02 1.02 0 0 1 -.245 .334l-2.959 2.958a1 1 0 0 1 -1.497 -1.32l.083 -.094l1.291 -1.293h-3.584a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-3a1 1 0 0 1 1 -1z" stroke-width="0" fill="currentColor"></path>
+                                        </svg>
+                                    </button>
+                                    {% else %}
+                                    <div class="text-gray-400 cursor-not-allowed focus:ring-0 focus:outline-none font-medium rounded-lg text-sm px-3 py-1.5 text-center inline-flex items-center">
+                                        Transformar producto
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 icon icon-tabler icon-tabler-external-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M8 2h-4a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2z" stroke-width="0" fill="currentColor"></path><path d="M20 14h-4a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2z" stroke-width="0" fill="currentColor"></path><path d="M16.707 2.293a1 1 0 0 1 .083 1.32l-.083 .094l-1.293 1.293h3.586a3 3 0 0 1 2.995 2.824l.005 .176v3a1 1 0 0 1 -1.993 .117l-.007 -.117v-3a1 1 0 0 0 -.883 -.993l-.117 -.007h-3.585l1.292 1.293a1 1 0 0 1 -1.32 1.497l-.094 -.083l-3 -3a.98 .98 0 0 1 -.28 -.872l.036 -.146l.04 -.104c.058 -.126 .14 -.24 .245 -.334l2.959 -2.958a1 1 0 0 1 1.414 0z" stroke-width="0" fill="currentColor"></path><path d="M3 12a1 1 0 0 1 .993 .883l.007 .117v3a1 1 0 0 0 .883 .993l.117 .007h3.585l-1.292 -1.293a1 1 0 0 1 -.083 -1.32l.083 -.094a1 1 0 0 1 1.32 -.083l.094 .083l3 3a.98 .98 0 0 1 .28 .872l-.036 .146l-.04 .104a1.02 1.02 0 0 1 -.245 .334l-2.959 2.958a1 1 0 0 1 -1.497 -1.32l.083 -.094l1.291 -1.293h-3.584a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-3a1 1 0 0 1 1 -1z" stroke-width="0" fill="currentColor"></path>
+                                        </svg>
+                                    </div>
+                                    {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            
+                            {% if textIndicadorStock == "A" %}
+                            <tr id="accordion-collapse-body-{{item.producto.id}}" class="hidden" aria-labelledby="accordion-collapse-heading-{{item.producto.id}}">
+                                <td colspan="{% if request.user.super_permission %}4{% else %}3{% endif %}" class="p-0.5 border-b border-gray-200 dark:border-gray-700 dark:bg-gray-900 max-w-[60rem]">
+                                    
+                                    <div class="max-w-full relative overflow-x-auto">
+                                        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 border">
+                                            <thead>
+                                                <tr class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                                                    <th scope="col" class="px-6 py-3 truncate"> Lote</th>
+                                                    <th scope="col" class="px-6 py-3 truncate"> Cantidad inicial</th>
+                                                    <th scope="col" class="px-6 py-3 truncate"> Cantidad actual</th>
+
+                                                    {% if request.user.super_permission %}
+                                                    <th scope="col" class="px-6 py-3 truncate"> Costo de compra</th>
+                                                    <th scope="col" class="px-6 py-3 truncate"> Margen de beneficio ($)</th>
+                                                    <th scope="col" class="px-6 py-3 truncate"> Margen de beneficio (%)</th>
+                                                    {% endif %}
+
+                                                    <th scope="col" class="px-6 py-3 truncate"> Fecha de alta</th>
+                                                    <th scope="col" class="px-6 py-3 truncate"> Fecha de vencimiento</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tbody-subproductos-{{item.producto.id}}">
+                                                {% for lote in  item.lotes %}                                        
+                                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                                    <td class="px-6 py-4 truncate">{{ lote.lote }}</th>
+                                                    <td class="px-6 py-4 truncate">{{ lote.cantidad_inicial}}</td>
+                                                    <td class="px-6 py-4 truncate">{% if lote.cantidad_actual %}{{ lote.cantidad_actual}} {% else %} - {% endif %}</td>                        
+                                                    
+                                                    {% if request.user.super_permission %}
+
+                                                    {% with lote.costo_cup|toMoneyList as precio %}<td class="px-6 py-4">${{ precio.0 }}.{{ precio.1 }}</td>{% endwith %}
+                                                    
+                                                    {% with lote.ganancia_dinero|toMoneyList as ganancia %}<td class="px-6 py-4">${{ ganancia.0 }}.{{ ganancia.1 }}</td>{% endwith %}
+                                                    
+                                                    {% with lote.ganancia_porciento as ganancia %}
+                                                    {% if ganancia <= 10 %}
+                                                    <td class="px-6 py-4"><span class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full dark:text-red-100 dark:bg-red-700 truncate">{{ ganancia }}</span></td>
+                                                    {% elif ganancia < 20 %}
+                                                    <td class="px-6 py-4"><span class="px-2 py-1 font-semibold leading-tight text-orange-700 bg-orange-100 rounded-full dark:text-white dark:bg-orange-600 truncate">{{ ganancia }}</span></td>
+                                                    {% else %}
+                                                    <td class="px-6 py-4"><span class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100 truncate">{{ ganancia }}</span></td>
+                                                    {% endif %}
+                                                    {% endwith %}
+
+                                                    {% endif %}
+
+                                                    <td class="px-6 py-4 truncate">{% if lote.alta %}{{ lote.alta}} {% else %} - {% endif %}</td>
+                                                    <td class="px-6 py-4 truncate">{% if lote.vencimiento %}{{ lote.vencimiento}} {% else %} - {% endif %}</td>
+                                                    
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>   
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+                    <table class="min-w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead>
+                            <tr class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400 sticky top-0 ">
+                                <th scope="col" class="px-6 py-3 truncate"> Producto </th>
+                                <th scope="col" class="px-6 py-3 truncate"> Existencia</th>
+
+                                {% if request.user.super_permission %}
+                                <th scope="col" class="px-6 py-3 truncate">Precio de venta</th>
+                                {% endif %}
+
+                                <th scope="col" class="px-6 py-3 truncate"></th>
+                                
+                            </tr>
+                        </thead>
+                        <tbody id=""  data-accordion="collapse">
+                            {% for item in almacen %}
+                            {% if textIndicadorStock == "A" and item.producto.categoria.nombre == "MEDIOS BASICOS" %}
+                            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 item-product" id="{{item.producto.id}}"
+                            aria-expanded="false" data-accordion-target="#accordion-collapse-body-{{item.producto.id}}" aria-expanded="true" aria-controls="accordion-collapse-body-{{item.producto.id}}">
+                                <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                                    <div class="text-base font-semibold truncate enumerate-mb mr-2"></div>
+                                    {% if item.producto.img %}
+                                    <img class="rounded-full w-8 h-8 mr-3" src="{{item.producto.img}}" alt="" />
+                                    {% else %}
+                                    <p class="rounded-full w-8 h-8 flex items-center justify-center font-bold text-md text-gray-600 bg-gray-100 mr-3">{{ item.producto.nombre.0 }}{{ item.producto.nombre.1 }}<p>
+                                    {% endif %}
+
+                                    <div class="text-base font-semibold truncate" id="name-{{item.producto.id}}">{{ item.producto.nombre }}</div>
+                                </th>
+                                <td class="px-6 py-4 truncate">{{item.existencia|parseFloat}}  {{ item.producto.medida }}</td>
+                                
+                                {% if request.user.super_permission %}
+                                {% if item.producto.precio_venta %} {% with item.producto.precio_venta|toMoneyList as precio %}<td class="px-6 py-4">${{ precio.0 }}.{{ precio.1 }}</td>{% endwith %} 
+                                {% else %} <td class="px-6 py-4">-</td>{% endif %}
+                                {% endif %}
+
+                                <td class="px-6 py-4 truncate flex">
+                                    {% if textIndicadorStock == "A" %}
+                                    <a href="/informe/entradas-salidas/?operacion=es&producto={{item.producto.id}}&almacen={{almacen_select.id}}" class="text-purple-800 hover:bg-purple-200 focus:ring-0 focus:outline-none font-medium rounded-lg text-sm px-3 py-1.5 text-center inline-flex items-center">
+                                        Ver entradas y salidas
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 icon icon-tabler icon-tabler-external-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                            <path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"></path>
+                                            <path d="M11 13l9 -9"></path>
+                                            <path d="M15 4h5v5"></path>
+                                        </svg>
+                                    </a>
+                                    <a href="" class="hidden mx-3 text-green-800 hover:bg-green-200 focus:ring-0 focus:outline-none font-medium rounded-lg text-sm px-3 py-1.5 text-center inline-flex items-center">
+                                        Ajustar stock
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 icon icon-tabler icon-tabler-external-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path fill="#000000" d="M7.5 5.41Q5.74 6.625 4.87 8.343Q4 10.062 4 12q0 2.76 1.654 4.907q1.654 2.147 4.386 2.849q.202.061.331.235t.129.382t-.16.339q-.16.13-.336.075q-3.096-.727-5.05-3.148T3 12q0-2.16.932-4.017q.931-1.858 2.795-3.252H4.25q-.213 0-.357-.143q-.143-.144-.143-.357q0-.214.143-.357q.144-.143.357-.143h3.442q.348 0 .578.23q.23.23.23.577v3.443q0 .213-.143.357q-.144.143-.357.143t-.357-.144Q7.5 8.194 7.5 7.982V5.41Zm3.075 9.077l5.321-5.322q.146-.146.344-.152q.198-.007.364.158q.16.166.162.354q.003.188-.162.354l-5.464 5.463q-.242.243-.565.243q-.323 0-.565-.243l-2.614-2.619q-.14-.14-.153-.341q-.012-.201.153-.367q.16-.16.354-.16t.354.16l2.471 2.472Zm6.698 4.801h2.477q.213 0 .357.144q.143.143.143.356q0 .214-.143.357q-.144.143-.357.143h-3.442q-.348 0-.578-.23q-.23-.23-.23-.577v-3.443q0-.213.143-.356q.144-.144.357-.144t.357.144q.143.143.143.356v2.572q1.74-1.24 2.62-2.956Q20 13.938 20 12q0-2.76-1.654-4.907q-1.654-2.147-4.386-2.849q-.202-.061-.331-.226t-.129-.372q0-.208.16-.348q.16-.14.336-.085q3.096.708 5.05 3.138Q21 8.781 21 12q0 2.16-.932 4.027t-2.795 3.261Z"/>
+                                        </svg>
+                                    </a>
+                                    {% endif %}
+
+                                    {% if item.transform.exists %}
+                                    <button data-modal-target="transformacion-modal" data-modal-toggle="transformacion-modal" onclick="openTransform('{{ item.producto.nombre }}',
+                                    [{% for transform in item.transform %}
+                                    {
+                                    'name':'{{transform.producto_final.nombre}}',
+                                    'id':{{transform.id}},
+                                    'consumir':{{transform.cantidad_inicial|parseFloat}},
+                                    'crear':{% if transform.cantidad_final %}{{transform.cantidad_final|parseFloat}}{% else %}null{% endif %},
+                                    'medida_consumir':'{{transform.producto_inicial.medida.abreviatura}}',
+                                    'medida_crear':'{{transform.producto_final.medida.abreviatura}}',
+                                    'max':{{item.existencia|parseFloat}},
+                                    },
+                                    {% endfor %}
+                                    ])"
+                                    class="text-red-800 hover:bg-red-200 focus:ring-0 focus:outline-none font-medium rounded-lg text-sm px-3 py-1.5 text-center inline-flex items-center">
+                                        Transformar producto
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 icon icon-tabler icon-tabler-external-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M8 2h-4a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2z" stroke-width="0" fill="currentColor"></path><path d="M20 14h-4a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2z" stroke-width="0" fill="currentColor"></path><path d="M16.707 2.293a1 1 0 0 1 .083 1.32l-.083 .094l-1.293 1.293h3.586a3 3 0 0 1 2.995 2.824l.005 .176v3a1 1 0 0 1 -1.993 .117l-.007 -.117v-3a1 1 0 0 0 -.883 -.993l-.117 -.007h-3.585l1.292 1.293a1 1 0 0 1 -1.32 1.497l-.094 -.083l-3 -3a.98 .98 0 0 1 -.28 -.872l.036 -.146l.04 -.104c.058 -.126 .14 -.24 .245 -.334l2.959 -2.958a1 1 0 0 1 1.414 0z" stroke-width="0" fill="currentColor"></path><path d="M3 12a1 1 0 0 1 .993 .883l.007 .117v3a1 1 0 0 0 .883 .993l.117 .007h3.585l-1.292 -1.293a1 1 0 0 1 -.083 -1.32l.083 -.094a1 1 0 0 1 1.32 -.083l.094 .083l3 3a.98 .98 0 0 1 .28 .872l-.036 .146l-.04 .104a1.02 1.02 0 0 1 -.245 .334l-2.959 2.958a1 1 0 0 1 -1.497 -1.32l.083 -.094l1.291 -1.293h-3.584a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-3a1 1 0 0 1 1 -1z" stroke-width="0" fill="currentColor"></path>
+                                        </svg>
+                                    </button>
+                                    {% else %}
+                                    <div class="text-gray-400 cursor-not-allowed focus:ring-0 focus:outline-none font-medium rounded-lg text-sm px-3 py-1.5 text-center inline-flex items-center">
+                                        Transformar producto
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 icon icon-tabler icon-tabler-external-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M8 2h-4a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2z" stroke-width="0" fill="currentColor"></path><path d="M20 14h-4a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2z" stroke-width="0" fill="currentColor"></path><path d="M16.707 2.293a1 1 0 0 1 .083 1.32l-.083 .094l-1.293 1.293h3.586a3 3 0 0 1 2.995 2.824l.005 .176v3a1 1 0 0 1 -1.993 .117l-.007 -.117v-3a1 1 0 0 0 -.883 -.993l-.117 -.007h-3.585l1.292 1.293a1 1 0 0 1 -1.32 1.497l-.094 -.083l-3 -3a.98 .98 0 0 1 -.28 -.872l.036 -.146l.04 -.104c.058 -.126 .14 -.24 .245 -.334l2.959 -2.958a1 1 0 0 1 1.414 0z" stroke-width="0" fill="currentColor"></path><path d="M3 12a1 1 0 0 1 .993 .883l.007 .117v3a1 1 0 0 0 .883 .993l.117 .007h3.585l-1.292 -1.293a1 1 0 0 1 -.083 -1.32l.083 -.094a1 1 0 0 1 1.32 -.083l.094 .083l3 3a.98 .98 0 0 1 .28 .872l-.036 .146l-.04 .104a1.02 1.02 0 0 1 -.245 .334l-2.959 2.958a1 1 0 0 1 -1.497 -1.32l.083 -.094l1.291 -1.293h-3.584a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-3a1 1 0 0 1 1 -1z" stroke-width="0" fill="currentColor"></path>
+                                        </svg>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            
+                            {% if textIndicadorStock == "A" %}
+                            <tr id="accordion-collapse-body-{{item.producto.id}}" class="hidden" aria-labelledby="accordion-collapse-heading-{{item.producto.id}}">
+                                <td colspan="{% if request.user.super_permission %}4{% else %}3{% endif %}" class="p-0.5 border-b border-gray-200 dark:border-gray-700 dark:bg-gray-900 max-w-[60rem]">
+                                    
+                                    <div class="max-w-full relative overflow-x-auto">
+                                        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 border">
+                                            <thead>
+                                                <tr class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                                                    <th scope="col" class="px-6 py-3 truncate"> Lote</th>
+                                                    <th scope="col" class="px-6 py-3 truncate"> Cantidad inicial</th>
+                                                    <th scope="col" class="px-6 py-3 truncate"> Cantidad actual</th>
+
+                                                    {% if request.user.super_permission %}
+                                                    <th scope="col" class="px-6 py-3 truncate"> Costo de compra</th>
+                                                    <th scope="col" class="px-6 py-3 truncate"> Margen de beneficio ($)</th>
+                                                    <th scope="col" class="px-6 py-3 truncate"> Margen de beneficio (%)</th>
+                                                    {% endif %}
+
+                                                    <th scope="col" class="px-6 py-3 truncate"> Fecha de alta</th>
+                                                    <th scope="col" class="px-6 py-3 truncate"> Fecha de vencimiento</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tbody-subproductos-{{item.producto.id}}">
+                                                {% for lote in  item.lotes %}                                        
+                                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                                    <td class="px-6 py-4 truncate">{{ lote.lote }}</th>
+                                                    <td class="px-6 py-4 truncate">{{ lote.cantidad_inicial}}</td>
+                                                    <td class="px-6 py-4 truncate">{% if lote.cantidad_actual %}{{ lote.cantidad_actual}} {% else %} - {% endif %}</td>                        
+                                                    
+                                                    {% if request.user.super_permission %}
+
+                                                    {% with lote.costo_cup|toMoneyList as precio %}<td class="px-6 py-4">${{ precio.0 }}.{{ precio.1 }}</td>{% endwith %}
+                                                    
+                                                    {% with lote.ganancia_dinero|toMoneyList as ganancia %}<td class="px-6 py-4">${{ ganancia.0 }}.{{ ganancia.1 }}</td>{% endwith %}
+                                                    
+                                                    {% with lote.ganancia_porciento as ganancia %}
+                                                    {% if ganancia <= 10 %}
+                                                    <td class="px-6 py-4"><span class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full dark:text-red-100 dark:bg-red-700 truncate">{{ ganancia }}</span></td>
+                                                    {% elif ganancia < 20 %}
+                                                    <td class="px-6 py-4"><span class="px-2 py-1 font-semibold leading-tight text-orange-700 bg-orange-100 rounded-full dark:text-white dark:bg-orange-600 truncate">{{ ganancia }}</span></td>
+                                                    {% else %}
+                                                    <td class="px-6 py-4"><span class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100 truncate">{{ ganancia }}</span></td>
+                                                    {% endif %}
+                                                    {% endwith %}
+
+                                                    {% endif %}
+
+                                                    <td class="px-6 py-4 truncate">{% if lote.alta %}{{ lote.alta}} {% else %} - {% endif %}</td>
+                                                    <td class="px-6 py-4 truncate">{% if lote.vencimiento %}{{ lote.vencimiento}} {% else %} - {% endif %}</td>
+                                                    
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>   
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+                
+            </div>
+
+            
+        </div>
+    </div>
+</div>
+
+
+<div id="transformacion-modal" tabindex="-1" data-modal-backdrop="static"  class="fixed top-0 left-0 right-0 z-50 hidden p-4 overflow-hidden md:inset-0 h-[calc(100%-1rem)] max-h-full">
+  <div class="w-auto max-w-5xl max-h-full">
+      <form class="p-2 bg-white rounded-lg shadow dark:bg-gray-700 max-h-full overflow-auto min-w-[30rem]" method="POST">
+          {% csrf_token %}
+          <input type="text" name="almacen" class="hidden" value="{{textIndicadorStock}}-{{almacen_select.id}}">
+
+          <div class="p-6" id="content-modal">
+              <div class="flex pb-6">
+                <div class="w-2/3">
+                    <h5 class="mb-4 font-bold text-lg">Producto a ser convertido:</h5>
+                    <p id="nombre-producto-transformar" class="w-2/3 text-gray-900 bg-transparent focus:ring-none focus:outline-none font-medium text-sm pl-1 pr-5 text-center inline-flex items-center">Nombre producto <p>
+                </div>  
+                <div class="w-1/3">
+                    <h5 class="mb-4 font-bold text-lg text-center">Cantidad:</h5>
+                    <div class="w-1/3 flex items-center space-x-3">
+                        <button class="inline-flex items-center justify-center p-1 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" onclick="downInput()" type="button">
+                            <span class="sr-only">Quantity button</span>
+                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h16"></path>
+                            </svg>
+                        </button>
+                        <div class="flex items-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg px-1">
+                            <input type="number" step="0.01" step-my  id="cant-inicial" name="cantidad-convertir" oninput="inputChange()" required class="w-14 focus:ring-0 border-0 bg-transparent block px-2.5 py-1 text-center" placeholder="1" min="0.1" step="0.01" value="1" required="">
+                            <h5 class="font-bold mx-2" id="medida-inicial"></h5>
+                        </div>
+                        <button class="inline-flex items-center justify-center h-6 w-6 p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="upInput()">
+                            <span class="sr-only">Quantity button</span>
+                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+              </div>
+              <div class="flex pt-6 border-t">
+                  <div class="w-2/3">
+                      <h5 class="mb-4 font-bold text-lg">Producto resultante:</h5>
+                      <button id="dropdownProductoFinalButton" data-dropdown-toggle="dropdownProductoFinal" data-dropdown-placement="bottom" class="w-2/3 text-gray-900 bg-transparent focus:ring-none focus:outline-none font-medium text-sm pl-1 pr-5 text-center inline-flex items-center" type="button"> 
+                          <span id="select-final"></span>
+                          <svg class="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+                          </svg>
+                      </button>
+                          
+                      <!-- Dropdown menu -->
+                      <div id="dropdownProductoFinal" class="z-10 hidden bg-white rounded-lg shadow dark:bg-gray-700">
+                          <ul class="max-h-[20rem] px-3 pb-3 overflow-y-auto text-sm text-gray-700 dark:text-gray-200" id="content-productos-resultantes" aria-labelledby="dropdownProductoFinalButton">
+                          </ul>
+                      </div>
+                  </div>
+  
+                  <div class="w-1/3">
+                    <h5 class="mb-4 font-bold text-lg text-center">Cantidad:</h5>
+                    <div class="w-1/3 flex items-center space-x-3">
+                      <button class="inline-flex items-center justify-center p-1 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" onclick="downResultante()" type="button">
+                          <span class="sr-only">Quantity button</span>
+                          <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
+                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h16"></path>
+                          </svg>
+                      </button>
+                      <div class="flex items-center bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg px-1">
+                          <input type="number" step="0.01" step-my  id="cantidad-final" name="cantidad-final" required class="w-14 focus:ring-0 border-0 bg-transparent block px-2.5 py-1 text-center" placeholder="1" min="0.1" step="0.01" value="1" required="">
+                          <h5 class="font-bold mx-2" id="cantidad-final-medida">U</h5>
+                      </div>
+                      <button class="inline-flex items-center justify-center h-6 w-6 p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="upResultante()">
+                          <span class="sr-only">Quantity button</span>
+                          <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"></path>
+                          </svg>
+                      </button>
+                    </div>
+                  </div>
+              </div>
+          </div>
+          <div class="flex mt-2 px-2" id="content-options">
+              <button type="button" class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600" id="btn-cancel" data-modal-hide="transformacion-modal">Cancelar</button>
+              <button type="Submit" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2 " id="btn-accept">Transformar</button>
+          </div>
+      </form>
+  </div>
+</div>
+
+{% endblock content %}
+
+
+{% block scripts %}
+<script>
+
+    
+    function search(){
+        var elements = document.getElementsByClassName("item-product");
+        for (var i = 0; i < elements.length; i++) {
+            var inputText = document.getElementById("input-search").value.toLowerCase();
+            var nameText = document.getElementById(`name-${elements[i].id}`).textContent.toLowerCase();
+
+            if (nameText.includes(inputText)) {
+                elements[i].classList.remove("hidden");
+            } else {
+                elements[i].classList.add("hidden");
+            }
+        }
+    }
+  
+    function openTransform(name,transforms){
+        let li = "";  
+        for (let i in transforms) {
+        let item = transforms[i]
+        li += `<li class="">
+            <label for="producto-final-${item.id}" class="flex items-center ps-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+                <input  onchange="selectResultante('${item.name}','${item.crear}','${item.consumir}','${item.medida_crear}')" ${i == 0 ?"checked":""}
+                id="producto-final-${item.id}" name="formula"
+                type="radio" name="formula" value="${item.id}" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-full focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                <label for="producto-final-${item.id}" id="name-final-${item.id}" class="w-full py-2 ms-2 text-sm font-medium text-gray-900 rounded dark:text-gray-300">${item.name}</label>
+            </label>
+        </li>`;
+        }
+        document.getElementById("content-productos-resultantes").innerHTML = li;
+
+        
+        document.getElementById("nombre-producto-transformar").innerText = name;
+        document.getElementById("cant-inicial").value = transforms[0].consumir;
+        document.getElementById("cant-inicial").setAttribute("max",transforms[0].max);
+        document.getElementById("medida-inicial").innerText = transforms[0].medida_consumir;
+
+        document.getElementById("select-final").innerText = transforms[0].name;
+        document.getElementById("cantidad-final").setAttribute("cant-resultante-formula",transforms[0].crear);
+        document.getElementById("cantidad-final").setAttribute("cant-consumir-formula",transforms[0].consumir);
+        document.getElementById("cantidad-final").value = transforms[0].crear;
+        document.getElementById("cantidad-final-medida").innerText = transforms[0].medida_crear;
+
+        if(transforms[0].crear != null){
+            document.getElementById("cantidad-final").setAttribute("readonly",true)
+        }else{
+            document.getElementById("cantidad-final").removeAttribute("readonly")
+        }
+
+    }
+
+    function downResultante(){
+        let c = parseFloat(document.getElementById('cantidad-final').value)
+        if(isNaN(c) || c < 1) c = 1
+        document.getElementById('cantidad-final').value =  c - 1
+    }
+    function upResultante(){
+        let c = parseFloat(document.getElementById('cantidad-final').value)
+        if(isNaN(c)) c = 0
+        document.getElementById('cantidad-final').value =  c + 1
+    }
+
+    function selectResultante(name,crear,consumir,medida_crear){
+        document.getElementById("select-final").innerText = name;
+        document.getElementById("cantidad-final").setAttribute("cant-resultante-formula",crear);
+        document.getElementById("cantidad-final").setAttribute("cant-consumir-formula",consumir);
+        document.getElementById("cantidad-final").value = crear;
+        document.getElementById("cantidad-final-medida").innerText = medida_crear;
+
+        if(crear != "null"){
+            document.getElementById("cantidad-final").setAttribute("readonly",true)
+        }else{
+            document.getElementById("cantidad-final").removeAttribute("readonly")
+        }
+
+        calcularResultante()
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const elements = document.querySelectorAll('.enumerate-products');
+        elements.forEach((element, index) => {
+            element.innerText = `${index + 1}- `;
+        });
+        
+        const subproducts = document.querySelectorAll('.enumerate-subproducts');
+        subproducts.forEach((element, index) => {
+            element.innerText = `${index + 1}- `;
+        });
+        
+        const mb = document.querySelectorAll('.enumerate-mb');
+        mb.forEach((element, index) => {
+            element.innerText = `${index + 1}- `;
+        });
+    });
+
+    // ApexCharts options and config
+    window.addEventListener("load", function() {
+        const getChartOptions = () => {
+            return {
+            series: [{{monto_base_almacen|parseFloat}}, {{margen|parseFloat}}],
+            colors: ["#1C64F2", "#16BDCA"],
+            chart: {
+                height: 320,
+                width: "100%",
+                type: "donut",
+            },
+            stroke: {
+                colors: ["transparent"],
+                lineCap: "",
+            },
+            plotOptions: {
+                pie: {
+                donut: {
+                    labels: {
+                    show: true,
+                    name: {
+                        show: true,
+                        fontFamily: "Inter, sans-serif",
+                        offsetY: 20,
+                    },
+                    total: {
+                        showAlways: true,
+                        show: true,
+                        label: "Márgen de beneficio",
+                        fontFamily: "Inter, sans-serif",
+                        formatter: function (w) {
+                        return "{{porciento_margen|parseFloat}}%"
+                        },
+                    },
+                    value: {
+                        show: true,
+                        fontFamily: "Inter, sans-serif",
+                        offsetY: -20,
+                        formatter: function (value) {
+                        return value + "k"
+                        },
+                    },
+                    },
+                    size: "80%",
+                },
+                },
+            },
+            grid: {
+                padding: {
+                top: -2,
+                },
+            },
+            labels: ["Inversión", "Ganancia"],
+            dataLabels: {
+                enabled: false,
+            },
+            legend: {
+                position: "bottom",
+                fontFamily: "Inter, sans-serif",
+            },
+            yaxis: {
+                labels: {
+                formatter: function (value) {
+                    return value + "k"
+                },
+                },
+            },
+            xaxis: {
+                labels: {
+                formatter: function (value) {
+                    return value  + "k"
+                },
+                },
+                axisTicks: {
+                show: false,
+                },
+                axisBorder: {
+                show: false,
+                },
+            },
+            }
+        }
+
+        if (document.getElementById("donut-chart") && typeof ApexCharts !== 'undefined') {
+            const chart = new ApexCharts(document.getElementById("donut-chart"), getChartOptions());
+            chart.render();
+
+            // Get all the checkboxes by their class name
+            const checkboxes = document.querySelectorAll('#devices input[type="checkbox"]');
+
+            // Function to handle the checkbox change event
+            function handleCheckboxChange(event, chart) {
+                const checkbox = event.target;
+                if (checkbox.checked) {
+                    switch(checkbox.value) {
+                    case 'desktop':
+                        chart.updateSeries([15.1, 22.5, 4.4, 8.4]);
+                        break;
+                    case 'tablet':
+                        chart.updateSeries([25.1, 26.5, 1.4, 3.4]);
+                        break;
+                    case 'mobile':
+                        chart.updateSeries([45.1, 27.5, 8.4, 2.4]);
+                        break;
+                    default:
+                        chart.updateSeries([55.1, 28.5, 1.4, 5.4]);
+                    }
+
+                } else {
+                    chart.updateSeries([35.1, 23.5, 2.4, 5.4]);
+                }
+            }
+
+            // Attach the event listener to each checkbox
+            checkboxes.forEach((checkbox) => {
+                checkbox.addEventListener('change', (event) => handleCheckboxChange(event, chart));
+            });
+        }
+    });
+
+    function calcularResultante(){
+        let v = parseFloat(document.getElementById("cant-inicial").value);
+        let resultante = parseFloat(document.getElementById("cantidad-final").getAttribute("cant-resultante-formula"));
+        let consumir = parseFloat(document.getElementById("cantidad-final").getAttribute("cant-consumir-formula"));
+
+        document.getElementById("cantidad-final").value = (v * resultante)/consumir;
+    }
+
+    function inputChange(){
+        let element = document.getElementById("cant-inicial");
+        let max = element.getAttribute("max");
+    
+        if(parseInt(element.value) > parseInt(max)){
+            element.value = max;
+        } else if(parseInt(element.value) < 0){
+            element.value = 0;
+        }
+        calcularResultante()
+    }
+        
+    function upInput(){
+        let element = document.getElementById("cant-inicial");
+        let max = element.getAttribute("max");
+        if(parseFloat(element.value) + 1 > parseFloat(max)){
+            element.value = max;
+        }else{
+            element.value = parseFloat(element.value) + 1;
+        }
+        calcularResultante()
+    }
+
+    function downInput(){
+        let element = document.getElementById("cant-inicial");
+        if(parseInt(element.value) > 0){
+            element.value = parseInt(element.value) - 1;
+        }
+        calcularResultante()
+    }
+</script>
+{% endblock scripts %}

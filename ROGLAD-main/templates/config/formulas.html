@@ -1,0 +1,683 @@
+{% extends 'base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+                
+{% block content %}
+<div class="flex w-full h-full justify-center">
+    <div class="flex flex-col items-center w-screen h-full bg-white w-full">
+        <div class="border-b border-gray-200 w-full overflow-x-auto h-18 scrollbar scrollbar-xs" id="content-menu">
+            {% include "config/menu_select.html" %}
+        </div>
+
+        <div class="w-full h-[calc(100%-4rem)] overflow-auto" id="content-table">
+            <div class="rounded-lg w-full flex items-center justify-center">
+                <div class="w-full h-full">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead class="bg-white z-30">
+                            <tr class="text-xs z-30 text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400  sticky top-0">
+                                <th scope="col" class="px-6 py-3"> Producto </th>
+                                
+                                <th scope="col" class="px-6 py-3"> Descripción </th>
+                                <th scope="col" class="px-6 py-3"> Cantidad resultante estimada</th>
+                                <th scope="col" class="px-6 py-3"> Medida</th>
+                                <th scope="col" class="px-6 py-3"> Categoría</th>
+                                <th scope="col" class="px-6 py-1.5 flex justify-center">
+                                    <button class="truncate flex items-center justify-between px-4 py-2 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-200 hover:bg-gray-300 border border-transparent rounded-lg focus:outline-none focus:shadow-outline-gray"
+                                        data-modal-target="popup-modal" data-modal-toggle="popup-modal" id="btn-add-producto" onclick="limpiarForm()">
+                                        <svg class="w-5 h-5 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 002.25-2.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v2.25A2.25 2.25 0 006 10.5zm0 9.75h2.25A2.25 2.25 0 0010.5 18v-2.25a2.25 2.25 0 00-2.25-2.25H6a2.25 2.25 0 00-2.25 2.25V18A2.25 2.25 0 006 20.25zm9.75-9.75H18a2.25 2.25 0 002.25-2.25V6A2.25 2.25 0 0018 3.75h-2.25A2.25 2.25 0 0013.5 6v2.25a2.25 2.25 0 002.25 2.25z"></path>
+                                        </svg>
+                                        Agregar formula
+                                    </button>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="body-productos-compuestos"  data-accordion="collapse">
+                            {% for formula in formulas %}
+                            <tr id="tr-content-{{formula.id}}" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"  aria-expanded="false" data-accordion-target="#accordion-collapse-body-{{formula.id}}" aria-expanded="true" aria-controls="accordion-collapse-body-{{formula.id}}">
+                                <th scope="row" class="flex items-center pl-3 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                                    {% if producto.img %}
+                                    <img class="rounded-full w-10 h-10" src="{{formula.producto.img}}" alt="" />
+                                    {% else %}
+                                    <p class="rounded-full w-10 h-10 flex items-center justify-center font-bold text-md text-gray-600 bg-gray-100">{{ formula.producto.nombre.0 }}{{ formula.producto.nombre.1 }}<p>
+                                    {% endif %}
+                                    <span class="ml-3 text-base font-semibold truncate">{{ formula.producto.nombre }}</span> 
+                                </th>
+                                
+                                <td class="px-3 py-4 text-base font-semibold">{{ formula.producto.descripcion }}</td>
+                                <td class="px-3 py-4 text-base font-semibold text-center">{{ formula.cantidad|parseFloat }}</td>
+                                <td class="px-3 py-4 text-base font-semibold">{{ formula.producto.medida|nullToBlank }}</td>
+                                <td class="px-3 py-4 text-base font-semibold">{{ formula.producto.categoria|nullToBlank }}</td>
+                                <td class="px-3 py-4 flex justify-center">
+                                    <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray mr-6" aria-label="Edit"
+                                    data-modal-target="popup-modal" data-modal-toggle="popup-modal" onclick="openEditFormula([{% for p in  formula.subproducto.all %}{'id':'{{p.id}}','prod_id':'{{p.producto.id}}','cant':'{{p.cantidad|parseFloat}}','subgrupo':'{{p.subgrupo}}','imagen':'{{p.producto.img}}','nombre':'{{p.producto.nombre}}','medida':'{{p.medida.nombre}}'},{% endfor %}],{'formula_id':'{{formula.id}}','id':'{{formula.producto.id}}','nombre':'{{formula.producto.nombre}}','cantidad':'{{formula.cantidad|parseFloat}}','pago':'{{formula.pago_elaboracion_monto|parseFloat}}','pago_relacion':'{{formula.pago_elaboracion_relacion}}','descripcion':`{{formula.descripcion}}`,'medida':'{{formula.producto.medida.nombre}}','cocinas':[{% for c in formula.cocinas.all %}{{c.id}},{% endfor %}]})">
+                                        <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                                        </svg>
+                                    </button>
+                                    {% if formula.is_delete %}
+                                    <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray"
+                                    data-modal-target="delete-modal" data-modal-toggle="delete-modal"  aria-label="Delete"  onclick="document.getElementById('id-delete').value='{{formula.id}}'">
+                                        <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </button>
+                                    {% else %}
+                                    <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 cursor-not-allowed text-gray-400 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray">
+                                        <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>                            
+                            <tr id="accordion-collapse-body-{{formula.id}}" class="hidden z-0" aria-labelledby="accordion-collapse-heading-{{formula.id}}">
+                                <td colspan="6" class="p-5 border-b z-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900">
+                                    
+                                    {% if formula.cocinas %}
+                                    <p class="mt-1 text-gray-900 dark:text-gray-200 font-bold text-md underline">Cocinas:</p>
+                                    <div class="mb-1 text-gray-900 font-normal text-md flex flex-wrap">{% for cocina in formula.cocinas.all %}<p>&bull; {{cocina.nombre}}</p>{% endfor %}</div>
+                                    {% endif %}
+
+                                    <p class="mb-1 text-gray-900 dark:text-gray-200 font-bold text-md underline">Subproductos:</p>                                    
+                                    <div class="relative overflow-x-auto">
+                                        <table class="w-full z-0 text-sm text-left text-gray-500 dark:text-gray-400 border">
+                                            <thead class="text-xs z-0 text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                                <tr>
+                                                    <th scope="col" class="px-6 py-3">Nombre</th>
+                                                    <th scope="col" class="px-6 py-3">Cantidad</th>
+                                                    <th scope="col" class="px-6 py-3">Medida</th>
+                                                    <th scope="col" class=""></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for p in  formula.subproducto.all %}
+                                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                                    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                                        {{p.producto.nombre}}
+                                                    </th>
+                                                    <td class="px-6 py-4">
+                                                        {{p.cantidad}}
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        {{p.medida}}
+                                                    </td>
+                                                    <td class="">
+                                                        {% if p.optional %}<span class="text-orange-600">Opcional ({{p.subgrupo}}) </span>{% else %}<span class="text-green-600">Requerido</span>{% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    {% if formula.descripcion %}
+                                    <p class="my-1 text-gray-900 dark:text-gray-200 font-bold text-md underline">Descripcion:</p>
+                                    
+                                    <p class="ml-2 text-gray-900 dark:text-gray-200 font-normal text-md">
+                                    {{ formula.descripcion|linebreaksbr }}
+                                    </p>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="popup-modal" tabindex="-1" data-modal-backdrop="static"  class="fixed top-0 left-0 right-0 z-50 hidden p-4 overflow-hidden md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="w-full max-w-5xl overflow-y-auto h-full">
+        <form class="bg-white rounded-lg shadow pb-2" id="form-add-formula" method="POST" action="/cocina/new-formula">
+            {% csrf_token %}
+            <input name="edited-formula" id="input-edited-formula" value="" class="hidden"/>
+
+            <div class="p-6 w-full" id="content-modal">
+                <div class="flex w-full h-5/6 overflow-hidden">
+                    <div class="flex flex-col w-2/3 space-y-2 flex-grow">
+                        <h1 class="mb-2 text-md font-semibold text-black dark:text-white">Subproductos:</h1>
+                        <div class="overflow-y-auto border flex-grow">
+                            <table class="w-full table-auto text-sm text-left text-gray-500 dark:text-gray-400" id="tabla-subproductos">
+                                <thead class="">
+                                    <tr class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                                        <th scope="col" class="py-3">
+                                            <button class="ml-2 truncate flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-white shadow-sm hover:shadow-lg bg-green-600 hover:bg-green-700 rounded-lg" id="dropdownSearchButton"
+                                            data-modal-target="subproducto-modal" data-modal-toggle="subproducto-modal" type="button">
+                                                <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 002.25-2.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v2.25A2.25 2.25 0 006 10.5zm0 9.75h2.25A2.25 2.25 0 0010.5 18v-2.25a2.25 2.25 0 00-2.25-2.25H6a2.25 2.25 0 00-2.25 2.25V18A2.25 2.25 0 006 20.25zm9.75-9.75H18a2.25 2.25 0 002.25-2.25V6A2.25 2.25 0 0018 3.75h-2.25A2.25 2.25 0 0013.5 6v2.25a2.25 2.25 0 002.25 2.25z"></path>
+                                                </svg>
+                                            </button>
+                                        </th>
+                                        <th scope="col" class="px-6 py-3">Nombre</th>
+                                        <th scope="col" class="px-6 py-3"> Cantidad</th>
+                                        <th scope="col" class="px-6 py-">Medida</th>
+                                        <th scope="col" class="">Subgrupo</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="flex-grow" id="tbody-tabla-subproductos">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="h-full px-3 w-1/3">
+                        <div class="flex flex-col">
+                            <h1 class="my-1 text-md font-semibold text-black dark:text-white">Producto resultante:</h1>
+                            <select id="select-producto-elaborado" name="producto-resultante" onchange="updateMedidaResultante(this)" required class="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                                {% for producto in productos_compuestos %}
+                                {% if not producto.productoCocinaFormula.all.exists %}
+                                <option value="{{ producto.id }}" data-medida='{{ producto.medida }}'>{{ producto.nombre }}</option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <h1 class="my-1 text-md font-semibold text-black dark:text-white">Cantidad resultante estimada:</h1>                            
+                            <div class="flex">
+                                <input type="number" step="0.01" step-my  name="cant-resultante" id="input-cant-resultante" class="bg-white border border-gray-300 border-r-0 text-gray-900 py-2 text-sm rounded-l-lg focus:ring-0 focus:border-gray-300 block w-full p-1.5" placeholder="" required>
+                                <p id="medida-resultante" class="text-center bg-white border border-gray-300 border-l-0 text-gray-900 text-sm rounded-r-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5">{{productos.0.medida}}</p>
+                            </div>
+                        </div>                        
+                        <div class="flex flex-col">
+                            <h1 class="my-1 text-md font-semibold text-black dark:text-white">Descripcion de receta:</h1>
+                            <textarea name="formula-text" id="formula-text" rows="3" required class="block mt-2 p-2.5 w-full text-sm text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Describa aca la receta..."></textarea>
+                        </div>
+                        <div class="flex flex-col">
+                            <div class="flex w-full justify-between">
+                                <h1 class="my-1 text-md font-semibold text-black dark:text-white">Gastos asociados:</h1>                            
+                                <button class="flex focus:outline-none text-sm font-bold text-red-600 items-center" onclick="addGasto()" type="button">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" class="mr-1">
+                                        <path fill="currentColor" d="M11 17h2v-4h4v-2h-4V7h-2v4H7v2h4zm1 5q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22"/>
+                                    </svg>
+                                    Agregar gasto
+                                </button>
+                            </div>
+
+                            <div class="w-full h-32 border overflow-auto">
+                                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                                    <thead class="bg-white">
+                                        <tr class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400  sticky top-0">
+                                            <th scope="col" class="px-6 py-3"> Motivo del gasto </th>
+                                            <th scope="col" class="px-6 py-3"> Monto </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="body-gastos-asociados">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <h1 class="my-1 text-md font-semibold text-black dark:text-white">Pago por elaboración:</h1>
+                            
+                            <div class="flex">
+                                <input type="number" step="0.01" step-my  name="pago-elaboracion-monto" id="input-pago-elaboracion-monto" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-l-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5" placeholder="" required>
+                                <select id="pago-elaboracion-relacion" name="pago-elaboracion-relacion" class="w-24 bg-white border border-gray-300 text-gray-900 text-sm rounded-r-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                                    <option value="$">$</option>
+                                    <option value="%">%</option>
+                                </select>
+                            </div>
+                        </div>                        
+                        
+                        <div class="flex flex-col">
+                            <h1 class="my-1 text-md font-semibold text-black dark:text-white">Cocinas a las que se le hará la solicitud:</h1>
+                            {% for cocina in cocinas %}
+                            <div class="flex flex-wrap space-x-3">
+                                <div class="flex items-center mb-4">
+                                    <input id="cocina-{{cocina.id}}" type="checkbox" value="{{cocina.id}}" name="cocinas" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                    <label for="cocina-{{cocina.id}}" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">{{cocina.nombre}}</label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="flex justify-center font-bold text-md text-red-700 dark:text-red-100 hidden" id="error-add"></p>
+            <div class="flex my-2 px-2" id="content-options">
+                <button type="button" class="w-full text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600" id="btn-cancel" data-modal-hide="popup-modal">Cancelar</button>
+                <button type="submit" class="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center ml-2 " id="btn-accept">Agregar</button>
+            </div>
+            <div id="loading" class="w-full flex justify-center mt-2 py-4 hidden">
+                <svg id="loading-btn-add-product" aria-hidden="true" role="status" class="inline mr-3 w-6 h-6 text-purple-600 animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"></path>
+                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"></path>
+                </svg>
+                <span class="font-bold text-purple-600" id="text-loadding"></span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+<div id="delete-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="delete-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <input class="hidden" type="text" id="id-delete">
+            <div class="p-4 md:p-5 text-center">
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">¿Estas seguro de eliminar la formula de elaboracion?</h3>
+                
+                <p class="flex justify-center font-bold text-md mt-2 text-red-700 dark:text-red-100 hidden" id="error-delete"></p>
+                <div class="flex mt-2 px-2 justify-center space-x-3" id="content-options-delete">
+                    <button data-modal-hide="delete-modal" id="btn-cancel-delete" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                    <button type="button" onclick="eliminarProducto()" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">Si, eliminar</button>
+                </div>
+                <div id="loading-delete" class="w-full flex justify-center mt-2 py-4 hidden">
+                    <svg id="loading-btn-add-product" aria-hidden="true" role="status" class="inline mr-3 w-6 h-6 text-purple-600 animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"></path>
+                        <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"></path>
+                    </svg>
+                    <span class="font-bold text-purple-600" id="text-loadding"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Small Modal -->
+<div id="subproducto-modal" tabindex="-1" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full bg-gray-900 bg-opacity-50 ">
+    <div class="relative w-full max-w-md max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow-xl dark:bg-gray-700">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-3 border-b rounded-t dark:border-gray-600">
+                <h3 class="text-xl font-medium text-gray-900 dark:text-white">
+                    Seleccione los subproductos
+                </h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="subproducto-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <div class="p-3 space-y-6">
+                <div class="px-2">
+                    <label for="input-group-search" class="sr-only">Search</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+                            </svg>
+                        </div>
+                        <input type="text" id="input-group-search" oninput="search()" class="block w-full p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Encontrar productos por nombre">
+                    </div>
+                </div>
+                
+                <ul class="max-h-96 min-h-[18rem] px-3 pb-3 overflow-y-auto text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownSearchButton">            
+                    
+                    <li><label>Subroductos:</label></li>
+                    {% for producto in productos %}
+                    {% if producto.categoria.nombre == "SUBPRODUCTOS" %}
+                    <li>
+                        <label id="subproducto-{{producto.id}}" for="producto-{{producto.id}}" class="item-subproducto flex items-center pl-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <input id="producto-{{producto.id}}" type="checkbox" onchange="addToTable({{producto.id}},'{{producto.nombre}}','{{producto.medida}}',this.checked)" value="" class="select-subproducto w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                            <label for="producto-{{producto.id}}"  class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 ml-1">
+                                {% if producto.img %}
+                                <img class="rounded-full w-11 h-11" src="{{producto.img}}" alt="" />
+                                {% else %}
+                                <p class="rounded-full w-10 h-10 flex items-center justify-center font-bold text-md text-gray-600 bg-gray-100">{{ producto.nombre.0 }}{{ producto.nombre.1 }}<p>
+                                {% endif %}
+
+                                <label for="producto-{{producto.id}}" class="w-full pl-3 flex flex-col">
+                                    <span class="text-gray-900 font-bold text-sm mb-1.5 dark:text-gray-100" id="name-subproducto-{{producto.id}}">{{producto.nombre}}</span>
+                                    <span class="text-xs text-blue-600 dark:text-blue-500">{{producto.medida.nombre}}</span>
+                                </label>
+                            </label>            
+                        </label>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    <li><label>Productos para la venta:</label></li>
+                    {% for producto in productos %}
+                    {% if producto.is_compuesto == False and producto.categoria.nombre != "SUBPRODUCTOS" and  producto.categoria.nombre != "MEDIOS BASICOS" %}
+                    <li>
+                        <label id="subproducto-{{producto.id}}" for="producto-{{producto.id}}" class="item-subproducto flex items-center pl-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+                            <input id="producto-{{producto.id}}" type="checkbox" onchange="addToTable({{producto.id}},'{{producto.nombre}}','{{producto.medida}}',this.checked)" value="" class="select-subproducto w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                            <label for="producto-{{producto.id}}"  class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 ml-1">
+                                {% if producto.img %}
+                                <img class="rounded-full w-11 h-11" src="{{producto.img}}" alt="" />
+                                {% else %}
+                                <p class="rounded-full w-10 h-10 flex items-center justify-center font-bold text-md text-gray-600 bg-gray-100">{{ producto.nombre.0 }}{{ producto.nombre.1 }}<p>
+                                {% endif %}
+
+                                <label for="producto-{{producto.id}}" class="w-full pl-3 flex flex-col">
+                                    <span class="text-gray-900 font-bold text-sm mb-1.5 dark:text-gray-100" id="name-subproducto-{{producto.id}}">{{producto.nombre}}</span>
+                                    <span class="text-xs text-blue-600 dark:text-blue-500">{{producto.medida.nombre}}</span>
+                                </label>
+                            </label>            
+                        </label>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                </ul>                
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+{% endblock content %}
+
+
+{% block scripts %}
+
+<script type = "text/JavaScript">
+    const contentMenu = document.getElementById('content-menu');
+    contentMenu.scrollLeft = parseInt(localStorage.getItem("scroll-menu-config"));
+    contentMenu.onscroll = (e)=>{ 
+        localStorage.setItem("scroll-menu-config", JSON.stringify(contentMenu.scrollLeft))
+    }
+    const contentTable = document.getElementById('content-table');
+    contentTable.scrollTop = parseInt(localStorage.getItem("scroll-table-config-form-elab"));
+    contentTable.onscroll = (e)=>{ 
+        localStorage.setItem("scroll-table-config-form-elab", JSON.stringify(contentTable.scrollTop))
+    }
+
+    document.getElementById("form-add-formula").addEventListener("submit", function(event) {
+        event.preventDefault();
+        
+        var subproducto_id = document.querySelectorAll('[name="subproducto-id"]');
+        if(subproducto_id.length == 0 ){
+            let alert = document.getElementById("error-add");
+            alert.innerHTML = `
+            <svg class="w-6 h-6 mr-1" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+            </svg>
+            Proporcione los subproductos`;
+            alert.classList.remove("hidden");
+            return false;
+        }      
+        this.submit();
+    });
+
+    function updateMedidaResultante(selectElement) {
+        var medidaResultanteElement = document.getElementById('medida-resultante');
+        var selectedOption = selectElement.options[selectElement.selectedIndex];
+        var medida = selectedOption.getAttribute('data-medida');
+        medidaResultanteElement.innerHTML = medida;
+    }
+
+    
+    function addGasto(){
+        const date = new Date();
+        const miliseconds = date.getMilliseconds();
+    
+        let content = document.getElementById("body-gastos-asociados");
+    
+        const newGasto = document.createElement('tr');
+        newGasto.id = `gasto-${miliseconds}`;
+        newGasto.innerHTML = `
+        <th scope="col" class="py-1">
+            <div class="bg-transparent flex">
+                <button type="button" class="text-red-500 px-1 material-icons text-md" onclick="document.getElementById('gasto-${miliseconds}').remove()">delete_outline</button>
+                <input type="text" name="gasto-nombre" class="font-normal bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="" required>
+            </div>
+        </th>
+        <th scope="col" class="py-1">
+            <input type="number" step="0.01" step-my  step="0.00001" name="gasto-cantidad" class="font-normal bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-1.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" min="1" placeholder="" required>
+        </th>        
+        `;
+    
+        content.appendChild(newGasto);
+    
+    }
+
+    function eliminarProducto(){
+        let csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        let id = document.getElementById('id-delete').value;
+        loading(true,"Eliminando producto...")
+        
+        $.ajax({
+            url:"/cocina/new-formula",
+            type:"post",
+            data:{
+                'delete-id': id,
+                "csrfmiddlewaretoken" : csrf
+            },
+            dataType:"json",
+            success:function(response){
+                loading(false)
+                document.querySelector('[name=csrfmiddlewaretoken]').value = response.csrf;
+
+                if(response.delete== "success"){
+                    var elemento = document.getElementById(`tr-content-${id}`).remove();
+                    var elemento = document.getElementById(`accordion-collapse-body-${id}`).remove();
+                    
+                    document.getElementById("btn-cancel-delete").click();
+                }
+                else if(response.register== "error"){
+                    let alert = document.getElementById("error-delete");
+                    alert.innerHTML = `
+                    <svg class="w-6 h-6 mr-1" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+                    </svg>
+                    Error al eliminar producto`;
+                    alert.classList.remove("hidden");
+                }
+            },
+            error:function(response){
+                loading(false)
+                let alert = document.getElementById("error-delete");
+                alert.innerHTML = `
+                <svg class="w-6 h-6 mr-1" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z"></path>
+                </svg>
+                Error al eliminar producto`;
+                alert.classList.remove("hidden");
+            },
+        });
+    }
+    
+    function openEditFormula(subproductos,producto) {
+        limpiarForm()
+        subproductos.forEach((subproducto) => {
+            console.log(`producto-${subproducto.prod_id}`)
+            addToTable(subproducto.prod_id,subproducto.nombre,subproducto.medida,true,subproducto.cant,subproducto.subgrupo==="None"?"-":subproducto.subgrupo) ;
+            document.getElementById(`producto-${subproducto.prod_id}`).checked = true;
+        })
+
+        //document.getElementById("select-producto-elaborado").classList.add("hidden")
+        
+        const select = document.getElementById("select-producto-elaborado");
+        const option = document.createElement("option");
+        option.value = producto.id;
+        option.textContent = producto.nombre;
+        option.setAttribute("data-medida",producto.medida)
+        option.setAttribute("edited-option",true)
+        option.selected = true;
+        select.appendChild(option);
+        document.getElementById("input-pago-elaboracion-monto").value = producto.pago
+        document.getElementById("input-cant-resultante").value = producto.cantidad
+        
+        document.getElementById("formula-text").value = producto.descripcion
+        document.getElementById("btn-accept").innerText = "Actualizar"
+        
+        document.getElementById("input-edited-formula").value = producto.formula_id
+        document.getElementById("pago-elaboracion-relacion").value = producto.pago_relacion;
+
+        const cocinas = [{% for cocina in cocinas %}{{cocina.id}},{% endfor %}]
+
+        cocinas.forEach((cocina) => {
+            if(producto.cocinas.includes(cocina)){
+                document.getElementById(`cocina-${cocina}`).checked = true;
+            }
+            else{
+                document.getElementById(`cocina-${cocina}`).checked = false;
+            }
+        })
+        
+
+    }
+
+    function addToTable(id,nombre,medida,checked,cant=1,subgrupo="-") {
+        if (checked) {
+            let table = document.getElementById("tbody-tabla-subproductos"); // Replace "your-table-id" with the actual ID of your table
+            let newRow = document.createElement("tr");
+            newRow.id = `subproducto-${id}`;
+            newRow.className = "bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600";
+            
+            let rowContent = `
+                <td class="py-4"><button type="button" class="text-red-500 px-1 material-icons text-md" onclick="addToTable(${id},'${nombre}','${medida}',false)">delete_outline</button></td>
+                <th scope="row" class="flex items-center pr-6 py-4 text-gray-900 dark:text-white">
+                    <span class="font-semibold pl-3 truncate">${nombre}</span>
+                    <input type="number" step="0.01" step-my  step="0.00001" name="subproducto-id" class="hidden" value=${id}>
+                </th>
+                <td class="px-6 py-4">
+                    <div class="flex items-center space-x-3">
+                        <button class="inline-flex items-center justify-center p-1 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+                        onclick="downInput('cant-subproducto-${id}')" type="button">
+                            <span class="sr-only">Quantity button</span>
+                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h16"/>
+                            </svg>
+                        </button>
+                        <div>
+                            <input type="number" step="0.01" step-my  step="0.00001" id="cant-subproducto-${id}" name="cantidad-subproducto" class="bg-gray-50 w-14 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="1" min=0 value=${cant} required>
+                        </div>
+                        <button class="inline-flex items-center justify-center h-6 w-6 p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" 
+                            type="button" onclick="upInput('cant-subproducto-${id}')">
+                            <span class="sr-only">Quantity button</span>
+                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/>
+                            </svg>
+                        </button>
+                    </div>
+                </td>
+                <td class="py-4 text-center">
+                    ${medida}
+                </td>
+                <td class="py-4">
+                    <select name="subgrupo-subproductos" id="" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-2.5 py-1">
+                        <option value="-" ${subgrupo === "-"?"selected":""}>Requerido</option>
+                        <option value="A" ${subgrupo === "A"?"selected":""}>Grupo A</option>
+                        <option value="B" ${subgrupo === "B"?"selected":""}>Grupo B</option>
+                        <option value="C" ${subgrupo === "C"?"selected":""}>Grupo C</option>
+                        <option value="D" ${subgrupo === "D"?"selected":""}>Grupo D</option>
+                        <option value="E" ${subgrupo === "E"?"selected":""}>Grupo E</option>
+                        <option value="F" ${subgrupo === "F"?"selected":""}>Grupo F</option>
+                        <option value="G" ${subgrupo === "G"?"selected":""}>Grupo G</option>
+                        <option value="H" ${subgrupo === "H"?"selected":""}>Grupo H</option>
+                        <option value="I" ${subgrupo === "I"?"selected":""}>Grupo I</option>
+                        <option value="J" ${subgrupo === "J"?"selected":""}>Grupo J</option>
+                        <option value="K" ${subgrupo === "K"?"selected":""}>Grupo K</option>
+                        <option value="L" ${subgrupo === "L"?"selected":""}>Grupo L</option>
+                        <option value="M" ${subgrupo === "M"?"selected":""}>Grupo M</option>
+                        <option value="N" ${subgrupo === "N"?"selected":""}>Grupo N</option>
+                        <option value="O" ${subgrupo === "O"?"selected":""}>Grupo O</option>
+                        <option value="P" ${subgrupo === "P"?"selected":""}>Grupo P</option>
+                        <option value="Q" ${subgrupo === "Q"?"selected":""}>Grupo Q</option>
+                        <option value="R" ${subgrupo === "R"?"selected":""}>Grupo R</option>
+                        <option value="S" ${subgrupo === "S"?"selected":""}>Grupo S</option>
+                        <option value="T" ${subgrupo === "T"?"selected":""}>Grupo T</option>
+                        <option value="U" ${subgrupo === "U"?"selected":""}>Grupo U</option>
+                        <option value="V" ${subgrupo === "V"?"selected":""}>Grupo V</option>
+                        <option value="W" ${subgrupo === "W"?"selected":""}>Grupo W</option>
+                        <option value="X" ${subgrupo === "X"?"selected":""}>Grupo X</option>
+                        <option value="Y" ${subgrupo === "Y"?"selected":""}>Grupo Y</option>
+                        <option value="Z" ${subgrupo === "Z"?"selected":""}>Grupo Z</option>
+                    </select>
+                </td>
+            `;
+        
+            newRow.innerHTML = rowContent;
+            table.appendChild(newRow);
+        } else {
+            let existingRow = document.getElementById(`subproducto-${id}`); 
+            existingRow.remove();
+            document.getElementById(`producto-${id}`).checked = false;
+        }
+    }
+
+    function scrollToLeft() {
+        const scrollArea = document.querySelector('#scrollContainerImagesProduct');
+        scrollArea.scrollLeft -= 50;
+    }
+
+    function scrollRight() {
+        const scrollArea = document.querySelector('#scrollContainerImagesProduct');
+        scrollArea.scrollLeft += 50;
+    }
+
+    function upInput(id){
+        document.getElementById(id).value = parseInt(document.getElementById(id).value) + 1;
+    }
+
+    function downInput(id){
+        let element = document.getElementById(id);
+        if(parseInt(element.value) > 0){
+            element.value = parseInt(element.value) - 1;
+        }
+    }
+
+    function loading(v,t=""){
+        if(v){
+            document.getElementById("loading").classList.remove("hidden");
+            document.getElementById("content-options").classList.add("hidden");
+            document.getElementById("text-loadding").innerText = t;
+        }
+        else{
+            document.getElementById("loading").classList.add("hidden");
+            document.getElementById("content-options").classList.remove("hidden");
+    
+        }
+    }
+
+    function limpiarForm(){
+        document.getElementById("input-edited-formula").value = ""
+        document.getElementById("input-cant-resultante").value = 1
+        
+        document.getElementById("formula-text").value = ""
+        document.getElementById("btn-accept").innerText = "Agregar"
+        document.getElementById('formula-text').value = "";
+        document.getElementById("tbody-tabla-subproductos").innerHTML = "";
+        
+        let checkboxs = document.querySelectorAll(".select-subproducto");
+        for (var i = 0; i < checkboxs.length; i++) {
+          checkboxs[i].checked = false;
+        }
+        const options = document.querySelectorAll("option[edited-option=true]");
+        for (let i = 0; i < options.length; i++) {
+            options[i].remove();
+        }
+        
+        const cocinas = [{% for cocina in cocinas %}{{cocina.id}},{% endfor %}]
+
+        cocinas.forEach((cocina) => {
+            document.getElementById(`cocina-${cocina}`).checked = false;
+        })
+        loading(false)
+    }
+    
+    function search(){
+        var elements = document.getElementsByClassName("item-subproducto");
+        for (var i = 0; i < elements.length; i++) {
+            var inputText = document.getElementById("input-group-search").value.toLowerCase();
+            var nameText = document.getElementById(`name-${elements[i].id}`).textContent.toLowerCase();
+
+            if (nameText.includes(inputText)) {
+                elements[i].classList.remove("hidden");
+            } else {
+                elements[i].classList.add("hidden");
+            }
+        }
+    }
+</script>
+
+{% endblock scripts %}

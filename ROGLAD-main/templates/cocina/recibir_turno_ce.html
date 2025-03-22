@@ -1,0 +1,276 @@
+{% load static custom_filters %}
+<html lang="{{language}}" translate="no" class="-dark">
+    <head id="head">
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" id="meta-viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ROGLAD</title>
+        
+        <link href="{% static 'css/icon.css' %}" rel="stylesheet">
+        <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.ico' %}"/>
+
+        <script src="{% static 'js/cdn.tailwindcss.js' %}"></script>
+
+        <link href="{% static 'css/icon.css' %}" rel="stylesheet"/>
+        <link href="{% static 'css/flowbite.min.css' %}"  rel="stylesheet"/>
+
+        <script src="{% static 'js/jquery.min.js' %}"></script>
+        <script src="{% static 'js/flowbite.min.js' %}"></script>
+        
+        <style type="text/css" media="screen">
+            span.datepicker-cell.selected {background-color: #a8a8a8 !important;}
+            .scrollbar::-webkit-scrollbar {
+                -webkit-appearance: none;
+            }
+            
+            .scrollbar::-webkit-scrollbar:vertical {
+                width:10px;
+            }
+            
+            .scrollbar::-webkit-scrollbar-button:increment,.scrollbar::-webkit-scrollbar-button {
+                display: none;
+            } 
+            
+            .scrollbar::-webkit-scrollbar:horizontal {
+                height: 10px;
+            }
+            
+            .scrollbar-sm::-webkit-scrollbar:horizontal {
+                height: 0px;
+            }
+            
+            .scrollbar::-webkit-scrollbar-thumb {
+                background-color: #e5e6e7;
+                border-radius: 20px;
+                border: 2px solid #f1f2f3;
+            }
+            
+            .scrollbar::-webkit-scrollbar-track {
+                border-radius: 10px;  
+            }
+            
+            
+            input[type=number]::-webkit-inner-spin-button, 
+            input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+            }
+            
+            input[type=number] { -moz-appearance:textfield; }
+
+        </style>
+    </head>
+    
+
+    <body class="p-3 bg-gray-50 dark:bg-gray-900 h-screen flex flex-col">
+        <div class="flex mb-2 items-center justify-start space-x-3 ">
+            <a href="{% url 'logout' %}?for={{request.COOKIES.cocina_id}}"  class=" items-center justify-center h-full px-4 cursor-pointer group focus:outline-none">
+                <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/50 dark:bg-gray-800/80 group-hover:bg-white dark:group-hover:bg-gray-800 group-focus:ring-4 group-focus:ring-white dark:group-focus:ring-gray-800/70 group-focus:outline-none">
+                    <svg class="w-4 h-4 text-gray-900 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4"/>
+                    </svg>
+                    <span class="sr-only">Previous</span>
+                </span>
+            </a>
+            <h1 class="text-black dark:text-white text-3xl font-bold font-serif flex-1">Cambio de turno</h1>
+            
+                
+            <div class="flex items-center justify-between px-6 py-1 space-x-12 bg-white mr-12 rounded-xl shadow">
+                {% if turno_anterior.user %}
+                <div class="flex flex-col items-center">
+                    <h5 class="mb-1 text-xs font-bold text-gray-900 dark:text-white">Turno anterior:</h5>
+                    <div class="flex space-x-2 items-center"> 
+                        <img class="w-6 h-6 rounded-full shadow-lg" src="{{turno_anterior.user.img}}" alt="image"/>
+                        <h5 class="text-lg font-semibold text-gray-900 dark:text-white truncate">{{turno_anterior.user}}</h5>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="flex flex-col items-center">
+                    <h5 class="mb-1 text-xs font-bold text-gray-900 dark:text-white">Iniciando como:</h5>
+                    <div class="flex space-x-2 items-center"> 
+                        <img class="w-6 h-6 rounded-full shadow-lg" src="{{request.user.img}}" alt="image"/>
+                        <h5 class="text-lg font-semibold text-gray-900 dark:text-white truncate">{{request.user}}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center justify-between px-6 py-1 space-x-12 ">
+            <h1 class="text-black dark:text-white text-3xl font-bold font-serif flex-1">Productos</h1>            
+        </div>
+        
+        <form class="flex justify-center h-full pb-0 mb-0 overflow-hidden" method="POST">
+            {% csrf_token %}        
+            <div class="w-4/6 max-w-6xl bg-white dark:bg-gray-900 shadow-lg rounded-lg overflow-x-auto flex flex-col justify-between" method="POST">
+                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 truncate"> Producto </th>
+                            <th scope="col" class="px-6 py-3 truncate text-center"> Cantidad de Producto</th>
+                            <th scope="col" class="px-6 py-3 truncate"> Unidad de Medida</th> 
+                        </tr>
+                    </thead>                    
+                    <tbody>
+                        {% for producto in productos_elab_kit %}                                                                                          
+                                <tr>
+                                    <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                                        Kit Elaborado:
+                                    </th>
+                                </tr>
+                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">                            
+                                    <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                                        {% if producto.img %}
+                                        <img class="rounded-full w-10 h-10" src="{{producto.img}}" alt="" />
+                                        {% else %}
+                                        <p class="rounded-full w-10 h-10 flex items-center justify-center font-bold text-md text-gray-600 bg-gray-100">{{ producto.nombre.0 }}{{ producto.nombre.1 }}<p>
+                                        {% endif %}
+                                        
+                                        <div class="px-3">
+                                            <div class="text-base font-semibold truncate" id="nombre-producto-{{producto.id_filter}}">{{ producto.nombre }}</div>
+                                            <div class="font-normal text-gray-500 truncate" id="categoria-producto-{{producto.id_filter}}">{{ producto.categoria }}</div>
+                                            <span class="hidden" id="precio-producto-{{producto.id_filter}}">{{ producto.precio_venta|parseFloat }}</div>
+                                        </div>  
+                                    </th>
+                                    <td class="px-6 py-4 truncate" id="medida-producto-{{producto.id_filter}}">{{ producto.cant_stock }}</td>
+                                    <td class="px-6 py-4 truncate" id="medida-producto-{{producto.id_filter}}">{{ producto.medida.nombre }}</td>
+                                    <input type="text" class="hidden" id="" name="ids" value="{{producto.id_filter}}">
+                                </tr>                            
+                        {% endfor %}
+                                <tr>
+                                    <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                                        Kit Sin Elaborar:
+                                    </th>
+                                </th>
+                        {% for producto in productos_sin_elab_kit %}                                                          
+                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">                                    
+                                    <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                                        {% if producto.img %}
+                                        <img class="rounded-full w-10 h-10" src="{{producto.img}}" alt="" />
+                                        {% else %}
+                                        <p class="rounded-full w-10 h-10 flex items-center justify-center font-bold text-md text-gray-600 bg-gray-100">{{ producto.nombre.0 }}{{ producto.nombre.1 }}<p>
+                                        {% endif %}
+                                        
+                                        <div class="px-3">
+                                            <div class="text-base font-semibold truncate" id="nombre-producto-{{producto.id_filter}}">{{ producto.nombre }}</div>
+                                            <div class="font-normal text-gray-500 truncate" id="categoria-producto-{{producto.id_filter}}">{{ producto.categoria }}</div>
+                                            <span class="hidden" id="precio-producto-{{producto.id_filter}}">{{ producto.precio_venta|parseFloat }}</div>
+                                        </div>  
+                                    </th>
+                                    <td class="px-6 py-4 truncate" id="medida-producto-{{producto.id_filter}}">{{ producto.cant_stock }}</td>
+                                    <td class="px-6 py-4 truncate" id="medida-producto-{{producto.id_filter}}">{{ producto.medida.nombre }}</td>
+                                    <input type="text" class="hidden" id="" name="ids" value="{{producto.id_filter}}">
+                                </tr>                    
+                        {% endfor %}                                
+                        </tbody>
+                </table>
+            </div> 
+            <div class="flex flex-col items-center w-2/6 pl-3 overflow-hidden">                
+                <button type="submit" class="w-full mt-1 text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center">Iniciar turno</button>
+            </div>   
+        </form>
+    </body>
+
+    <script>
+
+        function calcular_monto_reponer(){
+            let monto_reponer = 0.0;
+            let monto_reponer_elements = document.getElementsByName('monto_reponer');
+            for (var i = 0; i < monto_reponer_elements.length; i++) {
+                console.log(monto_reponer_elements[i].innerText.replace("$",""));
+                monto_reponer += parseFloat(monto_reponer_elements[i].innerText.replace("$",""));
+            }
+            document.getElementById("monto-total-reponer").innerText = `Monto total a reponer: $${toMoney(monto_reponer)}`;
+
+        }
+
+        function toMoney(i){
+            let i_list = i.toString().split(",");
+            if( i_list.length == 1 ){
+                return `${i_list[0]}.00`;
+            }
+            else if(i_list[1].length == 1){
+                return `${i_list[0]}.${i_list[1]}0`;
+            }
+            return i;
+        }
+        
+        function upInput(id){
+            const inp = document.getElementById(id);
+            let v = parseFloat(inp.value);
+            if(isNaN(v)){ v = 0 }
+            inp.value = v + 1;
+            changeStock(id.replace("input-ajuste-stock-",""))
+        }
+
+        function downInput(id){
+            const inp = document.getElementById(id);
+            let v = parseFloat(inp.value);
+            if(isNaN(v)){ v = 0 }
+            inp.value = v - 1;
+            if(inp.value < 0) inp.value = 0;
+            changeStock(id.replace("input-ajuste-stock-",""))
+        }
+        
+
+        function changeStock(id_ajuste){
+            let precio = parseFloat(document.getElementById(`precio-producto-${id_ajuste}`).innerText);
+            let cantidadAjustada = document.getElementById(`input-ajuste-stock-${id_ajuste}`).value;
+
+            let div = document.getElementById("content-notas");
+            let newElement = document.createElement("div");
+            newElement.id = `nota-${id_ajuste}`;
+            newElement.className = "flex flex-col items-top w-full p-4 mb-1 text-gray-500   bg-gray-50 rounded-lg shadow dark:text-gray-400 dark:bg-gray-800";
+            
+            let element = document.getElementById(`nota-${id_ajuste}`);
+            if (element !== null) {
+                let divRemove = document.getElementById(`nota-${id_ajuste}`);
+                divRemove.parentNode.removeChild(divRemove);
+            }
+
+            const defaultValue = document.getElementById(`input-ajuste-stock-${id_ajuste}`).getAttribute("default-value") 
+
+            let diferencia = (parseFloat(cantidadAjustada) - parseFloat(defaultValue)).toFixed(2);
+            console.log(diferencia)
+            
+            if(diferencia < 0){
+                newElement.innerHTML = `
+                <div class="flex w-full items-center">
+                    <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-200">
+                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"/>
+                        </svg>
+                        <span class="sr-only">Error icon</span>
+                    </div>
+                    <input type="text" class="hidden" name="precio" value="${precio}">
+                    <input type="text" class="hidden" name="id-producto" value="${id_ajuste}">
+                    <input type="number" step="0.01" step-my  class="hidden" name="cantidad-ajuste" id="cantidad-ajuste-${id_ajuste}" value=${diferencia}>
+                    <p class="ml-3 text-sm font-normal">Faltan ${diferencia*(-1)} ${document.getElementById(`medida-producto-${id_ajuste}`).textContent} de <b>${document.getElementById(`nombre-producto-${id_ajuste}`).textContent}</b></br>Monto a reponer: <b name="monto_reponer">$${toMoney(precio*diferencia*(-1))}</b></p>
+                </div>
+                <textarea name="motivos-ajuste" rows="1" required class="block mt-2 p-2.5 w-full text-sm text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Motivo del ajuste..."></textarea>`
+                div.prepend(newElement);
+            }
+            else if(diferencia > 0 && false == true ){
+                newElement.innerHTML = `
+                <div class="flex w-full items-center">
+                    <div class="inline-flex items-center justify-center flex-shrink-0 w-6 h-6 text-orange-500 bg-orange-100 rounded-lg dark:bg-orange-700 dark:text-orange-200">
+                        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM10 15a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1-4a1 1 0 0 1-2 0V6a1 1 0 0 1 2 0v5Z"/>
+                        </svg>
+                        <span class="sr-only">Warning icon</span>
+                    </div>
+                    <input type="text" class="hidden" name="precio" value="${precio}">
+                    <input type="text" class="hidden" name="id-producto" value="${id_ajuste}">
+                    <input type="number" step="0.01" step-my  class="hidden" name="cantidad-ajuste" id="cantidad-ajuste-${id_ajuste}" value=${diferencia}>
+                    <p class="ml-3 text-sm font-normal">Sobran ${diferencia} ${document.getElementById(`medida-producto-${id_ajuste}`).textContent} de <b>${document.getElementById(`nombre-producto-${id_ajuste}`).textContent}</b></p>
+                </div>
+                <textarea name="motivos-ajuste" rows="1" required class="block mt-2 p-2.5 w-full text-sm text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Motivo del ajuste..."></textarea>`
+                div.prepend(newElement);
+            }
+            
+            calcular_monto_reponer()
+
+        }
+
+
+    </script>
+</html>

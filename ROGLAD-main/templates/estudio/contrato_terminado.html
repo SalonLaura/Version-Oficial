@@ -1,0 +1,413 @@
+{% extends 'estudio/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+<script src="{% static 'js/datepicker.min.js' %}"></script>
+{% endblock styles %}
+
+{% block content %}
+<div class="w-full flex flex-col items-center p-6">
+    <button data-modal-target="historial-modal" data-modal-toggle="historial-modal" class="block text-blue-600 hover:underline rounded-xl font-medium text-sm px-5 py-1 text-center" type="button">Ver historial de cambios</button>
+      
+    <div class="w-full max-w-4xl shadow border flex flex-col px-6 pt-12 pb-6 bg-white">        
+        <input value="{{ficha_cliente.id}}" type="text" class="hidden" name="ficha_cliente_id">
+        {% csrf_token %}
+        <div class="flex justify-between">
+            <span class="w-16 text-xs font-light"></span>
+            <h1 class="font-bold text-black text-3xl">FICHA DEL CLIENTE DEL ESTUDIO</h1>
+            <div class="bg-gray-100 border border-black w-16 h-8"></div>
+        </div>
+
+        <div class="w-full flex justify-between mt-6">
+            <div class="">
+                <h1 class="font-bold text-black text-xl">CLIENTE No:</h1>
+                <h1 class="font-semibold text-black text-md">Aceptación de las condiciones del contrato:</h1>
+
+            </div>
+
+            <div class="grid grid-cols-2 border border-black">
+                <h3 class="font-semibold text-black border border-black px-2 text-sm">No. de Contrato</h3>
+                <span class="px-2.5 py-0 text-sm text-gray-900 bg-transparent appearance-none border border-black focus:border-black focus:outline-none focus:ring-0"></span>
+                
+                <h3 class="font-semibold text-black border border-black px-2 text-sm">Responsable / Maquillista</h3>
+                <span class="px-2.5 py-0 text-sm text-gray-900 bg-transparent border border-black">{{ficha_cliente.responsable_contrato.nombre}}</span>
+
+                <h3 class="font-semibold text-black border border-black px-2 text-sm">Tipo de Contrato</h3>
+                <span class="px-2.5 py-0 text-sm text-gray-900 bg-transparent border border-black">{{ficha_cliente.contrato.tipo.nombre}}</span>
+                
+                <h3 class="font-semibold text-black border border-black px-2 text-sm">Contrato Acordado</h3>
+                <span class="px-2.5 py-0 text-sm text-gray-900 bg-transparent border border-black">{{ficha_cliente.contrato.nombre}}</span>
+                
+                <h3 class="font-semibold text-black border border-black px-2 text-sm">Fotógrafo</h3>
+                <span class="px-2.5 py-0 text-sm text-gray-900 bg-transparent border border-black">{{ficha_cliente.fotografo.nombre}}</span>
+                
+                <h3 class="font-semibold text-black border border-black px-2 text-sm">Editor</h3>
+                <span class="px-2.5 py-0 text-sm text-gray-900 bg-transparent border border-black">{{ficha_cliente.editor.nombre}}</span>
+                
+                <h3 class="font-semibold text-black border border-black px-2 text-sm">Responsable de Revisión</h3>
+                <span class="px-2.5 py-0 text-sm text-gray-900 bg-transparent border border-black">{{ficha_cliente.responsable_revicion.nombre}}</span>
+            </div>
+        </div>
+
+        <div>
+            <div class="w-full flex justify-center mt-6">
+                <h2 class="font-bold text-black">I-</h2>
+                <h2 class="font-bold text-black underline">A LLENAR POR LA RECEPCIÓN</h2>
+            </div>
+
+            <div class="w-full flex justify-between mt-6">
+                <div class="flex">
+                    <h1 class="font-bold text-black mr-2">(A)</h1>
+                    <div>
+                        <div class="flex items-center">
+                            <h3 class="font-semibold text-black mr-1">Fecha de solicitud:</h3>
+                            <p class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent">{{ ficha_cliente.fecha_solicitud|date:"d/m/Y"}}</p>
+                        </div>
+                        <div class="flex items-center">
+                            <h3 class="font-semibold text-black mr-1">Fecha del día acordado:</h3>
+                            <p class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent">{{ ficha_cliente.fecha_acordada|date:"d/m/Y"}}</p>
+                        </div>
+                        <div class="flex items-center">
+                            <h3 class="font-semibold text-black mr-1">Fecha del realización:</h3>
+                            <p class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent">{{ ficha_cliente.fecha_realizacion|date:"d/m/Y"}}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full flex justify-center mt-6">
+                <h2 class="font-bold text-black">(B)</h2>
+                <h2 class="font-bold text-black underline">Datos Generales del Cliente</h2>
+            </div>
+            <h2 class="font-semibold text-black text-xs w-full text-center">(Carnet de Identidad)</h2>
+            
+            <div>
+                <div class="flex border-r border-black">
+                    <h2 class="w-24"></h2>
+                    <div class="flex-1 border-r border-black"></div>
+                    <div class="w-20 text-center border-t border-black">Firma cliente</div>
+                </div>
+                <div class="flex border border-b-0 border-black">
+                    <h2 class="w-24 border-r border-black px-1 font-bold">Nombre y apellidos</h2>
+                    <input value="{{ficha_cliente.nombre}}" type="text" name="nombre" required class="flex-1 px-2.5 py-0 border-0 border-r border-black text-sm text-gray-900 bg-transparent appearance-none focus:border-black focus:outline-none focus:ring-0" disabled>
+                    <span class="w-20 h-full"> </span>
+                </div>
+                <div class="flex border border-b-0 border-black">
+                    <h2 class="w-24 border-r border-black px-1 font-bold">Edad</h2>
+                    <input value="{{ficha_cliente.edad}}" type="text" name="edad" required class="flex-1 px-2.5 py-0 border-0 border-r border-black text-sm text-gray-900 bg-transparent appearance-none focus:border-black focus:outline-none focus:ring-0" disabled>
+                    <span class="w-20 h-full"> </span>
+                </div>
+                <div class="flex border border-b-0 border-black">
+                    <h2 class="w-24 border-r border-black px-1 font-bold">CI</h2>
+                    <input value="{{ficha_cliente.ci}}" type="text" name="ci" required class="flex-1 px-2.5 py-0 border-0 border-r border-black text-sm text-gray-900 bg-transparent appearance-none focus:border-black focus:outline-none focus:ring-0" disabled>
+                    <span class="w-20 h-full"> </span>
+                </div>
+                <div class="flex border border-b-0 border-black">
+                    <h2 class="w-24 border-r border-black px-1 font-bold">Dirección</h2>
+                    <div class="flex flex-col border-r border-black flex-1 p-2">
+                        <div class="flex">
+                            <h2 class="font-semibold text-sm">Calle:</h2>
+                            <input value="{{ficha_cliente.calle}}" type="text" name="calle" required class="w-48 px-2.5 py-0 border-0 text-sm text-gray-900 bg-transparent appearance-none focus:border-0 focus:outline-none focus:ring-0" disabled>
+                            
+                            <h2 class="font-semibold text-sm">No:</h2>
+                            <input value="{{ficha_cliente.numero}}" type="text" name="numero" required class="w-24 px-2.5 py-0 border-0 text-sm text-gray-900 bg-transparent appearance-none focus:border-0 focus:outline-none focus:ring-0" disabled>
+                        
+                            <h2 class="font-semibold text-sm">Entre:</h2>
+                            <input value="{{ficha_cliente.entre}}" type="text" name="entre" class="flex-1 px-2.5 py-0 border-0 text-sm text-gray-900 bg-transparent appearance-none focus:border-0 focus:outline-none focus:ring-0" disabled>
+                        </div>
+                        <div class="flex mt-2">
+                            <h2 class="font-semibold text-sm">Consejo Popular:</h2>
+                            <input value="{{ficha_cliente.consejo_popular}}" type="text" name="consejo_popular" class="flex-1 px-2.5 py-0 border-0 text-sm text-gray-900 bg-transparent appearance-none focus:border-0 focus:outline-none focus:ring-0" disabled>
+                            <h2 class="font-semibold text-sm">Muncp:</h2>
+                            <input value="{{ficha_cliente.muncp}}" type="text" name="muncp" required class="w-32 px-2.5 py-0 border-0 text-sm text-gray-900 bg-transparent appearance-none focus:border-0 focus:outline-none focus:ring-0" disabled>
+                            <h2 class="font-semibold text-sm">Prov:</h2>
+                            <input value="{{ficha_cliente.prov}}" type="text" name="prov" required class="w-32 px-2.5 py-0 border-0 text-sm text-gray-900 bg-transparent appearance-none focus:border-0 focus:outline-none focus:ring-0" disabled>
+                        </div>
+                        <div class="flex mt-2">
+                            <h2 class="font-semibold text-sm">País:</h2>
+                            <input value="{{ficha_cliente.pais}}" type="text" name="pais" required class="flex-1 px-2.5 py-0 border-0 text-sm text-gray-900 bg-transparent appearance-none focus:border-0 focus:outline-none focus:ring-0" disabled>
+                        </div>
+                    </div>
+                    <span class="w-20 h-full"> </span>
+                </div>
+                <div class="flex border border-b-0 border-black">
+                    <h2 class="w-24 border-r border-black px-1 font-bold">No. de Teléfono</h2>
+                    <input value="{{ficha_cliente.telefono}}" type="text" name="telefono" required class="flex-1 px-2.5 py-0 border-0 border-r border-black text-sm text-gray-900 bg-transparent appearance-none focus:border-black focus:outline-none focus:ring-0" disabled>
+                    <span class="w-20 h-full"> </span>
+                </div>
+                <p class="w-full text-center border border-b-0 border-black font-bold">Redes sociales</p>
+                <div class="flex border border-b-0 border-black">
+                    <h2 class="w-24 border-r border-black px-1 font-bold">Correo</h2>
+                    <input value="{{ficha_cliente.correo}}" type="text" name="correo" class="flex-1 px-2.5 py-0 border-0 border-r border-black text-sm text-gray-900 bg-transparent appearance-none focus:border-black focus:outline-none focus:ring-0" disabled>
+                    <span class="w-20 h-full"> </span>
+                </div>
+                <div class="flex border border-b-0 border-black">
+                    <h2 class="w-24 border-r border-black px-1 font-bold">Facebook</h2>
+                    <input value="{{ficha_cliente.facebook}}" type="text" name="facebook" class="flex-1 px-2.5 py-0 border-0 border-r border-black text-sm text-gray-900 bg-transparent appearance-none focus:border-black focus:outline-none focus:ring-0" disabled>
+                    <span class="w-20 h-full"> </span>
+                </div>
+                <div class="flex border border-b-0 border-black">
+                    <h2 class="w-24 border-r border-black px-1 font-bold">Instagram</h2>
+                    <input value="{{ficha_cliente.instagram}}" type="text" name="instagram" class="flex-1 px-2.5 py-0 border-0 border-r border-black text-sm text-gray-900 bg-transparent appearance-none focus:border-black focus:outline-none focus:ring-0" disabled>
+                    <span class="w-20 h-full"> </span>
+                </div>
+                <div class="flex border border-b-0 border-black">
+                    <h2 class="w-24 border-r border-black px-1 font-bold">Twitter</h2>
+                    <input value="{{ficha_cliente.twitter}}" type="text" name="twitter" class="flex-1 px-2.5 py-0 border-0 border-r border-black text-sm text-gray-900 bg-transparent appearance-none focus:border-black focus:outline-none focus:ring-0" disabled>
+                    <span class="w-20 h-full"> </span>
+                </div>
+                <div class="flex border border-black">
+                    <h2 class="w-24 border-r border-black px-1 font-bold">Telegram</h2>
+                    <input value="{{ficha_cliente.telegram}}" type="text" name="telegram" class="flex-1 px-2.5 py-0 border-0 border-r border-black text-sm text-gray-900 bg-transparent appearance-none focus:border-black focus:outline-none focus:ring-0" disabled>
+                    <span class="w-20 h-full"> </span>
+                </div>
+            </div>
+
+            <h2 class="font-bold text-black underline w-full text-center mt-6">Cliente que contrata nuestros servicios:</h2>
+            
+            <div class="flex">
+                <div class="flex-1 pr-6">
+                    <div class="flex items-center">
+                        <h3 class="font-semibold text-black mr-1">Nombre y Apellidos:</h3>
+                        <input value="{{ficha_cliente.nombre_contrata}}" type="text" name="nombre_contrata" required class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0" disabled>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-1/2 flex items-center">
+                            <h3 class="font-semibold text-black mr-1">Carnet de identidad:</h3>
+                            <input value="{{ficha_cliente.ci_contrata}}" type="text" name="ci_contrata" required disabled
+                             class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                        </div>
+                        <div class="w-1/2 flex items-center">
+                            <h3 class="font-semibold text-black mr-1">Parentesco:</h3>
+                            <input value="{{ficha_cliente.parentesco_contrata|nullToNone}}" type="text" name="parentesco_contrata" required  disabled
+                             class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                        </div>
+                    </div>
+                </div>
+                <div class="">
+                    <p class="flex-1 h-12 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0 h-12 w-32"></p>
+                    <h3 class="font-semibold text-black w-full text-center">Firma</h3>
+                </div>
+            </div>
+            <div class="flex">
+                <div class="flex-1 pr-6">
+                    <div class="flex items-center">
+                        <h3 class="font-semibold text-black mr-1">Nombre y Apellidos:</h3>
+                        <input value="{{ficha_cliente.nombre_contrata_2}}" type="text" name="nombre_contrata_2" required class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0" disabled>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-1/2 flex items-center">
+                            <h3 class="font-semibold text-black mr-1">Carnet de identidad:</h3>
+                            <input value="{{ficha_cliente.ci_contrata_2}}" type="text" name="ci_contrata_2" required disabled
+                             class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                        </div>
+                        <div class="w-1/2 flex items-center">
+                            <h3 class="font-semibold text-black mr-1">Parentesco:</h3>
+                            <input value="{{ficha_cliente.parentesco_contrata_2|nullToNone}}" type="text" name="parentesco_contrata_2" required  disabled
+                             class="flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+                        </div>
+                    </div>
+                </div>
+                <div class="">
+                    <p class="flex-1 h-12 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0 h-12 w-32"></p>
+                    <h3 class="font-semibold text-black w-full text-center">Firma</h3>
+                </div>
+            </div>
+
+            <div class="flex justify-between">
+                <span class="w-16 text-xs font-light"></span>
+                <h1 class="font-bold text-black text-lg">Contrato</h1>
+                <div class="w-16"></div>
+            </div>
+            <table class="w-full text-sm text-left text-gray-900">
+                <thead class="text-xs text-black uppercase  border border-b-0 border-black">
+                    <tr>
+                        <th scope="col" class="px-6 border-r border-black">No.</th>
+                        <th scope="col" class="px-6 border-r border-black hidden">Fecha</th>
+                        <th scope="col" class="px-6 border-r border-black">Contenido y Descripción</th>
+                        <th scope="col" class="px-6 border-r border-black">Cantidad</th>
+                        <th scope="col" class="px-6 border-r border-black">Cumplimiento</th>
+                        <th scope="col" class="px-6 border-r border-black">Selección</th>
+                        <th scope="col" class="px-6">Entrega</th>
+                    </tr>
+                </thead>
+                <tbody class="border-0 border-b border-black">
+                    {% if ficha_cliente.servicios_contrato.all|length == 0 %}
+                    <tr class="bg-white border border-b-0 border-black">
+                        <td colspan="6" class="px-6 border-r border-black text-center">No existen servicios asociados a este contrato</td>
+                    </tr>
+                    {% endif %}
+                    {% for servicio in ficha_cliente.servicios_contrato.all  %}
+                    <tr class="bg-white border border-b-0 border-black">
+                        <td class="px-6 border-r border-black">{{forloop.counter}}</td>
+                        <td class="px-6 border-r border-black hidden">-</td>
+                        <td class="px-6 border-r border-black">{{servicio.servicio.nombre}}</td>
+                        <td class="px-6 border-r border-black">{{servicio.cantidad}}</td>
+                        <td class="border-r border-black px-3">Terminado</td>
+                        <td class="px-6 border-r border-black">{{servicio.seleccion|nullToBlank}}</td>
+                        <td class="px-6 border-r border-black"></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="flex justify-between mt-10">
+                <span class="w-48"></span>
+                <h1 class="font-bold text-black text-lg text-center">Otros servicios y ventas</h1>
+                <span class="w-48"></span>
+            </div>
+            <table class="w-full text-sm text-left text-gray-900">
+                <thead class="text-xs text-black uppercase  border border-b-0 border-black">
+                    <tr>
+                        <th scope="col" class="px-2 border-r border-black">No.</th>
+                        <th scope="col" class="px-2 border-r border-black">Fecha</th>
+                        <th scope="col" class="px-2 border-r border-black truncate">Contenido y Descripción</th>
+                        <th scope="col" class="px-2 border-r border-black">Cantidad</th>
+                        <th scope="col" class="px-2 border-r border-black">Cumplimiento</th>
+                        <th scope="col" class="px-2 border-r border-black">Selección</th>
+                        <th scope="col" class="px-2">Entrega</th>
+                    </tr>
+                </thead>
+                <tbody class="border-0 border-b border-black" id="content-servicios">
+                    {% if ficha_cliente.servicios_adicionales.all|length == 0 %}
+                    <tr class="bg-white border border-b-0 border-black">
+                        <td colspan="7" class="px-6 border-r border-black text-center">No existen otros servicios o ventasagregados a este contrato</td>
+                    </tr>
+                    {% endif %}
+                    {% for servicio in ficha_cliente.servicios_adicionales.all %}
+                    <tr class="bg-white border border-b-0 border-black">
+                        <td class="px-2 border-r border-black quantity-service">{{ forloop.counter }}</td>
+                        <td class="px-2 border-r border-black">{{servicio.fecha_acordada|date:"d/m/Y"}}</td>
+                        <td class="px-2 border-r border-black">{{servicio.servicio.nombre}}</td>
+                        <td class="px-2 border-r border-black">{{servicio.cantidad}}</td>
+                        <td class="border-r border-black px-3">Terminado</td>
+                        <td class="px-6 border-r border-black">{{servicio.seleccion|nullToNone}}</td>
+                        <td class="px-2 border-r border-black"></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <h2 class="font-bold text-black underline w-full text-center mt-12 mb-6">Anticipo para la garantía del cliente</h2>
+            
+            <div class="flex items-center">
+                <h3 class="font-semibold text-black mr-1">Anticipo de:</h3>
+                <p class="px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent">${{ficha_cliente.contrato.anticipo|toMoney}} {{ficha_cliente.contrato.moneda_anticipo}}</p>
+                
+                <h3 class="font-semibold text-black mr-1 ml-4">Fecha del convenio del anticipo:</h3>
+                <p class="px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent">{% now "d/m/Y" %}</p>
+            </div>
+            
+            <h2 class="font-bold text-black underline w-full text-center mt-12 mb-6">Referente al pago</h2>
+            
+            <div class="flex items-center">
+                <h3 class="font-semibold text-black mr-1">Valor total del contrato, otros servicios y ventas:</h3>
+                <p id="monto-total-contrato" class="px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent">${{ficha_cliente.contrato.precio_cup|toMoney}}</p>
+                
+                <h3 class="font-semibold text-black mr-1 ml-4">Valor total a cobrar:</h3>
+                <p id="monto-total-cobrar" class="px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent"></p>
+            </div>
+            
+            <h2 class="font-bold text-black underline w-full text-center mt-12 mb-6">Autorizo para publicación de redes sociales</h2>
+
+
+            <ul class="flex">
+                <p class="mr-3">(Autorizo solo de los padres)</p>
+                <li class="mr-3">
+                    <label for="autorizo-redes-sociales-si">Si</label>
+                    <input type="radio" name="autorizo_redes_sociales" id="autorizo-redes-sociales-si" name="autorizo-redes-sociales" value="si" class="hidden peer" checked disabled>
+                    <label for="autorizo-redes-sociales-si" class="text-white font-bold bg-white border-b-2 border-black px-3 peer-checked:text-black">X</label>
+                </li>
+                <li>
+                    <label for="autorizo-redes-sociales-no">No</label>
+                    <input type="radio" name="autorizo_redes_sociales" id="autorizo-redes-sociales-no" name="autorizo-redes-sociales" value="no" class="hidden peer" {% if not ficha_cliente.autorizo_redes_sociales %}checked{% endif %} disabled>
+                    <label for="autorizo-redes-sociales-no" class="text-white font-bold bg-white border-b-2 border-black px-3 peer-checked:text-black">X</label>
+                </li>
+                <div class="flex items-center ml-24">
+                    <h3 class="font-semibold text-black mr-1">Firma del cliente:</h3>
+                    <p class="w-48 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0 h-8"></p>
+                </div>
+            </ul>
+
+            <div class="flex flex-col mt-6">
+                <h3 class="font-semibold text-black">Condiciones del cliente con referencia a la publicación:</h3>
+                <input type="text" value="{{ficha_cliente.condiciones_publicacion|nullToNone}}" disabled name="condiciones_publicacion" id="requisitos-publicacion" class="mt-3 flex-1 px-2.5 py-0 border-0 border-b border-b-black text-sm text-gray-900 bg-transparent appearance-none focus:border-b-black focus:outline-none focus:ring-0">
+            </div>
+            <label for="anotaciones" class="block mb-2 mt-6 text-sm font-medium text-black">Anotaciones:</label>
+            <p class="mb-2 text-sm font-normal text-black">{{ficha_cliente.anotaciones|nullToNone|linebreaksbr}}</p>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Main modal -->
+<div id="historial-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-2xl max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Historial de cambios</h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="historial-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <div class="p-4 md:p-5 h-96 overflow-auto flex flex-col">
+                {% for c in ficha_cliente.cambios %}
+                <span class="text-sm font-bold text-black pb-3 border-b">{{c.autor}} - {{c.fecha}}: <span class="text-sm font-normal">{{c.cambio}}</span></span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+  
+{% endblock content %}
+
+
+{% block scripts %}
+
+<script type = "text/JavaScript">
+
+    function calcValorTotal(){
+        const anticipo = {% if  ficha_cliente.contrato.anticipo %}{{ ficha_cliente.contrato.anticipo|parseFloat}}{% else %}0{% endif %};
+        var precio_contrato = {% if  ficha_cliente.contrato.precio_cup %}{{ ficha_cliente.contrato.precio_cup|parseFloat}}{% else %}0{% endif %};
+
+        var elementos = document.querySelectorAll('.otros-servicios-cantidades');
+        for (var i = 0; i < elementos.length; i++) {
+            const precio_unitario = elementos[i].getAttribute('precio-unitario')
+            const cantidad = elementos[i].value
+
+            const monto_agregar = precio_unitario * cantidad;
+            if(!NaN){
+                precio_contrato += monto_agregar;
+            }
+        }
+
+        document.getElementById("monto-total-contrato").innerText = toMoney(precio_contrato);
+        document.getElementById("monto-total-cobrar").innerText = toMoney(precio_contrato - anticipo);
+    }
+
+    function toMoney(m) {
+        var monto_list = m.toString().split(".");
+        if (monto_list.length == 2){
+            if(monto_list[1].length > 1){
+                return `$${monto_list[0]}.${monto_list[1]}`;
+            }
+            else{
+                return `$${monto_list[0]}.${monto_list[1]}0`;
+            }
+
+        }
+        else{
+            return `$${monto_list[0]}.00`;
+        }
+    }
+
+    calcValorTotal()
+</script>
+
+{% endblock scripts %}

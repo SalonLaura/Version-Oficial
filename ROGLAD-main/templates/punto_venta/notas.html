@@ -1,0 +1,39 @@
+{% extends 'punto_venta/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+{% endblock styles %}
+
+{% block content %}
+
+
+<div class="flex h-full w-full px-6 pt-[1%] pb-[0.5%] justify-center">
+    <div class="h-full flex-1">
+        {% csrf_token %}
+        <div class="w-full flex mb-3 justify-between">
+            <p class="text-3xl font-bold font-serif">Notas a tener en cuenta</p>
+        </div>
+        
+        {% if notas|length == 0 %}<p class="text-xl font-bold font-serif w-full text-center border-t pt-12">No hay notas</p>{% endif %}
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 ">
+            {% for nota in notas %}
+            <div class="pb-6 w-full flex flex-col items-start bg-yellow-200 shadow-xl">
+                <div class="w-full flex justify-between">
+                    <img class="bg-cover bg-center w-12" src="{% static 'images/chincha.png' %}" alt="" />
+                </div>
+                <p class="px-12 w-full text-lg font-bold text-center">{{nota.cocina_nombre}}</p>
+                <p class="px-12 w-full text-start font-serif">{{nota.nota|linebreaksbr}}</p>
+                <p class="px-12 w-full text-xs font-bold mt-3">Cocinero: {{nota.cocinero_nombre}}</p>
+                <p class="px-12 w-full text-xs font-bold">Fecha: {{nota.fecha}}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+
+{% endblock content %}
+
+
+{% block scripts %}
+{% endblock scripts %}

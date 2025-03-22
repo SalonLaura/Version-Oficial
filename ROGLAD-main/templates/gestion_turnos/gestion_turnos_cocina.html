@@ -1,0 +1,424 @@
+{% extends 'base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+<script src="{% static 'js/datepicker.min.js' %}"></script>
+{% endblock styles %}
+                
+{% block content %}
+
+<div class="flex flex-col h-full p-6 flex-1 overflow-x-hidden">
+    <form id="form-filter" date-rangepicker  class="flex h-12 bg-white rounded-lg shadow-sm w-full p-1 space-x-1 mb-2" method="GET">
+        
+        <div class="w-1/4 border-r flex items-center">
+            <p class="text-gray-700 font-bold ml-3">Centro de costo: </p>
+            <select id="" name="centro_costo" class="flex-1 border-0 text-gray-900 text-sm focus:ring-0 focus:border-0 block p-2.5">
+                {% if puntos_venta|length > 0 %}<option disabled>Puntos de ventas</option>{% endif %}
+                {% for pv in puntos_venta %}
+                <option value="PV-{{ pv.id }}" {% if "PV-"|concatenate:pv.id == centro_costo_select %}selected{% endif %}>{{ pv.nombre }}</option>
+                {% endfor %}
+
+                {% if cocinas|length > 0 %}<option disabled>Cocinas</option>{% endif %}
+                {% for c in cocinas %}
+                <option value="C-{{ c.id }}" {% if "C-"|concatenate:c.id == centro_costo_select %}selected{% endif %}>{{ c.nombre }}</option>
+                {% endfor %}                
+
+                {% if almacenes|length > 0 %}<option disabled>Almacenes</option>
+                <option value="A-all" {% if "A-all" == centro_costo_select %}selected{% endif %}>Todos los almacenes</option>
+                {% endif %}
+            </select>
+        </div>
+
+        <div class="w-1/4 border-r flex items-center">
+            <p class="text-gray-700 font-bold ml-3">Desde: </p>
+            <input name="inicio" value="{{inicio}}" type="text" class="flex-1 border-0 text-gray-900 text-sm focus:ring-0 focus:border-0 block w-full p-2.5 " placeholder="-">
+        </div>
+        
+        <div class="w-1/4 border-r flex items-center">
+            <p class="text-gray-700 font-bold ml-3">Hasta: </p>
+            <input name="fin" value="{{fin}}" type="text" class="flex-1 border-0 text-gray-900 text-sm focus:ring-0 focus:border-0 block w-full p-2.5 " placeholder="-">
+        </div>
+
+        <button class="w-1/4 flex items-center justify-center  p-2.5 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-200 hover:bg-gray-300 border border-transparent rounded-lg focus:outline-none focus:shadow-outline-gray" type="submit">
+            <svg class="w-5 h-5 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z"></path>
+            </svg>
+            Filtrar turnos
+        </button>
+        
+        <input type="text" name="turno-c" value="{{turno_select.id}}" class="hidden"/>
+        <input id="opc-cuadre" type="radio" value="cuadre" onchange="document.getElementById('form-filter').submit()" name="opc" class="hidden"
+        {% if "opc=" not in request.build_absolute_uri or "&opc="|concatenate:"cuadre" in request.build_absolute_uri %}checked{% endif %}/>
+        <input id="opc-elaboraciones" type="radio" value="elaboraciones" onchange="document.getElementById('form-filter').submit()" name="opc" class="hidden"
+        {% if "&opc="|concatenate:"elaboraciones" in request.build_absolute_uri %}checked{% endif %}/>
+        <input id="opc-salario" type="radio" value="salario" onchange="document.getElementById('form-filter').submit()" name="opc" class="hidden"
+        {% if "&opc="|concatenate:"salario" in request.build_absolute_uri %}checked{% endif %}/>
+        <input id="opc-notas" type="radio" value="notas" onchange="document.getElementById('form-filter').submit()" name="opc" class="hidden"
+        {% if "&opc="|concatenate:"notas" in request.build_absolute_uri %}checked{% endif %}/>
+        <input id="opc-trab-ayudante" type="radio" value="trab-ayudante" onchange="document.getElementById('form-filter').submit()" name="opc" class="hidden"
+        {% if "&opc="|concatenate:"trab-ayudante" in request.build_absolute_uri %}checked{% endif %}/>
+
+                        
+        <!-- Dropdown menu -->
+        <div id="dropdownDots" class="z-10 hidden bg-white rounded-lg shadow p-1 dark:bg-gray-700 dark:divide-gray-600">
+            <div class="flex items-center py-2 px-4 hover:bg-gray-100 hover:text-black rounded-lg">
+                <button class="undefined text-md leading-none flex items-center" type="button"
+                    onclick="printTable('table-turno')">
+                    <span class="material-icons mr-3">print </span>
+                    Imprimir Tabla
+                </button>
+                
+            </div>
+            {% if "&opc="|concatenate:"cuadre" in request.build_absolute_uri %}            
+            <div class="border-b flex-1 my-1"></div>
+
+            {% if not request.user.admin_permission %}
+            <div class="flex items-center py-2 px-4 hover:bg-gray-100 hover:text-black rounded-lg">
+                <input checked id="analisis-all" type="radio" value="all" onchange="document.getElementById('form-filter').submit()" name="analisis" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                <label for="analisis-all" class="flex-1 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Análisis completo</label>
+            </div>
+            <div class="flex items-center py-2 px-4 hover:bg-gray-100 hover:text-black rounded-lg">
+                <input id="analisis-fijo" type="radio" value="f" onchange="document.getElementById('form-filter').submit()" name="analisis"
+                {% if "analisis=f" in request.build_absolute_uri %}checked{% endif %}
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                <label for="analisis-fijo" class="flex-1 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Análisis fijo</label>
+            </div>
+            {% endif %}
+            
+            {% endif %}
+        </div>
+        
+    </form>
+
+    <div class="flex w-full h-[calc(100%-3.5rem)]">
+        <div class="w-1/3 mr-2 h-full bg-white rounded-lg shadow-sm dark:bg-gray-800 overflow-y-auto">
+            <p class="font-serif text-lg p-3 font-bold sticky top-0 bg-white w-full border-b flex justify-between">
+                Turnos:                     
+            </p>
+            <div class="text-sm text-gray-700 dark:text-gray-200 space-y-2 w-full p-2">
+                {% for turno in turnos %}
+                    <label onclick="getTurno({{turno.id}})" class="{% if turno == turno_select %}cursor-pointer bg-gray-100 dark:bg-gray-600 {% endif %}cursor-pointer w-full rounded-lg flex flex-col items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                        <div class="px-3 flex justify-between w-full">
+                            <div class="flex items-center"> 
+                                <img class="w-6 h-6 mr-3 rounded-full" src="{{turno.user.img}}" alt="">
+                                <p class="text-lg font-semibold truncate mr-6">{{ turno.user }}</p>
+                            </div> 
+
+                            {% if not turno.fin %}
+                            <p class="text-md font-bold py-1 leading-tight text-green-700 dark:text-green-100 text-start truncate">Abierto</p>
+                            {% else %}
+                            <p class="text-md font-bold py-1 leading-tight text-red-700 dark:text-red-100 text-start truncate">Cerrado</p>
+                            {% endif %}
+                        </div> 
+                        <p class="w-full text-start text-sm font-semibold pt-1 px-2 ml-20">Inicio: <span class="text-start font-normal">{{turno.inicio}}</span></p>
+                        <p class="w-full text-start text-sm font-semibold px-2 ml-20">Fin: <span class="text-start font-normal">{{turno.fin|nullToBlank}}</span></p>
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="w-2/3 h-full bg-white rounded-md shadow-md dark:bg-gray-800 flex flex-col justify-between">
+            <div class="flex justify-between text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400 p-1">
+                <div class="flex-1 flex justify-between overflow-auto">
+                    <div class="mr-2 w-1/4">
+                        <label for="opc-cuadre"  class="{% if "opc=" not in request.build_absolute_uri or "&opc="|concatenate:"cuadre" in request.build_absolute_uri %} text-purple-600 bg-gray-200 font-bold text-md font-serif {% else %} hover:text-gray-600 hover:bg-gray-100 {% endif %} w-full inline-block p-4 rounded-lg cursor-pointer">Cuadre</label>
+                    </div>
+                    <div class="mr-2 w-1/4">
+                        <label for="opc-elaboraciones" class="{% if "&opc="|concatenate:"elaboraciones" in request.build_absolute_uri %} text-purple-600 bg-gray-200 font-bold text-md font-serif {% else %} hover:text-gray-600 hover:bg-gray-100 {% endif %} w-full inline-block p-4 rounded-lg cursor-pointer">Elaboraciones</label>
+                    </div>
+                    <div class="mr-2 w-1/4">
+                        <label for="opc-salario" class="{% if "&opc="|concatenate:"salario" in request.build_absolute_uri %} text-purple-600 bg-gray-200 font-bold text-md font-serif {% else %} hover:text-gray-600 hover:bg-gray-100 {% endif %} w-full inline-block p-4 rounded-lg cursor-pointer">Salarios</label>
+                    </div>
+                    <div class="mr-2 w-1/4">
+                        <label for="opc-notas" class="{% if "&opc="|concatenate:"notas" in request.build_absolute_uri %} text-purple-600 bg-gray-200 font-bold text-md font-serif {% else %} hover:text-gray-600 hover:bg-gray-100 {% endif %} w-full inline-block p-4 rounded-lg cursor-pointer">Notas</label>
+                    </div>
+                    <div class="mr-2 w-1/5">
+                        <label for="opc-trab-ayudante" class="{% if "&opc="|concatenate:"trab-ayudante" in request.build_absolute_uri %} text-purple-600 bg-gray-200 font-bold text-md font-serif {% else %} hover:text-gray-600 hover:bg-gray-100 {% endif %} w-full inline-block p-4 rounded-lg cursor-pointer truncate">Ayudantes</label>
+                    </div>
+                </div>
+                <div class="px-2 flex items-center border-l">
+                    <button id="dropdownMenuIconButton" data-dropdown-toggle="dropdownDots" data-dropdown-placement="left" class="inline-flex items-center p-2 text-sm font-medium text-center text-gray-900 bg-gray-100 rounded-lg hover:bg-gray-200 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-600" type="button">
+                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 4 15">
+                        <path d="M3.5 1.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 6.041a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 5.959a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="h-full overflow-auto w-full">
+                <div id="table-turno">
+                    <table class="text-sm text-left text-gray-500 w-full">
+                        {% if cuadre != None %}
+                        <thead class="" add-class-print="border">
+                            <tr class="text-xs text-gray-700 bg-gray-200 sticky top-0">
+                                <th scope="col" class="px-6 py-3 truncate"> Producto </th>
+                                <th scope="col" class="px-6 py-3"> Medida</th>  
+                                <th scope="col" class="px-6 py-3"> IPV/Inicial</th> 
+                                <th scope="col" class="px-6 py-3 truncate">Entradas</th>
+                                <th scope="col" class="px-6 py-3 truncate">Salidas</th>
+                                <th scope="col" class="px-6 py-3 truncate">Usado</th>
+                                <th scope="col" class="px-6 py-3 truncate"> IPV/Final</th>  
+                            </tr>
+                        </thead>
+                        <tbody  add-class-print="border-l border-r">
+                            {% for producto in cuadre %}
+                            <tr class="bg-white border-b hover:bg-gray-50">
+                                <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+
+                                    {% if producto.producto.img %}
+                                    <img class="rounded-full w-10 h-10" src="{{producto.producto.img}}" alt="" />
+                                    {% else %}
+                                    <p class="rounded-full w-10 h-10 flex items-center justify-center font-bold text-md text-gray-600 bg-gray-100">{{ producto.producto.nombre.0 }}{{ producto.producto.nombre.1 }}<p>
+                                    {% endif %}
+
+                                    <div class="px-3">
+                                        <div class="text-base font-semibold truncate">{{ producto.producto.nombre }}</div>
+                                        <div class="font-normal text-gray-500 truncate">Cod: {{ producto.producto.codigo|blankShow }}</div>
+                                    </div>  
+                                </th>
+                                <td class="px-6 py-4 truncate">{{ producto.producto.medida }}</td>
+                                
+                                <td class="px-6 py-4 truncate">{{ producto.recibido|parseFloat }}</td>
+                                <td class="px-6 py-4 truncate">{{ producto.cantidad_insertada_producto|parseFloat }}</td>
+                                <td class="px-6 py-4 truncate">{{producto.cantidad_retirada|parseFloat}}</td>
+                                <td class="px-6 py-4 truncate">{{ producto.cant_usado|parseFloat }}</td>
+                                {% if producto.entregado and turno_select.fin %}<td class="px-6 py-4 truncate">{{producto.entregado|parseFloat}}</td>{% else %}<td class="px-6 py-4 truncate">-</td>{% endif %}
+                                
+                            </tr>
+                            {% endfor %}
+                            
+                            {% if request.user.super_permission %}
+                            <tr class="bg-white hover:bg-gray-50">
+                                <td colspan="3" class="px-6 pt-4 truncate font-bold text-black">Costo de elaboración: ${{ costo_total|toMoney }}</td>
+                                <td colspan="4" class="px-6 pt-4 truncate font-bold text-black">Monto de las ventas: ${{ monto_total|toMoney }}</td>
+                            </tr>
+                            <tr class="bg-white border-b hover:bg-gray-50">
+                                <td colspan="7" class="px-6 pb-4 truncate text-xs text-red-600">
+                                    {% if "analisis=f" in request.build_absolute_uri %}
+                                    * Se está realizando un análisis fijo (exportable)
+                                    {% else %}
+                                    * Se está realizando un análisis completo
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+
+                        {% elif elaboraciones != None %}
+                        
+                        {% if elaboraciones.platos|length == 0 and elaboraciones.subproductos|length == 0 %}
+                        <p class="text-md font-bold w-full flex justify-center p-6">No se elaboró nada durante el turno</p>
+                        {% else %}
+                        <thead class="w-full" add-class-print="border">
+                            <tr class="text-xs text-gray-700 bg-gray-200 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                                <th scope="col" class="px-6 py-3 truncate pl-12"> Producto </th>
+                                <th scope="col" class="px-6 py-3 truncate text-center"> Cantidad </th>
+                                <th scope="col" class="px-6 py-3 truncate text-center"> Fecha/Hora </th>
+                            </tr>
+                        </thead>
+                        <tbody  add-class-print="border-l border-r">
+                            {% if elaboraciones.platos|length > 0 %}
+                            <tr class="border-b">
+                                <td colspan="3" class="text-center bg-green-50 text-green-600 font-bold">Platos</td>
+                            </tr>
+                            {% for plato in elaboraciones.platos %}
+                            <tr>
+                                <td class="px-3 py-4 text-base pl-12">{{ plato.producto.nombre }}</td>
+                                <td class="px-3 py-4 text-base text-center">{{ plato.cantidad_resultante|parseFloat }} {{plato.producto.medida.abreviatura}}</td>
+                                <td class="px-3 py-4 text-base text-center">{{ plato.fecha_fabricacion }}</td>
+                            </tr>
+                            
+                            <tr class="border-b">
+                                <td colspan="3" class="pb-3 pl-12">
+                                    <span class="font-semibold text-black">Subproductos usados:</span>
+                                    {{plato.consumo}}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% endif %}
+                            
+                            {% if elaboraciones.subproductos|length > 0 %}
+                            <tr class="border-b">
+                                <td colspan="3" class="text-center bg-green-50 text-green-600 font-bold">Subproductos</td>
+                            </tr>
+                            {% for plato in elaboraciones.subproductos %}
+                            <tr>
+                                <td class="px-3 py-4 text-base pl-12">{{ plato.producto.nombre }}</td>
+                                <td class="px-3 py-4 text-base text-center">{{ plato.cantidad_inicial|parseFloat }} {{plato.producto.medida.abreviatura}}</td>
+                                <td class="px-3 py-4 text-base text-center">{{ plato.fecha_fabricacion }}</td>
+                            </tr>
+                            
+                            <tr class="border-b">
+                                <td colspan="3" class="pb-3 pl-12">
+                                    <span class="font-bold text-black">Subproductos usados:</span>
+                                    {{plato.consumo}}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% endif %}                            
+                        </tbody>
+                        {% endif %}
+
+                        {% elif notas != None %}
+                        {% for nota in notas %}
+                        <div class="flex p-4 bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <div class="inline-flex mr-3 mt-1 items-center justify-center flex-shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-200">
+                                <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"/>
+                                </svg>
+                                <span class="sr-only">Error icon</span>
+                            </div>
+                            <div class="flex flex-col">
+                                
+                                <p class="text-md font-bold ">{% if nota.cantidad < 0 %}Faltan {% else %} Sobran {% endif %} {{ nota.cantidad|mod }} {{ nota.cuadre.producto.medida }} de {{ nota.cuadre.producto.nombre }}</p>
+                                <span class="text-md flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-gray-600" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M19.875 6.27c.7 .398 1.13 1.143 1.125 1.948v7.284c0 .809 -.443 1.555 -1.158 1.948l-6.75 4.27a2.269 2.269 0 0 1 -2.184 0l-6.75 -4.27a2.225 2.225 0 0 1 -1.158 -1.948v-7.285c0 -.809 .443 -1.554 1.158 -1.947l6.75 -3.98a2.33 2.33 0 0 1 2.25 0l6.75 3.98h-.033z"></path>
+                                        <path d="M12 16v.01"></path>
+                                        <path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483"></path>
+                                    </svg>
+                                    {{ nota.motivo }}
+                                </span>  
+                                <span class="text-md flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-gray-600" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    ${{ nota.monto|toMoney }}
+                                </span> 
+                                <span class="text-md flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-gray-600" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M4 5m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"></path>
+                                        <path d="M16 3l0 4"></path>
+                                        <path d="M8 3l0 4"></path>
+                                        <path d="M4 11l16 0"></path>
+                                        <path d="M8 15h2v2h-2z"></path>
+                                    </svg>
+                                    {{ nota.fecha }}
+                                </span> 
+                            </div>
+                        </div>
+                        {% endfor %}                    
+                        {% if notas|length == 0 %}
+                        <p class="text-md font-bold w-full flex justify-center p-6">No exitenten notas en este turno</p>
+                        {% endif %}    
+
+                        {% elif salario != None %}
+                        {% if salario.fin != None %}
+                        {% for pago in salario.pagos.all %}
+                        <div class="flex py-3 px-12">
+                            <p class=""><b>${{pago.monto|toMoney}}</b> - {{pago.descripcion}}</p>
+                        </div>
+                        {% endfor %}
+                        <p class="text-xl py-3 px-12 w-full border-t"><b>${{salario.total_pagado|toMoney}}</b> pagados en total</p>                        
+                        {% else %}
+                        <p class="text-md font-bold w-full flex justify-center p-6">Aún no se ha generado el salario del trabajador.</p>
+                        {% endif %}
+
+                        {% elif users != None %}
+                        <form method="POST" id="form-add" action="{%url 'AddAyudantes'%}" class="">
+                            {%csrf_token%}
+                            <input type="hidden" name="user-id-add" id="user-id-add">
+                            <input type="hidden" name="user-id-delete" id="user-id-delete">
+                            <input type="hidden" name="turno-id" value="{{turno_select.id}}">
+                            <input type="hidden" name="redirect" value="{{request.build_absolute_uri}}">
+                            
+                            {% if not turno_select.fin %}
+                            {% for user in users %}
+                            {% if  user != turno_select.user %}
+                            <div class="w-full flex justify-start py-5 items-center px-12 border-b">
+                                
+                                {% if user not in users_extra %}
+                                <button type="button" onclick="document.getElementById('user-id-add').value='{{user.id}}',document.getElementById('form-add').submit()" class="text-green-700 border border-green-700 bg-green-100 font-medium rounded-lg text-sm py-2 text-center w-24">Agregar</button>
+                                {% else %}
+                                <button type="button" onclick="document.getElementById('user-id-delete').value='{{user.id}}',document.getElementById('form-add').submit()" class="text-red-700 border border-red-700 bg-red-100 font-medium rounded-lg text-sm py-2 text-center w-24">Eliminar</button>
+                                {% endif %}
+                    
+                                <p class="ml-3 text-lg font-bold">{{user}}</p>
+                            </div>
+                            {% endif %}
+                            {% endfor %}                            
+                            {% else %}
+                            {% for user in users_extra %}
+                            <p class="ml-3 text-lg font-bold">{{user}}</p>
+                            {% endfor %}
+
+                            {% endif %}
+                    
+                        </form>
+
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="popup-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-md max-h-full">
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="popup-modal">
+                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <form class="p-4 md:p-5 text-center" method="POST" id="form-action" action="/reabrir-turno/">
+                <input class="hidden" type="text" id="turno-id" name="turno-id" value="{{turnos.0.id}}">
+                {% csrf_token %}
+                <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+                <h3 class="mb-1 text-lg font-normal text-gray-500 dark:text-gray-400" id="form-t1">¿Estas seguro de reabrir este turno?</h3>
+                <h3 class="mb-5 text-sm font-normal text-gray-500 dark:text-gray-400" id="form-t2">Esto implica que se revertiran los pagos realizados al dependiente.</h3>
+                <button data-modal-hide="popup-modal" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                <button type="submit" id="form-btn-t" class="text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">
+                    Reabrir turno
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block scripts %}
+<script type = "text/JavaScript">
+    function getTurno(id){
+        var currentUrl = window.location.href;
+        var separator = currentUrl.indexOf('?') !== -1 ? '&' : '?';
+        
+        if (currentUrl.indexOf('turno-c=') === -1) {
+            var newUrl = currentUrl + separator + 'turno-c=' + id;
+            window.location.href = newUrl;
+        }else {
+            var oldValue = getParameterByName('turno-c');
+            var newUrl = currentUrl.replace('turno-c=' + oldValue, 'turno-c=' + id);
+            window.location.href = newUrl;
+        }
+    }
+    function getParameterByName(name, url) {
+        if (!url) url = window.location.href;
+        name = name.replace(/[\[\]]/g, '\\$&');
+        var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+
+    function cerrarTurno(id){
+        document.getElementById("turno-id").value = id;
+    }
+    
+    function printTable(id){
+        const styles = document.head.querySelectorAll('style');
+        let styleContent = "";
+        styles.forEach( style => {
+            styleContent += `<style type="text/css">${style.innerHTML}</style>`
+        });
+        print(styleContent,document.getElementById(id).innerHTML);
+    }
+</script>
+{% endblock scripts %}

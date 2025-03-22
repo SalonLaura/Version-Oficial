@@ -1,0 +1,46 @@
+{% extends 'resguardo/base.html' %}
+
+{% block content %}
+<div class="container form-container">
+    <h1>Nuevo Registro</h1>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <form method="POST" class="data-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+            <div class="error-list">
+                {{ form.name.errors }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+            <div class="error-list">
+                {{ form.email.errors }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="submit-btn">Guardar</button>
+            <a href="{% url 'index' %}" class="cancel-btn">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

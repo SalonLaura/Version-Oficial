@@ -1,0 +1,232 @@
+{% extends base %}
+{% load static custom_filters %}
+
+{% block styles %}
+<script src="{% static 'js/datepicker.min.js' %}"></script>
+{% endblock styles %}
+                
+{% block content %}
+
+<div class="flex flex-col p-6 w-full  h-11/12">
+    <form date-rangepicker class="flex h-auto bg-white rounded-lg shadow-sm dark:bg-gray-800 w-full p-3 space-x-6 sticky top-0" method="GET">
+        <select id="" name="almacen" class="w-1/4 bg-gray-50 border border-gray-300 text-gray-900  rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+            <option value="all" selected>Todos los almacenes</option>
+            {% for almacen in almacenes %}
+            <option value="{{ almacen.id }}" {% if almacen == almacen_select %}selected{% endif %}>{{ almacen.nombre }}</option>
+            {% endfor %}
+        </select>
+        <div class="relative w-1/4">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg aria-hidden="true" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>
+            </div>
+            <input name="inicio" value="{{inicio}}" type="text" class="bg-gray-50 border border-gray-300 text-gray-900  rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Desde">
+        </div>
+        <div class="relative w-1/4">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg aria-hidden="true" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>
+            </div>
+            <input name="fin" type="text" value="{{fin}}" class="bg-gray-50 border border-gray-300 text-gray-900  rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Hasta">
+        </div>  
+        <button class="w-1/4 flex items-center justify-start truncate p-2.5  font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-200 hover:bg-gray-300 border border-transparent rounded-lg focus:outline-none focus:shadow-outline-gray" type="submit">
+            <svg class="w-5 h-5 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z"></path>
+            </svg>
+            Filtrar informes de recepción
+        </button>
+    </form>
+    {% if informes_recepcion|length == 0 %}    
+    <p class="flex justify-center font-bold text-xl mt-24 text-gray-800 dark:text-gray-100">
+        <svg class="w-6 h-6 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.143 17.082a24.248 24.248 0 003.844.148m-3.844-.148a23.856 23.856 0 01-5.455-1.31 8.964 8.964 0 002.3-5.542m3.155 6.852a3 3 0 005.667 1.97m1.965-2.277L21 21m-4.225-4.225a23.81 23.81 0 003.536-1.003A8.967 8.967 0 0118 9.75V9A6 6 0 006.53 6.53m10.245 10.245L6.53 6.53M3 3l3.53 3.53"></path>
+        </svg>
+        No existen informes de recepciónen en este período
+    </p>
+    {% endif %}
+
+    <div class="flex flex-col items-center p-6 w-full">
+        {% for ir in informes_recepcion %}   
+
+        <div class="flex justify-between w-full max-w-5xl">
+            <div class="flex text-sm items-center">Recepcionado por <span class="font-bold mx-3">{{ir.user_recepcion|nullToBlank}}</span>  Confirmado por <span class="font-bold mx-3">{{ir.user_recepcion|nullToBlank}}</span>
+                <span class="text-xs">({{ir.fecha}})</span>
+            </div>
+            <button class="undefined text-md leading-none flex items-center"
+                onclick="printIR('ir-{{forloop.counter}}')">
+                <span class="material-icons mr-3">print </span> Imprimir
+            </button>
+        </div>
+        <div class="flex flex-col items-center w-full" id="ir-{{forloop.counter}}">
+            <div class="flex flex-col w-full max-w-5xl mb-6" add-class-print="text-xs">
+                <div class="flex flex-col bg-white shadow-md">
+                    <div class="flex">
+                        <div class="flex w-1/2">
+                            <span class="w-1/5 border  text-center  font-bold">RE</br>CEP</br>TOR</span>
+                            <div class="w-4/5 flex flex-col">
+                                <span class="border border-b h-full  px-2">Entidad: Casa Laura S.R.L. </br>Codigo: 50004347244</span>
+                                <div class="flex border h-full px-2">
+                                    Almacén:  {{ ir.almacen }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex w-1/2">
+                            <div class="w-2/3 border h-full font-bold flex items-center justify-center">Informe de Recepción</div>
+                            <div class="w-1/3 border flex">
+                                <div class="w-1/3 flex flex-col">
+                                    <div class="border-b h-full text-center  font-bold">D</div>
+                                    <div class="h-full text-center " id="dia">{{ir.fecha|date:"d"}}</div>
+                                </div>
+                                <div class="w-1/3 border-l flex flex-col">
+                                    <div class="border-b h-full text-center  font-bold">M</div>
+                                    <div class="h-full text-center " id="mes">{{ir.fecha|date:"m"}}</div>
+                                </div>
+                                <div class="w-1/3 border-l flex flex-col">
+                                    <div class="border-b h-full text-center  font-bold">A</div>
+                                    <div class="h-full text-center " id="anno">{{ir.fecha|date:"y"}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>                
+                    <div class="flex">
+                        <span class="w-3/6 border h-full px-2.5">Proveedor:</br> {{ ir.proveedor }}</span>
+                        <span class="w-1/6 border h-full px-2.5">Codigo:</br> {{ ir.codigo }}</span>
+                        <span class="w-1/6 border h-full px-2.5">Factura:</br> {{ ir.factura }}</span>
+                        <span class="w-1/6 border h-full px-2.5">Conduce:</br> {{ ir.conduce }}</span>
+                    </div>
+                    <div class="flex">
+                        <span class="w-1/5 border h-full px-2.5">Contrato:</br> {{ ir.contrato }}</span>
+                        <span class="w-1/5 border h-full px-2.5">Manifiesto:</br> {{ ir.manifiesto }}</span>
+                        <span class="w-1/5 border h-full px-2.5">Partida:</br> {{ ir.partida }}</span>
+                        <span class="w-1/5 border h-full px-2.5">Embarque:</br> {{ ir.conoc_embarque }}</span>
+                        <span class="w-1/5 border h-full px-2.5">Expedicion:</br> {{ ir.orden_expedicion }}</span>
+                    </div>
+                    <div class="flex">
+                        <span class="w-2/4 border h-full px-2.5">Transportador:</br> {{ ir.transportador }}</span>
+                        <span class="w-1/4 border h-full px-2.5">Carne de identidad:</br> {{ ir.carne_identidad }}</span>
+                        <span class="w-1/4 border h-full px-2.5">Chapa:</br> {{ ir.chapa }}</span>
+                        
+                    </div>
+
+
+                    <div class="flex">
+                        <div class="flex w-1/2">
+                            <span class="w-1/6 border h-full text-sm font-semibold text-center flex items-center justify-center">Código</span>
+                            <span class="w-2/6 border h-full text-sm font-semibold text-center flex items-center justify-center">Descripción</span>
+                            <span class="w-1/6 border h-full text-sm font-semibold text-center flex items-center justify-center">U/M</span>
+                            <span class="w-2/6 border h-full text-sm font-semibold text-center flex items-center justify-center">F.V</span>
+                        </div>
+                        <div class="flex w-1/2">
+                            <div class="flex w-1/2 h-full">
+                                <span class="w-1/3 border h-full  font-semibold text-center  flex items-center justify-center">Cantidad</span>
+                                <span class="w-2/3 border h-full  font-semibold text-center ">Precio </br> unitario total</span>
+                            </div>
+                            <div class="flex w-1/2">
+                                <span class="w-2/3 border h-full  font-semibold text-center  flex items-center justify-center">Importe</span>
+                                <span class="w-1/3 border h-full  font-semibold text-center ">Saldo en </br> existencia</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="" id="content-products">
+                        {% for item in ir.productos %}
+                        <div class="flex">
+                            <div class="flex w-1/2">
+                                <span class="w-1/6 border text-center ">
+                                    {{ item.producto.codigo }}
+                                </span>
+                                <span class="w-2/6 border text-center ">{{ item.producto.nombre }}</span>
+                                <span class="w-1/6 border text-center ">{{ item.producto.medida }}</span>
+                                <span class="w-2/6 border text-center ">{{ item.vencimiento }}</span>
+                            </div>
+                            <div class="flex w-1/2 border">
+                                <div class="flex w-1/2 h-full border-r">
+                                    <span class="w-1/3 border-r text-center ">{{ item.cantidad_inicial|parseFloat }}</span>
+                                    <div class="flex w-2/3 border-l divide-x">
+                                        {% with item.costo_cup|toMoneyList as precio_venta_list %}
+                                        <span class="w-3/5 text-center  h-full">{{ precio_venta_list.0 }}</span>
+                                        <span class="w-2/5 text-center  h-full">{{ precio_venta_list.1 }}</span>
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                                <div class="flex w-1/2">
+                                    <div class="flex w-2/3 border-l divide-x">
+                                        {% with item.importe_inicial|toMoneyList as importe_inicial_list %}
+                                        <span class="w-3/5 text-center  h-full">{{ importe_inicial_list.0 }}</span>
+                                        <span class="w-2/5 text-center  h-full">{{ importe_inicial_list.1 }}</span>
+                                        {% endwith %}
+                                    </div>
+                                    <span class="w-1/3 h-full  text-center  border-l-2">{{ item.existencia|parseFloat }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="flex w-full">
+                        <span class="w-1/2 px-2.5 border-t border-b border-l">Importe total de la recepción</span>
+                        <div class="flex w-1/2 border-t">
+                            <div class="w-1/2 border-r border-b"></div>
+                            <div class="flex w-1/2 border-r">
+                                <div class="flex w-2/3 border-l border-b divide-x">
+                                    {% with ir.productos|sum_importe_inicial as precio_venta_list %}
+                                    <span class="w-3/5 text-center  h-full">{{ precio_venta_list.0 }}</span>
+                                    <span class="w-2/5 text-center  h-full">{{ precio_venta_list.1 }}</span>
+                                    {% endwith %}
+                                </div>
+                                <span class=" px-1 w-1/3 border-l-2"><span class="text-red-500"></span>No.</span>
+                            </div>
+                        </div>
+                    </div>            
+                    <div class="flex">
+                        <div class="flex w-11/12 min-h-10">
+                            <span class="w-1/5 border h-full px-2.5">J' Almacén:</br></span>
+                            <span class="w-1/5 border h-full px-2.5">Transportador:</br></span>
+                            <span class="w-1/5 border h-full px-2.5">Recepcionado:</br></span>
+                            <span class="w-1/5 border h-full px-2.5">Contabilizado:</br></span>
+                            <span class="w-1/5 border h-full  px-2">Anotado control de inventario</span>
+                        </div>
+                        <div class="flex flex-col w-1/12 border-t-0 border-l  border-r border-b">
+                        </div>
+                    </div>
+                    
+                    {% if ir.gastos.all|length > 0 %}
+                    <div class="flex w-full border-t border-gray-400">
+                        <span class="flex-1 px-2.5 border-t border-b border-l font-bold text-md py-2">Gastos involucrados</span>
+                    </div> 
+                    <div class="flex">
+                        <span class="w-2/3 border h-full  font-semibold px-2 py-1">Motivo del gasto</span>
+                        <span class="w-1/3 border-t border-b border-r h-full  font-semibold px-2 py-1">Monto</span>
+                    </div>
+                    <div class="flex flex-col" id="content-gastos">
+                        {% for gasto in ir.gastos.all %}
+                        <div class="flex">
+                            <span class="w-2/3 border h-full  px-2 py-1">{{gasto.nombre}}</span>
+                            <span class="w-1/3 border-t border-b border-r h-full  px-2 py-1">{{gasto.monto}}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+        
+        {% endfor %}
+    </div>
+
+</div>
+
+{% endblock content %}
+
+
+{% block scripts %}
+<script type = "text/JavaScript">
+    function printIR(id){
+        const styles = document.head.querySelectorAll('style');
+        let styleContent = "";
+        styles.forEach( style => {
+            styleContent += `<style type="text/css">${style.innerHTML}</style>`
+        });
+        print(styleContent,document.getElementById(id).innerHTML)
+    }
+</script>
+{% endblock scripts %}

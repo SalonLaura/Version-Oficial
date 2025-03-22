@@ -1,0 +1,293 @@
+{% load static %}
+<html lang="{{language}}" translate="no" class="-dark">
+    <head id="head">
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" id="meta-viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ROGLAD</title>
+        
+        <link href="{% static 'css/icon.css' %}" rel="stylesheet">
+        <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.ico' %}"/>
+
+        <script src="{% static 'js/print.js' %}"></script>
+        <script src="{% static 'js/cdn.tailwindcss.js' %}"></script>
+        <link href="{% static 'css/flowbite.min.css' %}"  rel="stylesheet"/>
+
+        <script src="{% static 'js/jquery.min.js' %}"></script>
+        <script src="{% static 'js/flowbite.min.js' %}"></script>
+        
+        {% block styles %} {% endblock styles %}
+        
+        <style type="text/css" media="screen">
+            span.datepicker-cell.selected {background-color: #a8a8a8 !important;}
+            .scrollbar::-webkit-scrollbar {
+                -webkit-appearance: none;
+            }
+            
+            .scrollbar::-webkit-scrollbar:vertical {
+                width:10px;
+            }
+            
+            .scrollbar::-webkit-scrollbar-button:increment,.scrollbar::-webkit-scrollbar-button {
+                display: none;
+            } 
+            
+            .scrollbar::-webkit-scrollbar:horizontal {
+                height: 10px;
+            }
+            
+            .scrollbar-sm::-webkit-scrollbar:horizontal {
+                height: 0px;
+            }
+            
+            .scrollbar::-webkit-scrollbar-thumb {
+                background-color: #e5e6e7;
+                border-radius: 20px;
+                border: 2px solid #f1f2f3;
+            }
+            
+            .scrollbar::-webkit-scrollbar-track {
+                border-radius: 10px;  
+            }
+            
+            
+            input[type=number]::-webkit-inner-spin-button, 
+            input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+            }
+            
+            input[type=number] { -moz-appearance:textfield; }
+
+        </style>
+    </head>
+    
+
+    <body class="overflow-hidden">
+
+        <div id="root" class="">
+            <div class="flex h-screen bg-gray-50 dark:bg-gray-900">
+                <!-- MENU SUPERIOR -->
+                <div class="flex flex-col h-full w-full">
+                    <header class="z-10 bg-white shadow-md dark:bg-gray-800">
+                        <div class="flex items-center justify-between h-full pr-6 mx-auto text-purple-600 dark:text-purple-300 overflow-x-auto">
+                            
+                            <ul class="flex h-full items-center justify-between space-x-1 ml-3 text-gray-600 dark:text-gray-300">
+                                
+                                <a href="{% url 'logout' %}?for=salon"  class=" items-center justify-center px-4 cursor-pointer group focus:outline-none">
+                                    <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-800/80 group-hover:bg-gray-100 dark:group-hover:bg-gray-800 group-focus:ring-4 group-focus:ring-white dark:group-focus:ring-gray-800/70 group-focus:outline-none">
+                                        <svg class="w-4 h-4 text-gray-900 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4"/>
+                                        </svg>
+                                        <span class="sr-only">Previous</span>
+                                    </span>
+                                </a>
+                                {% if request.user.super_permission or request.user.balanc_permission %}
+                                <li class="relative {% if 'salon/servicios' in request.path %}bg-purple-600 rounded-lg shadow-md{% endif %}">
+                                    
+                                    <a onclick="hablar('')" class="inline-flex px-6 py-3 items-center w-full text-sm font-semibold transition-colors duration-150 {% if 'salon/servicios' in request.path %}text-white{% else %}hover:text-gray-800 dark:hover:text-gray-200{% endif %}"
+                                    href="{% url 'ServiciosSalon' %}">
+                                        <svg xmlns="http://www.w3.org/2000/svg"  class="w-5 h-5" viewBox="0 0 400 384">
+                                            <path fill="currentColor" d="M32 160q13 0 22.5 9.5T64 192t-9.5 22.5T32 224t-22.5-9.5T0 192t9.5-22.5T32 160m0-128q13 0 22.5 9.5T64 64t-9.5 22.5T32 96T9.5 86.5T0 64t9.5-22.5T32 32m0 260q12 0 20 8t8 20t-8 20t-20 8t-20-8t-8-20t8-20t20-8m64 49v-42h299v42zm0-128v-42h299v42zm0-170h299v42H96z"/>
+                                        </svg>
+                                        <span class="ml-2 truncate">Servicios</span>
+                                    </a>
+                                </li>
+                                <li class="relative {% if 'salon/subproductos' in request.path %}bg-purple-600 rounded-lg shadow-md{% endif %}">
+                                    
+                                    <a onclick="hablar('')" class="inline-flex px-6 py-3 items-center w-full text-sm font-semibold transition-colors duration-150 {% if 'salon/subproductos' in request.path %}text-white{% else %}hover:text-gray-800 dark:hover:text-gray-200{% endif %}"
+                                    href="{% url 'SubproductosSalon' %}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24">
+                                            <path fill="currentColor" d="m4 3.5l5 5l-5 5zM21 20v-2H3v2zm0-7v-2h-9v2zm0-7V4h-9v2z"/>
+                                        </svg>
+                                        <span class="ml-2 truncate">Subproductos</span>
+                                    </a>
+                                </li>
+                                <li class="relative {% if 'salon/turnos' in request.path %}bg-purple-600 rounded-lg shadow-md{% endif %}">
+                                    
+                                    <a onclick="hablar('')" class="inline-flex px-6 py-3 items-center w-full text-sm font-semibold transition-colors duration-150 {% if 'salon/turnos' in request.path %}text-white{% else %}hover:text-gray-800 dark:hover:text-gray-200{% endif %}"
+                                    href="{% url 'TurnosSalon' %}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20">
+                                            <path fill="currentColor" d="M7 8a3 3 0 1 0 0-6a3 3 0 0 0 0 6m7.5 1a2.5 2.5 0 1 0 0-5a2.5 2.5 0 0 0 0 5M1.615 16.428a1.224 1.224 0 0 1-.569-1.175a6.002 6.002 0 0 1 11.908 0c.058.467-.172.92-.57 1.174A9.953 9.953 0 0 1 7 18a9.953 9.953 0 0 1-5.385-1.572M14.5 16h-.106c.07-.297.088-.611.048-.933a7.47 7.47 0 0 0-1.588-3.755a4.502 4.502 0 0 1 5.874 2.636a.818.818 0 0 1-.36.98A7.465 7.465 0 0 1 14.5 16"/>
+                                        </svg>
+                                        <span class="ml-2 truncate">Clientes con turnos</span>
+                                    </a>
+                                </li>
+                                <li class="relative {% if 'salon/gestion-turnos' in request.path %}bg-purple-600 rounded-lg shadow-md{% endif %}">
+                                    
+                                    <a onclick="hablar('')" class="inline-flex px-6 py-3 items-center w-full text-sm font-semibold transition-colors duration-150 {% if 'salon/gestion-turnos' in request.path %}text-white{% else %}hover:text-gray-800 dark:hover:text-gray-200{% endif %}"
+                                    href="{% url 'GestionTurnosSalon' %}">
+                                        <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605"></path>
+                                        </svg>
+                                        <span class="ml-2 truncate">Gestion de turnos</span>
+                                    </a>
+                                </li>
+                                <li class="relative">
+                                    <a onclick="hablar('')" class="inline-flex px-6 py-3 items-center w-full text-sm font-semibold transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200"
+                                    href="{% url 'InformeRecepcion' %}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24">
+                                            <path fill="currentColor" d="M12 23C6.443 21.765 2 16.522 2 11V5l10-4l10 4v6c0 5.524-4.443 10.765-10 12M4 6v5a10.58 10.58 0 0 0 8 10a10.58 10.58 0 0 0 8-10V6l-8-3Z"/><circle cx="12" cy="8.5" r="2.5" fill="currentColor"/><path fill="currentColor" d="M7 15a5.782 5.782 0 0 0 5 3a5.782 5.782 0 0 0 5-3c-.025-1.896-3.342-3-5-3c-1.667 0-4.975 1.104-5 3"/>
+                                        </svg>
+                                        <span class="ml-2 truncate">Panel principal</span>
+                                    </a>
+                                </li>
+                                {% elif request.user.salon_permission %} 
+                                <li class="relative {% if 'salon/turnos' in request.path %}bg-purple-600 rounded-lg shadow-md{% endif %}">
+                                    
+                                    <a onclick="hablar('')" class="inline-flex px-6 py-3 items-center w-full text-sm font-semibold transition-colors duration-150 {% if 'salon/turnos' in request.path %}text-white{% else %}hover:text-gray-800 dark:hover:text-gray-200{% endif %}"
+                                    href="{% url 'TurnosSalon' %}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20">
+                                            <path fill="currentColor" d="M7 8a3 3 0 1 0 0-6a3 3 0 0 0 0 6m7.5 1a2.5 2.5 0 1 0 0-5a2.5 2.5 0 0 0 0 5M1.615 16.428a1.224 1.224 0 0 1-.569-1.175a6.002 6.002 0 0 1 11.908 0c.058.467-.172.92-.57 1.174A9.953 9.953 0 0 1 7 18a9.953 9.953 0 0 1-5.385-1.572M14.5 16h-.106c.07-.297.088-.611.048-.933a7.47 7.47 0 0 0-1.588-3.755a4.502 4.502 0 0 1 5.874 2.636a.818.818 0 0 1-.36.98A7.465 7.465 0 0 1 14.5 16"/>
+                                        </svg>
+                                        <span class="ml-2 truncate">Clientes con turnos</span>
+                                    </a>
+                                </li>
+                                <li class="relative {% if 'salon/clientes-turnos' in request.path %}bg-purple-600 rounded-lg shadow-md{% endif %}">
+                                    
+                                    <a onclick="hablar('')" class="inline-flex px-6 py-3 items-center w-full text-sm font-semibold transition-colors duration-150 {% if 'salon/clientes-turnos' in request.path %}text-white{% else %}hover:text-gray-800 dark:hover:text-gray-200{% endif %}"
+                                    href="{% url 'ClientesSalon' %}">
+                                        <svg xmlns="http://www.w3.org/2000/svg"  class="w-5 h-5" viewBox="0 0 400 384">
+                                            <path fill="currentColor" d="M32 160q13 0 22.5 9.5T64 192t-9.5 22.5T32 224t-22.5-9.5T0 192t9.5-22.5T32 160m0-128q13 0 22.5 9.5T64 64t-9.5 22.5T32 96T9.5 86.5T0 64t9.5-22.5T32 32m0 260q12 0 20 8t8 20t-8 20t-20 8t-20-8t-8-20t8-20t20-8m64 49v-42h299v42zm0-128v-42h299v42zm0-170h299v42H96z"/>
+                                        </svg>
+                                        <span class="ml-2 truncate">Clientes para hoy</span>
+                                    </a>
+                                </li>
+                                <li class="relative {% if 'salon/clientes-atendidos' in request.path %}bg-purple-600 rounded-lg shadow-md{% endif %}">
+                                    
+                                    <a onclick="hablar('')" class="inline-flex px-6 py-3 items-center w-full text-sm font-semibold transition-colors duration-150 {% if 'salon/clientes-atendidos' in request.path %}text-white{% else %}hover:text-gray-800 dark:hover:text-gray-200{% endif %}"
+                                    href="{% url 'ClientesAtendidosSalon' %}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20">
+                                            <path fill="currentColor" d="M7 8a3 3 0 1 0 0-6a3 3 0 0 0 0 6m7.5 1a2.5 2.5 0 1 0 0-5a2.5 2.5 0 0 0 0 5M1.615 16.428a1.224 1.224 0 0 1-.569-1.175a6.002 6.002 0 0 1 11.908 0c.058.467-.172.92-.57 1.174A9.953 9.953 0 0 1 7 18a9.953 9.953 0 0 1-5.385-1.572M14.5 16h-.106c.07-.297.088-.611.048-.933a7.47 7.47 0 0 0-1.588-3.755a4.502 4.502 0 0 1 5.874 2.636a.818.818 0 0 1-.36.98A7.465 7.465 0 0 1 14.5 16"/>
+                                        </svg>
+                                        <span class="ml-2 truncate">Clientes atendidos</span>
+                                    </a>
+                                </li>
+                                <li class="relative {% if 'salon/consumo' in request.path %}bg-purple-600 rounded-lg shadow-md{% endif %}">                                    
+                                    <a onclick="hablar('')" class="inline-flex px-6 py-3 items-center w-full text-sm font-semibold transition-colors duration-150 {% if 'salon/consumo' in request.path %}text-white{% else %}hover:text-gray-800 dark:hover:text-gray-200{% endif %}"
+                                    href="{% url 'ConsumoSalon' %}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 256 256">
+                                            <path fill="currentColor" d="M28 64a12 12 0 0 1 12-12h176a12 12 0 0 1 0 24H40a12 12 0 0 1-12-12m12 76h64a12 12 0 0 0 0-24H40a12 12 0 0 0 0 24m80 40H40a12 12 0 0 0 0 24h80a12 12 0 0 0 0-24m120.49 20.49a12 12 0 0 1-17 0l-18.08-18.08a44 44 0 1 1 17-17l18.08 18.07a12 12 0 0 1 0 17.01M184 164a20 20 0 1 0-20-20a20 20 0 0 0 20 20"/>
+                                        </svg>
+                                        <span class="ml-2 truncate">Consumo</span>
+                                    </a>
+                                </li>
+                                <li class="relative {% if 'transferencia' in request.path %}bg-purple-600 rounded-lg mx-1.5 shadow-md{% endif %}">
+                                    <a onclick="hablar('')" class="inline-flex px-4 py-3 items-center w-full text-sm font-semibold transition-colors duration-150  {% if 'transferencia' in request.path %}text-white{% else %}hover:text-gray-800 dark:hover:text-gray-200{% endif %}"
+                                        href="{% url 'TransferenciaSalon' %}">
+                                        <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"></path>
+                                        </svg>
+                                        <span class="ml-2 truncate">Transferencias</span>
+                                    </a>
+                                </li>
+                                <li class="relative {% if 'entregar-turno' in request.path %}bg-purple-600 rounded-lg mx-1.5 shadow-md{% endif %}">
+                                    <a onclick="hablar('')" class="inline-flex px-4 py-3 items-center w-full text-sm font-semibold transition-colors duration-150 {% if 'entregar-turno' in request.path %}text-white{% else %}hover:text-gray-800 dark:hover:text-gray-200{% endif %}"
+                                        href="{% url 'EntregarTurnoSalon' %}">
+                                        <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0118 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3l1.5 1.5 3-3.75"></path>
+                                        </svg>
+                                        <span class="ml-2 truncate">Cerrar turno</span>
+                                    </a>
+                                </li>
+                                
+                                {% endif %}
+                            </ul>
+                            
+                            <div class="flex items-center space-x-3 bg-gray-50 p-2 rounded-full hidden">
+                                <button class="inline-flex items-center justify-center p-1 text-sm font-medium h-6 w-6 text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+                                onclick="changeScale(0.1)" type="button">
+                                    <span class="sr-only">Quantity button</span>
+                                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h16"></path>
+                                    </svg>
+                                </button>
+                                <p>Zoom</p>
+                                <button class="inline-flex items-center justify-center h-6 w-6 p-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-full focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" type="button" onclick="changeScale(-0.1)">
+                                    <span class="sr-only">Quantity button</span>
+                                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <div class="flex items-center space-x-6 pr-12 py-4">
+                                <div class="flex items-center px-6 text-gray-900 whitespace-nowrap dark:text-white">
+                                    <img class="w-8 h-8 rounded-full" src="{{request.user.img}}" alt="">
+                                    <div class="pl-3">
+                                        <div class="text-base font-semibold">Hola, {{ request.user }}</div>
+                                        <div class="font-normal text-gray-500 text-sm">{{ request.user.rool }} (SALÓN)</div>
+                                    </div>  
+                                </div>
+                                
+                                {% if request.user.super_permission or request.user.balanc_permission %}
+                                <a href="{% url 'AdminAlertas' %}" class="relative align-middle rounded-md focus:outline-none focus:shadow-outline-purple">
+                                    <svg class="h-6 w-6 xl:w-5 xl:h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" >
+                                        <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path>
+                                    </svg>
+                                </a>
+                                {% endif %}
+                            </div>
+                            
+
+
+                        </div>
+                    </header>
+
+                    <main class="h-screen w-full overflow-auto">
+                        {% block content %} {% endblock content %}
+                    </main>
+                </div>
+            </div>
+        </div>
+        
+        {% if messages %}
+            <div class="fixed end-6 bottom-6 group flex flex-col">
+                {% for message in messages %}
+                    {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+                    <div id="alert-{{forloop.counter}}" class="w-96 shadow border border-green-500 flex items-center p-4 mb-4 text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert">
+                        <svg class="flex-shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                        </svg>
+                        <span class="sr-only">Info</span>
+                        <div class="ms-3 text-sm font-medium">{{ message|safe }}</div>
+                        <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-green-50 text-green-500 rounded-lg focus:ring-2 focus:ring-green-400 p-1.5 hover:bg-green-200 inline-flex items-center justify-center h-8 w-8 dark:bg-gray-800 dark:text-green-400 dark:hover:bg-gray-700" data-dismiss-target="#alert-{{forloop.counter}}" aria-label="Close">
+                            <span class="sr-only">Close</span>
+                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                            </svg>
+                        </button>
+                    </div>
+                    {% elif message.level == DEFAULT_MESSAGE_LEVELS.ERROR  %}
+                    <div id="alert-{{forloop.counter}}" class="w-96 shadow border border-red-500 flex items-center p-4 mb-4 text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+                        <svg class="flex-shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                        </svg>
+                        <span class="sr-only">Info</span>
+                        <div class="ms-3 text-sm font-medium">{{ message|safe }}</div>
+                        <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-red-50 text-red-500 rounded-lg focus:ring-2 focus:ring-red-400 p-1.5 hover:bg-red-200 inline-flex items-center justify-center h-8 w-8 dark:bg-gray-800 dark:text-red-400 dark:hover:bg-gray-700" data-dismiss-target="#alert-{{forloop.counter}}" aria-label="Close">
+                            <span class="sr-only">Close</span>
+                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                            </svg>
+                        </button>
+                    </div>
+                    {% endif %}
+
+                {% endfor %}
+            </div>
+        {% endif %}
+    </body>
+
+{% block scripts %}
+{% endblock scripts %}
+
+
+<script src="{% static 'js/textToSpeak.js' %}"></script>
+<script>
+    
+</script>
+</html>
+
+
+

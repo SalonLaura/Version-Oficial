@@ -1,0 +1,262 @@
+{% extends 'salon/base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+<script src="{% static 'js/datepicker.min.js' %}"></script>
+{% endblock styles %}
+                
+{% block content %}
+
+<div class="flex flex-col h-full p-6 flex-1 overflow-x-hidden">
+    <form id="form-filter" date-rangepicker  class="flex h-12 bg-white rounded-lg shadow-sm w-full p-1 space-x-1 mb-2" method="GET">
+        
+        <div class="w-1/4 border-r flex items-center">
+            <p class="text-gray-700 font-bold ml-3">Trabajador: </p>
+            <select id="" name="user" class="flex-1 border-0 text-gray-900 text-sm focus:ring-0 focus:border-0 block p-2.5">
+                {% for u in usuarios %}
+                <option value="{{ u.id }}" {% if u == usuario_select %}selected{% endif %}>{{ u.user }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="w-1/4 border-r flex items-center">
+            <p class="text-gray-700 font-bold ml-3">Desde: </p>
+            <input name="inicio" value="{{inicio}}" type="text" class="flex-1 border-0 text-gray-900 text-sm focus:ring-0 focus:border-0 block w-full p-2.5 " placeholder="-">
+        </div>
+        
+        <div class="w-1/4 border-r flex items-center">
+            <p class="text-gray-700 font-bold ml-3">Hasta: </p>
+            <input name="fin" value="{{fin}}" type="text" class="flex-1 border-0 text-gray-900 text-sm focus:ring-0 focus:border-0 block w-full p-2.5 " placeholder="-">
+        </div>
+
+        <button class="w-1/4 flex items-center justify-center  p-2.5 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-200 hover:bg-gray-300 border border-transparent rounded-lg focus:outline-none focus:shadow-outline-gray" type="submit">
+            <svg class="w-5 h-5 mr-2" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z"></path>
+            </svg>
+            Filtrar turnos
+        </button>
+        
+        <input type="text" name="turno" value="{{turno_select.id}}" class="hidden"/>
+        <input id="opc-cuadre" type="radio" value="cuadre" onchange="document.getElementById('form-filter').submit()" name="opc" class="hidden"
+        {% if "opc=" not in request.build_absolute_uri or "&opc="|concatenate:"cuadre" in request.build_absolute_uri %}checked{% endif %}/>
+        <input id="opc-clientes" type="radio" value="clientes" onchange="document.getElementById('form-filter').submit()" name="opc" class="hidden"
+        {% if "&opc="|concatenate:"clientes" in request.build_absolute_uri %}checked{% endif %}/>
+        <input id="opc-consumo" type="radio" value="consumo" onchange="document.getElementById('form-filter').submit()" name="opc" class="hidden"
+        {% if "&opc="|concatenate:"consumo" in request.build_absolute_uri %}checked{% endif %}/>
+        <input id="opc-notas" type="radio" value="notas" onchange="document.getElementById('form-filter').submit()" name="opc" class="hidden"
+        {% if "&opc="|concatenate:"notas" in request.build_absolute_uri %}checked{% endif %}/>        
+    </form>
+
+    <div class="flex w-full h-[calc(100%-3.5rem)]">
+        <div class="w-1/3 mr-2 h-full bg-white rounded-lg shadow-sm dark:bg-gray-800 overflow-y-auto">
+            <p class="font-serif text-lg p-3 font-bold sticky top-0 bg-white w-full border-b flex justify-between">
+                Turnos:                     
+            </p>
+            <div class="text-sm text-gray-700 dark:text-gray-200 space-y-2 w-full p-2">
+                {% for turno in turnos %}
+                    <label onclick="getTurno({{turno.id}})" class="{% if turno == turno_select %}cursor-pointer bg-gray-100 dark:bg-gray-600 {% endif %}cursor-pointer w-full rounded-lg flex flex-col items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                        <div class="px-3 flex justify-between w-full">
+                            <div class="flex items-center"> 
+                                <img class="w-6 h-6 mr-3 rounded-full" src="{{turno.user.img}}" alt="">
+                                <p class="text-lg font-semibold truncate mr-6">{{ turno.user }}</p>
+                            </div> 
+
+                            {% if not turno.fin %}
+                            <p class="text-md font-bold py-1 leading-tight text-green-700 dark:text-green-100 text-start truncate">Abierto</p>
+                            {% else %}
+                            <p class="text-md font-bold py-1 leading-tight text-red-700 dark:text-red-100 text-start truncate">Cerrado</p>
+                            {% endif %}
+                        </div> 
+                        <p class="w-full text-start text-sm font-semibold pt-1 px-2 ml-20">Inicio: <span class="text-start font-normal">{{turno.inicio}}</span></p>
+                        <p class="w-full text-start text-sm font-semibold px-2 ml-20">Fin: <span class="text-start font-normal">{{turno.fin|nullToBlank}}</span></p>
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="w-2/3 h-full bg-white rounded-md shadow-md dark:bg-gray-800 flex flex-col justify-between">
+            <div class="flex justify-between text-sm font-medium text-center text-gray-500 border-b border-gray-200 dark:border-gray-700 dark:text-gray-400 p-1">
+                <div class="flex-1 flex justify-between overflow-auto">
+                    <div class="mr-2 w-1/4">
+                        <label for="opc-cuadre"  class="{% if "opc=" not in request.build_absolute_uri or "&opc="|concatenate:"cuadre" in request.build_absolute_uri %} text-purple-600 bg-gray-200 font-bold text-md font-serif {% else %} hover:text-gray-600 hover:bg-gray-100 {% endif %} w-full inline-block p-4 rounded-lg cursor-pointer">Cuadre</label>
+                    </div>
+                    <div class="mr-2 w-1/4">
+                        <label for="opc-clientes" class="{% if "&opc="|concatenate:"clientes" in request.build_absolute_uri %} text-purple-600 bg-gray-200 font-bold text-md font-serif {% else %} hover:text-gray-600 hover:bg-gray-100 {% endif %} w-full inline-block p-4 rounded-lg cursor-pointer">Clientes</label>
+                    </div>
+                    <div class="mr-2 w-1/4">
+                        <label for="opc-consumo" class="{% if "&opc="|concatenate:"consumo" in request.build_absolute_uri %} text-purple-600 bg-gray-200 font-bold text-md font-serif {% else %} hover:text-gray-600 hover:bg-gray-100 {% endif %} w-full inline-block p-4 rounded-lg cursor-pointer">Consumos</label>
+                    </div>
+                    <div class="mr-2 w-1/4">
+                        <label for="opc-notas" class="{% if "&opc="|concatenate:"notas" in request.build_absolute_uri %} text-purple-600 bg-gray-200 font-bold text-md font-serif {% else %} hover:text-gray-600 hover:bg-gray-100 {% endif %} w-full inline-block p-4 rounded-lg cursor-pointer">Notas</label>
+                    </div>
+                </div>
+
+                <div class="px-2 flex items-center border-l">
+                    <button class="undefined text-md leading-none flex items-center" type="button"
+                        onclick="printTable('table-turno')">
+                        <span class="material-icons">print </span>
+                    </button>
+                </div>
+            </div>
+            <div class="h-full overflow-auto w-full">
+                <div id="table-turno">
+                    <table class="text-sm text-left text-gray-500 w-full">
+
+                        {% if cuadre != None %}
+                        <thead class="" add-class-print="border">
+                            <tr class="text-xs text-gray-700 bg-gray-200 sticky top-0">
+                                <th scope="col" class="px-6 py-3 truncate"> Subproducto </th>
+                                <th scope="col" class="px-6 py-3"> Medida</th>  
+                                <th scope="col" class="px-6 py-3"> IPV/Inicial</th> 
+                                <th scope="col" class="px-6 py-3"> Entradas</th>
+                                <th scope="col" class="px-6 py-3 truncate"> Usado</th>  
+                                <th scope="col" class="px-6 py-3 truncate">IPV/Final</th>  
+                            </tr>
+                        </thead>
+                        <tbody  add-class-print="border-l border-r">
+                            {% for producto in cuadre %}
+                            <tr class="bg-white border-b hover:bg-gray-50">
+                                <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                                    <div class="truncate">{{ producto.producto.nombre }}</div> 
+                                </th>
+                                <td class="px-6 py-4 truncate">{{ producto.producto.medida }}</td>
+                                <td class="px-6 py-4 truncate">{{ producto.inicial|parseFloat }}</td>
+                                <td class="px-6 py-4 truncate">{{ producto.entradas|parseFloat }}</td>
+                                <td class="px-6 py-4 truncate">{{ producto.usado|parseFloat }}</td>
+                                <td class="px-6 py-4 truncate">{{ producto.entregado|parseFloat }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+
+                        {% elif clientes != None %}
+                        {% if clientes|length == 0 %}
+                        <p class="text-md font-bold w-full flex justify-center p-6">No se atendió ningun clinte durante este turno</p>
+                        {% else %}
+                        <thead>
+                            <tr class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                                <th scope="col" class="px-6 py-3"> Cliente</th>
+                                <th scope="col" class="px-6 py-3"> Servicios</th>
+                                <th scope="col" class="px-6 py-3"> Precio base(CUP)</th>
+                                <th scope="col" class="px-6 py-3"> Precio cobrado</th>
+                                <th scope="col" class="px-6 py-3">Fecha/Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cliente in clientes %}
+                            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                <th class="px-6 py-3 font-normal"> {{cliente.nombre}} </th>
+                                <th class="px-6 py-3 font-normal"> {{cliente.servicios_str}}</th>
+                                <th class="px-6 py-3 font-normal"> ${{cliente.precio_base_cup|toMoney}}</th>
+                                <th class="px-6 py-3 font-normal"> ${{cliente.monto_cobrado|toMoney}}</th>
+                                <th class="px-6 py-3 font-normal">{{cliente.fecha_realizacion}}</th>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        {% endif %}
+                        
+                        {% elif consumo != None %}
+                        {% if consumo|length == 0 %}
+                        <p class="text-md font-bold w-full flex justify-center p-6">No se consumió ningún subproducto durane el turno</p>
+                        {% else %}
+                        <thead>
+                            <tr class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                                <th scope="col" class="px-6 py-3"> Producto</th>
+                                <th scope="col" class="px-6 py-3"> Cantidad</th>
+                                <th scope="col" class="px-6 py-3"> Servicio</th>
+                                <th scope="col" class="px-6 py-3"> Cliente</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in consumo %}
+                            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                <th class="px-6 py-3 font-normal"> {{p.producto.nombre}} </th>
+                                <th class="px-6 py-3 font-normal"> {{p.cantidad|parseFloat}} {{p.producto.medida.nombre}} </th>
+                                <th class="px-6 py-3 font-normal"> {{p.servicio}} </th>
+                                <th class="px-6 py-3 font-normal"> {{p.cliente_name}} </th>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        {% endif %}
+
+                        {% elif notas != None %}
+                        {% for nota in notas %}
+                        <div class="flex p-4 bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <div class="inline-flex mr-3 mt-1 items-center justify-center flex-shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-200">
+                                <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"/>
+                                </svg>
+                                <span class="sr-only">Error icon</span>
+                            </div>
+                            <div class="flex flex-col">
+                                
+                                <p class="text-md font-bold ">{% if nota.cantidad < 0 %}Faltan {% else %} Sobran {% endif %} {{ nota.cantidad|mod|parseFloat }} {{ nota.producto.medida }} de {{ nota.producto.nombre }}</p>
+                                <span class="text-md flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-gray-600" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                        <path d="M19.875 6.27c.7 .398 1.13 1.143 1.125 1.948v7.284c0 .809 -.443 1.555 -1.158 1.948l-6.75 4.27a2.269 2.269 0 0 1 -2.184 0l-6.75 -4.27a2.225 2.225 0 0 1 -1.158 -1.948v-7.285c0 -.809 .443 -1.554 1.158 -1.947l6.75 -3.98a2.33 2.33 0 0 1 2.25 0l6.75 3.98h-.033z"></path>
+                                        <path d="M12 16v.01"></path>
+                                        <path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483"></path>
+                                    </svg>
+                                    {{ nota.motivo }}
+                                </span>  
+                                <span class="text-md flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-gray-600" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    ${{ nota.monto|toMoney }}
+                                </span> 
+                            </div>
+                        </div>
+                        {% endfor %}                    
+                        {% if notas|length == 0 %}
+                        <p class="text-md font-bold w-full flex justify-center p-6">No exitenten notas en este turno</p>
+                        {% endif %}
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block scripts %}
+<script type = "text/JavaScript">
+    function getTurno(id){
+        var currentUrl = window.location.href;
+        var separator = currentUrl.indexOf('?') !== -1 ? '&' : '?';
+        
+        if (currentUrl.indexOf('turno=') === -1) {
+            var newUrl = currentUrl + separator + 'turno=' + id;
+            window.location.href = newUrl;
+        }else {
+            var oldValue = getParameterByName('turno');
+            var newUrl = currentUrl.replace('turno=' + oldValue, 'turno=' + id);
+            window.location.href = newUrl;
+        }
+    }
+    function getParameterByName(name, url) {
+        if (!url) url = window.location.href;
+        name = name.replace(/[\[\]]/g, '\\$&');
+        var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+
+    function cerrarTurno(id){
+        document.getElementById("turno-id").value = id;
+    }
+    
+    function printTable(id){
+        const styles = document.head.querySelectorAll('style');
+        let styleContent = "";
+        styles.forEach( style => {
+            styleContent += `<style type="text/css">${style.innerHTML}</style>`
+        });
+        print(styleContent,document.getElementById(id).innerHTML);
+    }
+</script>
+{% endblock scripts %}

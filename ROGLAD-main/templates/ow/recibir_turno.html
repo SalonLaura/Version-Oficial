@@ -1,0 +1,239 @@
+{% load static custom_filters %}
+<html lang="{{language}}" translate="no" class="-dark">
+    <head id="head">
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ROGLAD</title>
+        
+        <link href="{% static 'css/icon.css' %}" rel="stylesheet">
+        <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.ico' %}"/>
+
+        <script src="{% static 'js/cdn.tailwindcss.js' %}"></script>
+
+        <link href="{% static 'css/icon.css' %}" rel="stylesheet"/>
+        <link href="{% static 'css/flowbite.min.css' %}"  rel="stylesheet"/>
+
+        <script src="{% static 'js/jquery.min.js' %}"></script>
+        <script src="{% static 'js/flowbite.min.js' %}"></script>
+    </head>
+    
+
+    <body class="p-6 bg-gray-50 dark:bg-gray-900 h-screen">
+        <div class="flex mb-3 items-center justify-start space-x-3">
+            <a href="{% url 'logout' %}?for=salon"  class=" items-center justify-center h-full px-4 cursor-pointer group focus:outline-none">
+                <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/50 dark:bg-gray-800/80 group-hover:bg-white dark:group-hover:bg-gray-800 group-focus:ring-4 group-focus:ring-white dark:group-focus:ring-gray-800/70 group-focus:outline-none">
+                    <svg class="w-4 h-4 text-gray-900 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4"/>
+                    </svg>
+                    <span class="sr-only">Previous</span>
+                </span>
+            </a>
+            <h1 class="text-black dark:text-white text-3xl font-bold font-serif flex-1">Cambio de turno</h1>
+            
+                
+            <div class="flex items-center justify-between px-6 py-1 space-x-12 bg-white mr-12 rounded-xl shadow">                
+                <div class="flex flex-col items-center">
+                    <h5 class="mb-1 text-xs font-bold text-gray-900 dark:text-white">Iniciando como:</h5>
+                    <div class="flex space-x-2 items-center"> 
+                        <img class="w-6 h-6 rounded-full shadow-lg" src="{{request.user.img}}" alt="image"/>
+                        <h5 class="text-lg font-semibold text-gray-900 dark:text-white truncate">{{request.user}}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form class="flex justify-center h-[95%]" method="POST">    
+            {% csrf_token %}        
+            <div class="w-4/6 max-w-6xl bg-white dark:bg-gray-900 shadow-lg rounded-lg overflow-x-auto flex flex-col justify-between" method="POST">
+                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-200 dark:bg-gray-700 dark:text-gray-400 sticky top-0">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 truncate"> Producto </th>
+                            <th scope="col" class="px-6 py-3 truncate"> Unidad de Medida</th>
+                            <th scope="col" class="px-6 py-3 truncate"> IPV/Inicial</th> 
+                            <th scope="col" class="px-6 py-3 truncate"> Ajuste de stock</th> 
+                            <th scope="col" class="px-6 py-3 truncate"> </th> 
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in stock %}
+                        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <th scope="row" class="flex items-center px-6 py-4 text-gray-900 whitespace-nowrap dark:text-white">
+                                {% if s.producto.img %}
+                                <img class="rounded-full w-10 h-10" src="{{s.producto.img}}" alt="" />
+                                {% else %}
+                                <p class="rounded-full w-10 h-10 flex items-center justify-center font-bold text-md text-gray-600 bg-gray-100">{{ s.producto.nombre.0 }}{{ s.producto.nombre.1 }}<p>
+                                {% endif %}
+                                
+                                <div class="px-3">
+                                    <div class="text-base font-semibold truncate" id="nombre-producto-{{s.producto.id}}">{{ s.producto.nombre }}</div>
+                                    <div class="font-normal text-gray-500 truncate" id="categoria-producto-{{s.producto.id}}">{{ s.producto.categoria }}</div>
+                                    <span class="hidden" id="precio-producto-{{s.producto.id}}">{{ s.producto.precio_venta }}</div>
+                                </div>  
+                            </th>
+                            <td class="px-6 py-4 truncate" id="medida-producto-{{s.producto.id}}">{{ s.producto.medida.abreviatura }}</td>
+                            <td class="px-6 py-4 truncate" id="cantidad-producto-{{s.producto.id}}">{{ s.cantidad_actual|parseFloat}}</td>
+                            <td class="px-6 py-4 truncate" id="ajuste-stock-{{s.producto.id}}">-</td>
+                            <td class="px-6 py-4">
+                                <button data-modal-target="ajuste-modal" data-modal-toggle="ajuste-modal" onclick="openAjustarStock('{{s.producto.id}}','{{s.producto.medida.nombre}}')"
+                                type="button" class="shadow-md text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-full text-sm items-center px-3 py-1.5 text-center">Modificar</button>
+                            </td>
+                            <input type="text" class="hidden" id="input-ajuste-stock-{{s.producto.id}}" name="ajuste-stock" value="-">
+                            <input type="text" class="hidden" id="" name="ids" value="{{s.producto.id}}">
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="flex flex-col items-center pb-4 w-2/6 pl-3">
+
+                <h5 class="mb-1 text-md text-red-500 font-bold" id="monto-total-reponer">Monto total a reponer: $0.00</h5>
+                <div id="content-notas" class="w-full bg-white dark:bg-gray-900 shadow-lg rounded-lg p-1 overflow-x-auto flex flex-col justify-top flex-grow w-[90%]"></div>
+                <button type="submit" class="w-full  mt-3 text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-lg text-sm items-center px-5 py-2.5 text-center">Iniciar turno</button>
+            </div>
+        </form>
+        <!-- Main modal -->
+        <div id="ajuste-modal" tabindex="-1" data-modal-backdrop="static" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+            <div class="relative w-full max-w-md max-h-full">
+                <!-- Modal content -->
+                <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+                    <button type="button" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="ajuste-modal">
+                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                        </svg>
+                        <span class="sr-only">Close modal</span>
+                    </button>
+                    <div class="px-6 py-6 lg:px-8">
+                        <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Ajuste de Stock</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <label for="cantiad-ajustar" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cantidad existente <span class="ml-1.5" id="medida-prod-edit"></span></label>
+                                <input type="number" step="0.01" step-my  id="cantiad-ajustar" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" min="0" placeholder="Introdusca la cantidad" required>
+                            </div>
+                            <div class="flex space-x-3">
+                                <button type="button" data-modal-hide="ajuste-modal" id="btn-deshacer" onclick="deshacerAjusteStock()" class="w-full text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">Deshacer</button>
+                                <button type="button" data-modal-hide="ajuste-modal" id="btn-ajustar" onclick="ajustarStock()" class="w-full text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Ajustar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+
+    <script>
+        let id_ajuste;
+
+        function openAjustarStock(id,medida){
+            document.getElementById("medida-prod-edit").innerText = `( ${medida}) `
+            let ajuste = document.getElementById(`input-ajuste-stock-${id}`);
+            if(ajuste.value == "-"){
+                document.getElementById("cantiad-ajustar").value = 0;
+
+                let boton = document.getElementById("btn-deshacer");
+                boton.className = "w-full text-white bg-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-800 cursor-not-allowed ";
+                boton.disabled = true;
+            }
+            else{
+                document.getElementById("cantiad-ajustar").value = parseFloat(ajuste.value);
+
+                let boton = document.getElementById("btn-deshacer");
+                boton.className = "w-full text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800 cursor-pointer";
+                boton.disabled = false;
+            }
+            id_ajuste = id;
+        }
+
+        function ajustarStock(){
+            let precio = parseFloat(document.getElementById(`precio-producto-${id_ajuste}`).innerText);
+            let cantidadAjustada = document.getElementById("cantiad-ajustar").value;
+            document.getElementById(`input-ajuste-stock-${id_ajuste}`).value = cantidadAjustada;
+            document.getElementById(`ajuste-stock-${id_ajuste}`).innerText = cantidadAjustada;
+
+            let div = document.getElementById("content-notas");
+            let newElement = document.createElement("div");
+            newElement.id = `nota-${id_ajuste}`;
+            newElement.className = "flex flex-col items-top w-full p-4 mb-1 text-gray-500   bg-gray-50 rounded-lg shadow dark:text-gray-400 dark:bg-gray-800";
+            
+            let element = document.getElementById(`nota-${id_ajuste}`);
+            if (element !== null) {
+                let divRemove = document.getElementById(`nota-${id_ajuste}`);
+                divRemove.parentNode.removeChild(divRemove);
+            }
+
+            let diferencia = (parseFloat(cantidadAjustada) - parseFloat(document.getElementById(`cantidad-producto-${id_ajuste}`).innerText)).toFixed(2);
+            
+            if(diferencia < 0){
+                newElement.innerHTML = `
+                <div class="flex w-full items-center">
+                    <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-200">
+                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"/>
+                        </svg>
+                        <span class="sr-only">Error icon</span>
+                    </div>
+                    <input type="number" step="0.01" step-my  class="hidden" name="id-producto" value=${id_ajuste}>
+                    <input type="number" step="0.01" step-my  class="hidden" name="cantidad-ajuste" id="cantidad-ajuste-${id_ajuste}" value=${diferencia}>
+                    <p class="ml-3 text-sm font-normal">Faltan ${diferencia*(-1)} ${document.getElementById(`medida-producto-${id_ajuste}`).textContent} de <b>${document.getElementById(`nombre-producto-${id_ajuste}`).textContent}</b></br>Monto a reponer: <b name="monto_reponer">$${toMoney(precio*diferencia*(-1))}</b></p>
+                </div>
+                <textarea name="motivos-ajuste" rows="1" required class="block mt-2 p-2.5 w-full text-sm text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Motivo del ajuste..."></textarea>`
+                div.prepend(newElement);
+            }
+            else if(diferencia > 0){
+                newElement.innerHTML = `
+                <div class="flex w-full items-center">
+                    <div class="inline-flex items-center justify-center flex-shrink-0 w-6 h-6 text-orange-500 bg-orange-100 rounded-lg dark:bg-orange-700 dark:text-orange-200">
+                        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM10 15a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1-4a1 1 0 0 1-2 0V6a1 1 0 0 1 2 0v5Z"/>
+                        </svg>
+                        <span class="sr-only">Warning icon</span>
+                    </div>
+                    <input type="number" step="0.01" step-my  class="hidden" name="id-producto" value=${id_ajuste}>
+                    <input type="number" step="0.01" step-my  class="hidden" name="cantidad-ajuste" id="cantidad-ajuste-${id_ajuste}" value=${diferencia}>
+                    <p class="ml-3 text-sm font-normal">Sobran ${diferencia} ${document.getElementById(`medida-producto-${id_ajuste}`).textContent} de <b>${document.getElementById(`nombre-producto-${id_ajuste}`).textContent}</b></p>
+                </div>
+                <textarea name="motivos-ajuste" rows="1" required class="block mt-2 p-2.5 w-full text-sm text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Motivo del ajuste..."></textarea>`
+                div.prepend(newElement);
+            }
+            else{
+                document.getElementById(`input-ajuste-stock-${id_ajuste}`).value = "-";
+                document.getElementById(`ajuste-stock-${id_ajuste}`).innerText = "-";
+            }
+            
+            calcular_monto_reponer()
+
+        }
+
+        function deshacerAjusteStock(){
+            let div = document.getElementById(`nota-${id_ajuste}`);
+            div.parentNode.removeChild(div);
+            document.getElementById(`input-ajuste-stock-${id_ajuste}`).value = "-";
+            document.getElementById(`ajuste-stock-${id_ajuste}`).innerText = "-";
+            calcular_monto_reponer()
+        }
+
+        function calcular_monto_reponer(){
+            let monto_reponer = 0.0;
+            let monto_reponer_elements = document.getElementsByName('monto_reponer');
+            for (var i = 0; i < monto_reponer_elements.length; i++) {
+                console.log(monto_reponer_elements[i].innerText.replace("$",""));
+                monto_reponer += parseFloat(monto_reponer_elements[i].innerText.replace("$",""));
+            }
+            document.getElementById("monto-total-reponer").innerText = `Monto total a reponer: $${toMoney(monto_reponer)}`;
+
+        }
+
+        function toMoney(i){
+            let i_list = i.toString().split(",");
+            if( i_list.length == 1 ){
+                return `${i_list[0]}.00`;
+            }
+            else if(i_list[1].length == 1){
+                return `${i_list[0]}.${i_list[1]}0`;
+            }
+            return i;
+        }
+    </script>
+</html>

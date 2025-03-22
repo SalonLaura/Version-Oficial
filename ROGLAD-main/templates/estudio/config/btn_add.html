@@ -1,0 +1,20 @@
+{% load static custom_filters %}
+<button class="flex items-center justify-between border border-gray-300 px-3 py-1.5 text-sm font-medium leading-5 text-gray-600 hover:text-gray-800 shadow-sm hover:shadow-lg bg-gray-200 hover:bg-gray-300 rounded-lg focus:outline-none focus:shadow-outline-gray"
+onclick="document.getElementById('btn-accept-trabajador').innerText='Agregar',
+document.getElementById('nombre_trabajador').value='',
+document.getElementById('label-header').innerText='{{titulo}}',
+document.getElementById('id-edit').value='',
+
+{% if pago %} 
+document.getElementById('div_pago_trabajador').classList.remove('hidden'),
+document.getElementById('pago_trabajador').setAttribute('required',true),
+{% else %}
+document.getElementById('div_pago_trabajador').classList.add('hidden'),
+document.getElementById('pago_trabajador').removeAttribute('required'),
+{% endif %}
+document.getElementById('pago_trabajador').value='',
+
+document.getElementById('form-add-trabajador').setAttribute('action','/estudio/add-{{tag}}/')"
+data-modal-target="trabajador-modal" data-modal-toggle="trabajador-modal">
+    {{titulo}}
+</button>

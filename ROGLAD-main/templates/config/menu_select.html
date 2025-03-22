@@ -1,0 +1,71 @@
+<ul class="flex text-sm font-medium text-center" id="filters-config">
+    <li class="p-1" role="presentation">
+        <a class="{% if 'config/trabajadores/' in request.path %} flex items-center inline-block p-2.5 text-purple-600 bg-purple-200 rounded-lg truncate
+        {% else %} flex items-center inline-block p-2.5 hover:text-purple-600 hover:bg-purple-200 rounded-lg truncate
+        {% endif %}" href="{% url "Config" area="trabajadores" %}">Trabajadores</a>
+    </li>
+
+    <!-- TSOK relacionado a los servicios
+    <li class="p-1" role="presentation">
+        <a class="{% if 'config/servicios/' in request.path %} flex items-center inline-block p-2.5 text-purple-600 bg-purple-200 rounded-lg truncate
+        {% else %} flex items-center inline-block p-2.5 hover:text-purple-600 hover:bg-purple-200 rounded-lg truncate
+        {% endif %}" href="{% url "Config" area="servicios" %}">Servicios</a>
+    </li>
+    -->
+    
+    <li class="p-1" role="presentation">
+        <a class="{% if 'config/almacenes/' in request.path %} flex items-center inline-block p-2.5 text-purple-600 bg-purple-200 rounded-lg truncate
+        {% else %} flex items-center inline-block p-2.5 hover:text-purple-600 hover:bg-purple-200 rounded-lg truncate
+        {% endif %}" href="{% url "Config" area="almacenes" %}">Almacenes</a>
+    </li>
+    <li class="p-1" role="presentation">
+        <a class="{% if 'config/puntos_venta/' in request.path %} flex items-center inline-block p-2.5 text-purple-600 bg-purple-200 rounded-lg truncate
+        {% else %} flex items-center inline-block p-2.5 hover:text-purple-600 hover:bg-purple-200 rounded-lg truncate
+        {% endif %}" href="{% url "Config" area="puntos_venta" %}">Puntos de venta</a>
+    </li>
+    <li class="p-1" role="presentation">
+        <a class="{% if 'config/cocinas/' in request.path %} flex items-center inline-block p-2.5 text-purple-600 bg-purple-200 rounded-lg truncate
+        {% else %} flex items-center inline-block p-2.5 hover:text-purple-600 hover:bg-purple-200 rounded-lg truncate
+        {% endif %}" href="{% url "Config" area="cocinas" %}">Cocinas</a>
+    </li>
+
+    
+    <li class="p-1" role="presentation">
+        <a class="{% if 'config/medidas/' in request.path %} flex items-center inline-block p-2.5 text-purple-600 bg-purple-200 rounded-lg truncate
+        {% else %} flex items-center inline-block p-2.5 hover:text-purple-600 hover:bg-purple-200 rounded-lg truncate
+        {% endif %}" href="{% url "Config" area="medidas" %}">Unidades de Medidas</a>
+    </li>
+    <li class="p-1" role="presentation">
+        <a class="{% if 'config/categorias/' in request.path %} flex items-center inline-block p-2.5 text-purple-600 bg-purple-200 rounded-lg truncate
+        {% else %} flex items-center inline-block p-2.5 hover:text-purple-600 hover:bg-purple-200 rounded-lg truncate
+        {% endif %}" href="{% url "Config" area="categorias" %}">Categorias</a>
+    </li>
+
+    <li class="p-1" role="presentation">
+        <a class="{% if 'config/medios_basicos/' in request.path or 'config/productos/' in request.path or 'config/subproductos/' in request.path or 'config/subproductos_elaborados/' in request.path or 'config/productos_compuestos/' in request.path  %} flex items-center inline-block p-2.5 text-purple-600 bg-purple-200 rounded-lg truncate
+        {% else %} flex items-center inline-block p-2.5 hover:text-purple-600 hover:bg-purple-200 rounded-lg truncate
+        {% endif %}" href="{% url "Config" area="medios_basicos" %}">Productos/Subproductos/Platos</a>
+    </li>
+    <li class="p-1" role="presentation">
+        <a class="{% if 'config/formulas/' in request.path %} flex items-center inline-block p-2.5 text-purple-600 bg-purple-200 rounded-lg truncate
+        {% else %} flex items-center inline-block p-2.5 hover:text-purple-600 hover:bg-purple-200 rounded-lg truncate
+        {% endif %}" href="{% url "Config" area="formulas" %}">Formulas de elaboración</a>
+    </li>
+    <li class="p-1" role="presentation">
+        <a class="{% if 'config/formulas_venta/' in request.path %} flex items-center inline-block p-2.5 text-purple-600 bg-purple-200 rounded-lg truncate
+        {% else %} flex items-center inline-block p-2.5 hover:text-purple-600 hover:bg-purple-200 rounded-lg truncate
+        {% endif %}" href="{% url "Config" area="formulas_venta" %}">Formulas de venta</a>
+    </li>
+    <li class="p-1" role="presentation">
+        <a class="{% if 'config/formulas_transformacion/' in request.path %} flex items-center inline-block p-2.5 text-purple-600 bg-purple-200 rounded-lg truncate
+        {% else %} flex items-center inline-block p-2.5 hover:text-purple-600 hover:bg-purple-200 rounded-lg truncate
+        {% endif %}" href="{% url "Config" area="formulas_transformacion" %}">Formulas de transformación</a>
+    </li>
+    {% if request.user.super_permission %}
+    <li class="p-1" role="presentation">
+        <a class="{% if 'config/variables/' in request.path %} flex items-center inline-block p-2.5 text-purple-600 bg-purple-200 rounded-lg truncate
+        {% else %} flex items-center inline-block p-2.5 hover:text-purple-600 hover:bg-purple-200 rounded-lg truncate
+        {% endif %}" href="{% url "Config" area="variables" %}">Variables</a>
+    </li>
+    {% endif %}
+</ul>

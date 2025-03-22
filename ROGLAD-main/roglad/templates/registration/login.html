@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio de Sesión</title>
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <img src="{% static 'logo.png' %}" alt="Logo" class="logo">
+            <h2>Selecciona tu negocio</h2>
+        </div>
+        
+        <form method="post" class="login-form" id="loginForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="business">Negocio:</label>
+                <select name="business" id="business" class="form-control" required>
+                    <option value="">Selecciona un negocio</option>
+                    <option value="1">Negocio 1</option>
+                    <option value="2">Negocio 2</option>
+                    <option value="3">Negocio 3</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="username">Usuario:</label>
+                <input type="text" id="username" name="username" required autocomplete="username">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña:</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
+                <span class="password-toggle">👁️</span>
+            </div>
+
+            <button type="submit" class="login-btn">Iniciar Sesión</button>
+            
+            {% if form.errors %}
+                <div class="alert error">
+                    Usuario o contraseña incorrectos
+                </div>
+            {% endif %}
+        </form>
+    </div>
+
+    <script src="{% static 'js/auth.js' %}"></script>
+</body>
+</html>

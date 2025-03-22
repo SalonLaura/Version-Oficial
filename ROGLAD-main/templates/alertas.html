@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static custom_filters %}
+
+{% block styles %}
+<script src="{% static 'js/datepicker.min.js' %}"></script>
+{% endblock styles %}
+                
+{% block content %}
+
+<div class="w-full h-full overflow-hidden">
+    <form class="h-full overflow-auto pb-24" method="POST">
+        {% csrf_token %}
+        <div class="flex justify-between w-full p-4 px-8 sticky top-0 bg-gray-50 z-30">
+            <h1 class="text-3xl font-serif underline font-bold text-black">Alertas</h1>
+            {% if request.user.super_permission %}<button type="submit" class="text-blue-600 bg-blue-200 hover:bg-blue-300 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none">Marcar como leidos los seleccionados</button>{% endif %}
+        </div>
+        <div class="p-3">
+            <div class="flex flex-col w-full p-4 px-8 bg-white border border-green-600 rounded-lg">
+                <p class="text-2xl font-bold w-full text-green-700 underline mb-2">Estado general:</p>
+                <div id="accordion-collapse" data-accordion="collapse">
+                    {% for c in centros_costo %}
+                    <h2 id="accordion-collapse-heading-{{forloop.counter}}">
+                        <button type="button" class="text-md flex items-center w-full text-black text-{{c.color}}-500 mb-1"  
+                        data-accordion-target="#accordion-collapse-body-{{forloop.counter}}" aria-expanded="false" aria-controls="accordion-collapse-body-{{forloop.counter}}">
+                            <svg data-accordion-icon class="w-3 h-3 rotate-90 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
+                            </svg>
+                            <span class="ml-2"><span class="text-{{c.color}}-600 font-bold">{{c.centro_costo}}: </span> {{c.estado}} </span> 
+                        </button>
+                    </h2>
+
+                    <div id="accordion-collapse-body-{{forloop.counter}}" class="hidden" aria-labelledby="accordion-collapse-heading-{{forloop.counter}}">
+                        <div class="relative overflow-x-auto border">
+                            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3">Trabajador</th>
+                                        <th scope="col" class="px-6 py-3">Inicio</th>
+                                        <th scope="col" class="px-6 py-3">Fin</th>
+                                        <th scope="col" class="px-6 py-3">Incidencias</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for turno in c.turnos %}
+                                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{turno.trabajador}}</th>
+                                        <td class="px-6 py-4">{{turno.inicio}}</td>
+                                        <td class="px-6 py-4">{{turno.fin}}</td>
+                                        <td class="px-6 py-4">{{turno.incidencias}}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% for alert in alertas %}
+        <div class="flex p-4 border-b px-6">
+            
+            {% if alert.tipo == None %}
+            <div class="inline-flex mr-3 mt-1 items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg dark:bg-green-800 dark:text-green-200">
+                <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM10 15a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1-4a1 1 0 0 1-2 0V6a1 1 0 0 1 2 0v5Z"/>
+                </svg>
+                <span class="sr-only">Warning icon</span>
+            </div>
+            {% elif alert.tipo == False %}
+            <div class="inline-flex mr-3 mt-1 items-center justify-center flex-shrink-0 w-8 h-8 text-orange-500 bg-orange-100 rounded-lg dark:bg-orange-800 dark:text-orange-200">
+                <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM10 15a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm1-4a1 1 0 0 1-2 0V6a1 1 0 0 1 2 0v5Z"/>
+                </svg>
+                <span class="sr-only">Warning icon</span>
+            </div>
+            {% else %}
+            <div class="inline-flex mr-3 mt-1 items-center justify-center flex-shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-200">
+                <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"/>
+                </svg>
+                <span class="sr-only">Error icon</span>
+            </div>
+            {% endif %}
+
+            <label for="{{forloop.counter}}" class="flex flex-col flex-1">
+                
+                <p class="text-md font-bold ">{{alert.motivo}}</p>
+                <span class="text-md flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-gray-600" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M19.875 6.27c.7 .398 1.13 1.143 1.125 1.948v7.284c0 .809 -.443 1.555 -1.158 1.948l-6.75 4.27a2.269 2.269 0 0 1 -2.184 0l-6.75 -4.27a2.225 2.225 0 0 1 -1.158 -1.948v-7.285c0 -.809 .443 -1.554 1.158 -1.947l6.75 -3.98a2.33 2.33 0 0 1 2.25 0l6.75 3.98h-.033z"></path>
+                        <path d="M12 16v.01"></path>
+                        <path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483"></path>
+                    </svg>
+                    {{ alert.origen }}
+                </span>
+                <span class="text-md flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-gray-600" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M4 5m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"></path>
+                        <path d="M16 3l0 4"></path>
+                        <path d="M8 3l0 4"></path>
+                        <path d="M4 11l16 0"></path>
+                        <path d="M8 15h2v2h-2z"></path>
+                    </svg>
+                    {{ alert.fecha }}
+                </span> 
+            </label>
+            <div class="flex items-center mb-4">
+                <input id="{{forloop.counter}}" type="checkbox" name="alerts-leido" value="{{alert.id}}" class="w-7 h-7 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+            </div>
+        </div>
+        {% endfor %}
+    </form>
+    
+</div>
+{% endblock content %}
+
+
+{% block scripts %}
+{% endblock scripts %}
