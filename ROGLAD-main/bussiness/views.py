@@ -33,6 +33,7 @@ def super_upper(text:str) -> str:
                 ord('ú'): 'U',
             })
 
+
 # -- Superadmin
 @method_decorator(login_required, name='dispatch')
 class ConfigView(View):
