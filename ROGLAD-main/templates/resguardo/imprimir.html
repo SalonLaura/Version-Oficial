@@ -19,6 +19,7 @@
     <table>
         <thead>            
             <tr>
+                <th>#</th>
                 <th>Producto</th>
                 <th>Lote</th>
                 <th>Cantidad</th>
@@ -31,6 +32,7 @@
             
             {% for producto in productos_almacen %}
             <tr>
+                <td>{{ forloop.counter }}</td>
                 <td>{{ producto.producto.nombre }}</td>  <!-- Ajusta los campos -->
                 <td>{{ producto.lote }}</td> 
                 <td>{{ producto.cantidad_actual }}</td>
@@ -47,6 +49,7 @@
     <table>
         <thead>            
             <tr>
+                <th>#</th>
                 <th>Producto</th>
                 <th>Lote</th>
                 <th>Cantidad</th>
@@ -58,8 +61,9 @@
         <tbody>        
             {% for producto in productos_pv %}
             <tr>
+                <td>{{ forloop.counter }}</td>
                 <td>{{ producto.producto.nombre }}</td>  <!-- Ajusta los campos -->
-                <td>{{ producto.lote }}</td> 
+                <td>{{ producto.lote.lote }}</td> 
                 <td>{{ producto.cantidad_actual }}</td>
                 <td>{{ producto.costo_cup }}</td>
                 <td>{{ producto.producto.precio_venta }}</td>
