@@ -25,6 +25,6 @@ class CustomLoginView(auth_views.LoginView):
     
 def lista_stock(request):
     productos = Producto.objects.all()  # Obtén todos los registros de stock
-    almacen = StockAlmacen.objects.all().order_by('producto')  # Obtén todos los registros de stock
-    pv = StockPuntoVenta.objects.all()  # Obtén todos los registros de stock
+    almacen = StockAlmacen.objects.filter(cantidad_actual__gt=0,activo=True).order_by('producto')  # Obtén todos los registros de stock
+    pv = StockPuntoVenta.objects.filter(cantidad_actual__gt=0,activo=True).order_by('producto')  # Obtén todos los registros de stock
     return render(request, 'resguardo/imprimir.html', {'productos': productos, 'productos_almacen': almacen, 'productos_pv': pv})
