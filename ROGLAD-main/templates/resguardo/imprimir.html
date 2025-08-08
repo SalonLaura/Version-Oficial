@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Stock</title>
+    <style>
+        @media print {
+            .no-print { display: none; }  /* Oculta botones al imprimir */
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+    </style>
+</head>
+<body>
+    <h1>Lista de Stock</h1>
+    <button onclick="window.print()" class="no-print">Imprimir</button>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Lote</th>
+                <th>Cantidad</th>
+                <th>Precio de Compra</th>
+                <th>Precio de Venta</th>
+                <!-- Añade más columnas según tu modelo -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for producto in productos_almacen %}
+            <tr>
+                <td>{{ producto.producto.nombre }}</td>  <!-- Ajusta los campos -->
+                <td>{{ producto.lote }}</td> 
+                <td>{{ producto.cantidad_actual }}</td>
+                <td>{{ producto.costo_cup }}</td>
+                <td>{{ producto.producto.precio_venta }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

@@ -34,7 +34,8 @@ urlpatterns = [
     path('almacen/', include('almacen.urls')),
     path('caja/', include('caja.urls')),
     path('salon/', include('salon.urls')),
-    path('w/', include('otherworkers.urls')),   
+    path('w/', include('otherworkers.urls')),
+    path('roglad/', include('roglad.urls')),   
 
     #Ruta Para Negocio de Punto de Venta
     #path('', include('punto_venta.urls')),

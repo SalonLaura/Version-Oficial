@@ -1,6 +1,8 @@
 from django.contrib.auth import views as auth_views
 from django.shortcuts import redirect
+from django.shortcuts import render
 from .models import Usuarios
+from bussiness.models import StockAlmacen, Producto, StockPuntoVenta 
 
 class CustomLoginView(auth_views.LoginView):
     template_name = 'registration/login.html'
@@ -20,3 +22,9 @@ class CustomLoginView(auth_views.LoginView):
         else:
             redirect_url = f'/roglad/resguardo/'
         return redirect(redirect_url)
+    
+def lista_stock(request):
+    productos = Producto.objects.all()  # Obtén todos los registros de stock
+    almacen = StockAlmacen.objects.all().order_by('producto')  # Obtén todos los registros de stock
+    pv = StockPuntoVenta.objects.all()  # Obtén todos los registros de stock
+    return render(request, 'resguardo/imprimir.html', {'productos': productos, 'productos_almacen': almacen, 'productos_pv': pv})
