@@ -23,6 +23,7 @@
                 <th>Producto</th>
                 <th>Lote</th>
                 <th>Cantidad</th>
+                <th>U/M</th>
                 <th>Precio de Compra</th>
                 <th>Precio de Venta</th>
                 <!-- Añade más columnas según tu modelo -->
@@ -36,6 +37,7 @@
                 <td>{{ producto.producto.nombre }}</td>  <!-- Ajusta los campos -->
                 <td>{{ producto.lote }}</td> 
                 <td>{{ producto.cantidad_actual }}</td>
+                <td>{{ producto.producto.medida.abreviatura }}</td>
                 <td>{{ producto.costo_cup }}</td>
                 <td>{{ producto.producto.precio_venta }}</td>
             </tr>
@@ -53,6 +55,7 @@
                 <th>Producto</th>
                 <th>Lote</th>
                 <th>Cantidad</th>
+                <th>U/M</th>
                 <th>Precio de Compra</th>
                 <th>Precio de Venta</th>
                 <!-- Añade más columnas según tu modelo -->
@@ -65,6 +68,7 @@
                 <td>{{ producto.producto.nombre }}</td>  <!-- Ajusta los campos -->
                 <td>{{ producto.lote.lote }}</td> 
                 <td>{{ producto.cantidad_actual }}</td>
+                <td>{{ producto.producto.medida.abreviatura }}</td>
                 <td>{{ producto.costo_cup }}</td>
                 <td>{{ producto.producto.precio_venta }}</td>
             </tr>
