@@ -101,7 +101,7 @@
                                         <span class="ml-2 truncate">Recetas</span>
                                     </a>
                                 </li>                                
-                                <li class="hidden relative {% if 'cocina/stock' in request.path %}bg-purple-600 rounded-lg mx-1.5 shadow-md{% endif %}">
+                                <li class="relative {% if 'cocina/stock' in request.path %}bg-purple-600 rounded-lg mx-1.5 shadow-md{% endif %}">
                                     <a class="inline-flex px-6 py-3 items-center w-full text-sm font-semibold transition-colors duration-150  {% if 'cocina/stock' in request.path %}text-white{% else %}hover:text-gray-800 dark:hover:text-gray-200{% endif %}"
                                         href="{% url 'StockCocina' %}">
                                         <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">

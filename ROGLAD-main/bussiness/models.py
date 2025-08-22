@@ -1299,6 +1299,85 @@ class StockPuntoVenta(models.Model):
         except: 
             return 0.0
 
+class StockBar(models.Model):
+    id = models.AutoField(primary_key=True)
+    punto_venta = models.ForeignKey(PuntoVenta,on_delete=models.CASCADE,null=False,blank=False,related_name="BarStock")
+    producto = models.ForeignKey(Producto,on_delete=models.CASCADE,null=False,blank=False,related_name="ProductoBarStock")
+    lote = models.ForeignKey(StockAlmacen,on_delete=models.CASCADE,null=True,blank=True,related_name="AlmacenBar")
+    lote_auditable = models.BooleanField(blank = True, null = True, default=True)
+    transferencia = models.ForeignKey(Transferencia,on_delete=models.CASCADE,null=True,blank=True,related_name="TransferenciaBar")
+    transformacion = models.ForeignKey(Transformacion,on_delete=models.CASCADE,null=True,blank=True,related_name="ProductoTransformadoBar")
+
+    costo_produccion = models.FloatField(blank = True, null = True)
+    existencia = models.FloatField(blank = True, null = True)
+    cantidad_remitida = models.FloatField(blank = True, null = True)
+    cantidad_recibida = models.FloatField(blank = True, null = True)
+
+    cantidad_inicial = models.FloatField(blank = True, null = True)
+    cantidad_actual = models.FloatField(blank = True, null = True)
+
+    alta = models.DateTimeField(auto_now_add=True)
+
+    activo = models.BooleanField(blank = True, null = True, default=True)
+
+    def operacion(self):
+        return "TransferenciaBar"
+
+    def destino(self):
+        return self.punto_venta
+
+    def type_(self) -> str:
+        return "StockBar"
+    
+    def __str__(self) -> str:
+        return str(self.id) + " - " + str(self.producto)
+    
+    def existencia_almacen_emisor(self) -> float:
+        return StockAlmacen.objects.filter(producto = self.producto,
+                                           almacen__id = self.transferencia.emisor_id.replace("A-",""),
+                                           cantidad_actual__gt=0,
+                                           activo = True
+                                        ).aggregate(total=Sum('cantidad_actual'))['total']
+    
+    def costo_cup(self) -> float:
+        if self.costo_produccion: return self.costo_produccion
+        return self.lote.costo_cup
+    
+    def existencia_almacen(self) -> float:
+        if not self.lote: return 0.0
+        return self.producto.existencia(almacen_id=self.lote.almacen.id)
+
+    def importe_remitido(self) -> float:
+        return self.cantidad_remitida * self.costo_cup()
+    
+    def importe_recibido(self) -> float:
+        try:
+            if self.cantidad_recibida: return self.cantidad_recibida * self.producto.precio_venta
+            return None
+        except: 
+            return None
+
+    def ganancia_dinero(self):
+        try:
+            if self.lote and self.lote.producto.precio_venta:
+                return self.lote.ganancia_dinero()
+            elif self.costo_produccion:
+                return self.producto.precio_venta - (self.costo_produccion/self.cantidad_inicial)
+            return 0.0
+        except: 
+            return 0.0
+
+    def ganancia_porciento(self) -> str:
+        try:
+            if self.lote and self.lote.producto.precio_venta:
+                return self.lote.ganancia_porciento()
+            elif self.costo_produccion:
+                return round(((self.producto.precio_venta - self.costo_produccion) * 100 ) / self.producto.precio_venta,2)
+            return 0.0
+        except: 
+            return 0.0
+
+
 class Cuenta(models.Model):
     id = models.AutoField(primary_key=True)
     nombre = models.TextField(blank = True, null = True)

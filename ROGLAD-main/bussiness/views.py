@@ -93,7 +93,7 @@ class ConfigView(View):
                                                 ).exclude(categoria__nombre = "ACCESORIOS, PRENDAS Y OTROS"
                                                 ).order_by("nombre")#categoria__nombre = "SUBPRODUCTOS"
         else:
-            productos = Producto.objects.filter(activo = True,is_compuesto=False
+            productos = Producto.objects.filter(activo = True
                                                 ).exclude(categoria__nombre = "SUBPRODUCTOS SALON"
                                                 ).exclude(categoria__nombre = "ACCESORIOS, PRENDAS Y OTROS"
                                                 ).order_by("nombre")
@@ -3722,9 +3722,6 @@ class RecibirTurnoView(View):
                 if "ajuste-stock" in data.keys():ajuste_stock = list(dict(data)["ajuste-stock"])
                 else:ajuste_stock =  []
                 
-                
-            
-
                 if "motivos-ajuste" in data.keys() and "id-producto" in data.keys() and "cantidad-ajuste" in data.keys():
                     motivos_ajuste = list(dict(data)["motivos-ajuste"])
                     id_producto = list(dict(data)["id-producto"])
