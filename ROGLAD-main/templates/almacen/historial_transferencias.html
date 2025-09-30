@@ -63,8 +63,8 @@
     </div>
 
     <form method="POST" class="flex flex-col w-full max-w-5xl mx-6 mb-6 bg-white">
-        <div class="flex text-sm items-center">Transferido por <span class="font-bold mx-3">{{transferencia.user_transfiere|nullToBlank}}</span>  Confirmado por <span class="font-bold mx-3">{{transferencia.user_confirmacion|nullToBlank}}</span>
-            <span class="text-xs">({{transferencia.alta}})</span>
+        <div class="flex text-sm items-center">Transferido por <span class="font-bold mx-3">{{transferencia.user_transfiere|nullToBlank}}</span><span class="text-xs">({{transferencia.alta}})</span>  Confirmado por <span class="font-bold mx-3">{{transferencia.user_confirmacion|nullToBlank}}</span>
+            <span class="text-xs">({{transferencia.date_confirm}})</span>
         </div>
         {% csrf_token %}
         <div class="flex flex-col bg-white shadow-md" id="transferencia-{{forloop.counter}}" add-class-print="mt-3 text-xs">
