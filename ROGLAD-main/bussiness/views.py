@@ -4252,7 +4252,7 @@ class TransferenciaPvView(View):
 
                 else:existencia = None
 
-                #stock_punto_venta.cantidad_inicial = cant
+                stock_punto_venta.cantidad_inicial = cant
                 stock_punto_venta.cantidad_actual += cant
                 stock_punto_venta.existencia = existencia
                 stock_punto_venta.activo = True
